@@ -6,6 +6,7 @@
 //#define LABORATORIO_2
 #define LABORATORIO_2_1
 
+#define COMMIT_VERSION j2
 
 //</editor-fold>
 
