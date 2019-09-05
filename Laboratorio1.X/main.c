@@ -1,12 +1,13 @@
 
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
+#define COMMIT_VERSION j3
 
 //#define LABORATORIO_1
-//#define LABORATORIO_2
-#define LABORATORIO_2_1
+#define LABORATORIO_2
+//#define LABORATORIO_2_1
 
-#define COMMIT_VERSION j2
+
 
 //</editor-fold>
 
@@ -40,7 +41,7 @@
 void MAIN_init()
 {
     INT_init();
-    
+    void CLK_Initialize(); 
     BTN_init();
     BTN_initInt();
     
@@ -114,7 +115,7 @@ int main ()
             LEDB_toggle();
         }
         
-        while( ! UTS_delayms( 100, false ) )
+        while( ! UTS_delayms( 1, false ) )
         {           
         }
         

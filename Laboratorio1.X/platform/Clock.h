@@ -4,7 +4,7 @@
 
 #include "HardwareProfile.h"
 
-
+void CLK_Initialize(); 
 
 
 

@@ -22,7 +22,7 @@ void __ISR ( _CHANGE_NOTICE_B_VECTOR, IPL2SOFT ) _CHANGE_NOTICE_B( void )
     if (CNFBbits.CNFB15 == 1)
     {
         CNFBCLR=0x8000;
-        BTN_A_pressed = !BTN_A_pressed; 
+        BTN_A_pressed = BTNA_getValue(); 
     }
     
     
@@ -37,7 +37,7 @@ void __ISR ( _CHANGE_NOTICE_A_VECTOR, IPL2SOFT ) _CHANGE_NOTICE_A( void )
     if (CNFAbits.CNFA13 == 1)
     {
         CNFACLR=0x2000;
-        BTN_B_pressed = !BTN_B_pressed; 
+        BTN_B_pressed = BTNB_getValue(); 
     }
 }
 

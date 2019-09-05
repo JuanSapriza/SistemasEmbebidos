@@ -20,7 +20,7 @@ void TMR_2_init()
     T2CONbits.TCKPS2 = 1;
     TMR2 = 0;
     T2CONbits.ON = 1;
-    //    PR2 = 374;
+//    PR2 = 374;
     PR2 = 124;  //porque nos quedaba mal jejeje
     
     // f_cpu_teorica = 24MHz
