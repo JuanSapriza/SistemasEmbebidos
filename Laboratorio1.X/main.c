@@ -1,7 +1,7 @@
 
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION j3
+#define COMMIT_VERSION n3
 
 //#define LABORATORIO_1
 #define LABORATORIO_2
