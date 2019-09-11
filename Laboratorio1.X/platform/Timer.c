@@ -1,3 +1,6 @@
+//////////////////////////////////////////////////////////////////////////////
+//INCLUDE
+//////////////////////////////////////////////////////////////////////////////
 
 #include <proc/p32mm0256gpm064.h>
 #include <xc.h>
@@ -20,16 +23,14 @@ void TMR_2_init()
     T2CONbits.TCKPS2 = 1;
     TMR2 = 0;
     T2CONbits.ON = 1;
-//    PR2 = 374;
-    PR2 = 124;  //porque nos quedaba mal jejeje
+    PR2 = 374;
     
     // f_cpu_teorica = 24MHz
-    // f_cpu_nosotros_creemos = 8MHz
     // f_1_ms = 1kHz
-    // Razon_creemos = 8kHz
-    // 8kHz = PS . ( PRI +1 )
-    // PS = 64 . ( PRI + 1 )
-    // PRI = 124
+    // Razon_queremos = 24kHz
+    // 24kHz = PS . ( PR2 +1 )
+    // PS = 64
+    // PR2 = 374
     
     TMR_2_contador = 0;
     

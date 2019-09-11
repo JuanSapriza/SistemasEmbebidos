@@ -1,6 +1,3 @@
-
-
-
 #include <proc/p32mm0256gpm064.h>
 
 #include "Buttons.h"

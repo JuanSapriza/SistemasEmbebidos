@@ -1,12 +1,9 @@
-
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION v4
 
 //#define LABORATORIO_1
-#define LABORATORIO_2
-//#define LABORATORIO_2_1
-
+//#define LABORATORIO_2
+#define LABORATORIO_2_1
 
 
 //</editor-fold>
@@ -21,6 +18,8 @@
 #include "platform/HardwareProfile.h"
 #include "platform/Buttons.h"
 #include "platform/Leds.h"
+#include "platform/Timer.h"
+#include "platform/Clock.h"
 
 
 //</editor-fold>
@@ -41,13 +40,14 @@
 void MAIN_init()
 {
     INT_init();
-    void CLK_Initialize(); 
+    
     BTN_init();
     BTN_initInt();
     
     LEDA_SetDigitalOutput();
     LEDB_SetDigitalOutput();
 
+    CLK_Initialize(); 
     TMR_2_init();
     
 }
@@ -115,7 +115,7 @@ int main ()
             LEDB_toggle();
         }
         
-        while( ! UTS_delayms( 1, false ) )
+        while( ! UTS_delayms( 100, false ) )
         {           
         }
         
@@ -130,7 +130,7 @@ int main ()
 int main ()
 {
     MAIN_init();
-    
+       
     bool btnAWasPressed = false;
     bool btnBWasPressed = false;
       
@@ -144,7 +144,7 @@ int main ()
             btnAWasPressed = true;
         }
         
-        if( btnAWasPressed && UTS_delayms( 10000, false )  )  // 28 segundos 
+        if( btnAWasPressed && UTS_delayms( 10000, false )  )  // 10 segundos 
         {
             LEDA_setHigh();
         }
