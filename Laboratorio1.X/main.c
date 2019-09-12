@@ -1,11 +1,11 @@
 
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION n3
+#define COMMIT_VERSION Laboratorio2
 
 //#define LABORATORIO_1
-#define LABORATORIO_2
-//#define LABORATORIO_2_1
+//#define LABORATORIO_2
+#define LABORATORIO_2_1
 
 
 
@@ -144,7 +144,7 @@ int main ()
             btnAWasPressed = true;
         }
         
-        if( btnAWasPressed && UTS_delayms( 10000, false )  )  // 28 segundos 
+        if( btnAWasPressed && UTS_delayms( 2000, false )  )  // 28 segundos 
         {
             LEDA_setHigh();
         }
