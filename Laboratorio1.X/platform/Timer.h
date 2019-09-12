@@ -14,4 +14,3 @@ uint32_t TMR_2_getCount();
 void TMR_2_init();
 
 #endif	/* TIMER_H */
-
