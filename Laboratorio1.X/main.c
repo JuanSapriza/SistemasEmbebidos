@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION Nati
+#define COMMIT_VERSION MCC_branch_1
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
