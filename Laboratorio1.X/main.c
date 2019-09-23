@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION Aca podemos cagar todo igual
+#define COMMIT_VERSION VIky1
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
