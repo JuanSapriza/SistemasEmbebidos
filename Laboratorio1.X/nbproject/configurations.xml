@@ -10,9 +10,6 @@
       <logicalFolder name="f5" displayName="Clock" projectFiles="true">
         <itemPath>platform/Clock.h</itemPath>
       </logicalFolder>
-      <logicalFolder name="f1" displayName="General" projectFiles="true">
-        <itemPath>Configuration_Bits.h</itemPath>
-      </logicalFolder>
       <logicalFolder name="f2" displayName="Platform" projectFiles="true">
         <itemPath>platform/HardwareProfile.h</itemPath>
       </logicalFolder>
