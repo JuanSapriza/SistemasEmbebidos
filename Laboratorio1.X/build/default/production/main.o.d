@@ -1,11 +1,6 @@
 build/default/production/main.o:  \
 main.c  \
-utils/Utils.h  \
- utils/../platform/Timer.h  \
-utils/../platform/HardwareProfile.h  \
- platform/HardwareProfile.h  \
 platform/Buttons.h  \
-platform/HardwareProfile.h  \
  platform/Leds.h  \
-platform/Timer.h  \
-platform/Clock.h 
+mcc_generated_files/system.h  \
+ mcc_generated_files/pin_manager.h 

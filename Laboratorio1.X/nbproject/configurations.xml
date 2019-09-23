@@ -10,6 +10,17 @@
       <logicalFolder name="f5" displayName="Clock" projectFiles="true">
         <itemPath>platform/Clock.h</itemPath>
       </logicalFolder>
+      <logicalFolder name="MCC Generated Files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
+        <itemPath>mcc_generated_files/watchdog.h</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.h</itemPath>
+        <itemPath>mcc_generated_files/exceptions.h</itemPath>
+        <itemPath>mcc_generated_files/clock.h</itemPath>
+        <itemPath>mcc_generated_files/mcc.h</itemPath>
+        <itemPath>mcc_generated_files/system.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="f2" displayName="Platform" projectFiles="true">
         <itemPath>platform/HardwareProfile.h</itemPath>
       </logicalFolder>
@@ -34,6 +45,16 @@
       <logicalFolder name="f3" displayName="Clock" projectFiles="true">
         <itemPath>platform/Clock.c</itemPath>
       </logicalFolder>
+      <logicalFolder name="MCC Generated Files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <itemPath>mcc_generated_files/system.c</itemPath>
+        <itemPath>mcc_generated_files/clock.c</itemPath>
+        <itemPath>mcc_generated_files/exceptions.c</itemPath>
+        <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
+        <itemPath>mcc_generated_files/mcc.c</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.c</itemPath>
+      </logicalFolder>
       <logicalFolder name="f4" displayName="Timer" projectFiles="true">
         <itemPath>platform/Timer.c</itemPath>
       </logicalFolder>
@@ -47,6 +68,7 @@
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
+      <itemPath>MCC_configuration.mc3</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -681,6 +703,16 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
+      <item path="platform/Clock.c" ex="true" overriding="false">
+      </item>
+      <item path="platform/Clock.h" ex="true" overriding="false">
+      </item>
+      <item path="platform/HardwareProfile.h" ex="true" overriding="false">
+      </item>
+      <item path="platform/Timer.c" ex="true" overriding="false">
+      </item>
+      <item path="platform/Timer.h" ex="true" overriding="false">
+      </item>
       <snap>
         <property key="ADC 1" value="true"/>
         <property key="AutoSelectMemRanges" value="auto"/>
@@ -748,6 +780,10 @@
         <property key="programoptions.programuserotp" value="false"/>
         <property key="programoptions.testmodeentrymethod" value="VDDFirst"/>
       </snap>
+      <item path="utils/Utils.c" ex="true" overriding="false">
+      </item>
+      <item path="utils/Utils.h" ex="true" overriding="false">
+      </item>
     </conf>
   </confs>
 </configurationDescriptor>
