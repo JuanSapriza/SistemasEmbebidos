@@ -1,31 +1,21 @@
 
 #include "Utils.h"
+#include "../mcc_generated_files/tmr2.h"
 
 
-
-
-
-//void UTS_delayms( uint32_t p_multiplo )
-//{
-//    static uint32_t contadorPrevio = TMR_2_contador; 
-//    while (TMR_2_contador < contadorPrevio + p_multiplo)
-//    {
-//        Nop();
-//    }
-//}
 
 
 bool UTS_delayms( uint32_t p_tiempo, bool p_reiniciar )
 {
     static uint8_t DELAY_ESTADO = UTS_DELAY_ESTADOS_INIT;
     static uint32_t tiempo;
-    static uint32_t tiempoInicial;
+    static uint32_t tiempoInicial = 0 ;
     
     
     uint32_t esteTiempo;
     
     
-    esteTiempo = TMR_2_getCount();
+    esteTiempo = TMR2_SoftwareCounterGet();
     
     if( p_reiniciar )
     {
@@ -39,14 +29,14 @@ bool UTS_delayms( uint32_t p_tiempo, bool p_reiniciar )
     {
         case UTS_DELAY_ESTADOS_INIT:
             tiempo = p_tiempo;
-            tiempoInicial = TMR_2_getCount();
+            tiempoInicial = TMR2_SoftwareCounterGet();
             DELAY_ESTADO = UTS_DELAY_ESTADOS_CHECK;
             break;
             
         case UTS_DELAY_ESTADOS_CHECK:
-            if( !( ( TMR_2_getCount() - tiempoInicial )>=0 ) ) //overflow
+            if( ( ( esteTiempo - tiempoInicial ) < 0 ) ) //overflow
             {
-                if( (TMR_2_getCount() + MAX_NUM_32_BITS - tiempoInicial) >= tiempo )
+                if( (esteTiempo + MAX_NUM_16_BITS+1 - tiempoInicial) >= tiempo )
                 {   // [                                                       ] 32bits
                     //        ^tiempo Actual           ^ tiempo Inicial   
                     //                                 |---------------------->
@@ -61,7 +51,7 @@ bool UTS_delayms( uint32_t p_tiempo, bool p_reiniciar )
             }
             else
             {
-                if( ( TMR_2_getCount() - tiempoInicial ) >= tiempo )
+                if( ( esteTiempo - tiempoInicial ) >= tiempo )
                 {
                     tiempo = 0;
                     tiempoInicial = 0;

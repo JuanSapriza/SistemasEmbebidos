@@ -2,10 +2,12 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
-#include "../platform/Timer.h"
+//#include "../platform/Timer.h"
+#include <stdint.h>
 #include <stdbool.h>
 
 #define UTS_DELAY_CYCLES 1000
+#define MAX_NUM_16_BITS     65535
 
 enum UTS_DELAY_ESTADOS
 {

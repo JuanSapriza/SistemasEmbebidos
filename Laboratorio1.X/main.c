@@ -4,8 +4,8 @@
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
-//#define LABORATORIO_2_1
-#define LABORATORIO_3
+#define LABORATORIO_2_1
+//#define LABORATORIO_3
 
 
 
@@ -27,7 +27,8 @@
 #include "mcc_generated_files/pin_manager.h"
 
 //</editor-fold>
-//
+
+
 ////<editor-fold defaultstate="collapsed" desc="Configuration bits">
 //
 //// PIC32MM0256GPM064 Configuration Bit Settings
@@ -189,8 +190,8 @@ int main ()
     bool btnAWasPressed = false;
     bool btnBWasPressed = false;
       
-    LEDA_setLow();
-    LEDB_setLow();
+    LED_A_SetLow();
+    LED_B_SetHigh();
     
     while( 1 )
     {
@@ -199,9 +200,12 @@ int main ()
             btnAWasPressed = true;
         }
         
-        if( btnAWasPressed && UTS_delayms( 2000, false )  ) 
+        if( btnAWasPressed ) 
         {
-            LEDA_setHigh();
+            if( UTS_delayms( 2000, false ) )
+            {
+                LED_A_SetHigh();
+            }
         }
         
     }
@@ -245,9 +249,9 @@ int main ()
             LED_B_Toggle();
         }
         
-//        while( ! UTS_delayms( 100, false ) )
-//        {           
-//        }
+        while( ! UTS_delayms( 100, false ) )
+        {           
+        }
         
     }
     
