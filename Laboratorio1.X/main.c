@@ -1,11 +1,12 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION MCC_branch_2
+#define COMMIT_VERSION MCC_branch_3
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
-#define LABORATORIO_2_1
+//#define LABORATORIO_2_1
 //#define LABORATORIO_3
+#define LABORATORIO_3_2
 
 
 
@@ -17,71 +18,18 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-//#include "utils/Utils.h"
-//#include "platform/HardwareProfile.h"
 #include "platform/Buttons.h"
 #include "platform/Leds.h"
-//#include "platform/Timer.h"
-//#include "platform/Clock.h"
+#include "mcc_generated_files/usb/usb.h"
+
 #include "mcc_generated_files/system.h"
 #include "mcc_generated_files/pin_manager.h"
+#include "utils/Utils.h"
 
 //</editor-fold>
 
 
-////<editor-fold defaultstate="collapsed" desc="Configuration bits">
-//
-//// PIC32MM0256GPM064 Configuration Bit Settings
-//
-//// 'C' source line config statements
-//
-//// FDEVOPT
-//#pragma config SOSCHP = OFF             // Secondary Oscillator High Power Enable bit (SOSC oprerates in normal power mode.)
-//#pragma config ALTI2C = OFF             // Alternate I2C1 Pins Location Enable bit (Primary I2C1 pins are used)
-//#pragma config FUSBIDIO = OFF           // USBID pin control (USBID pin is controlled by the USB module)
-//#pragma config FVBUSIO = ON             // VBUS Pin Control (VBUS pin is controlled by port function)
-//#pragma config USERID = 0xFFFF          // User ID bits (Enter Hexadecimal value)
-//
-//// FICD
-//#pragma config JTAGEN = OFF             // JTAG Enable bit (JTAG is disabled)
-//#pragma config ICS = PGx1               // ICE/ICD Communication Channel Selection bits (Communicate on PGEC1/PGED1)
-//
-//// FPOR
-//#pragma config BOREN = BOR3             // Brown-out Reset Enable bits (Brown-out Reset enabled in hardware; SBOREN bit disabled)
-//#pragma config RETVR = OFF              // Retention Voltage Regulator Enable bit (Retention regulator is disabled)
-//#pragma config LPBOREN = ON             // Downside Voltage Protection Enable bit (Low power BOR is enabled, when main BOR is disabled)
-//
-//// FWDT
-//#pragma config SWDTPS = PS1048576       // Sleep Mode Watchdog Timer Postscale Selection bits (1:1048576)
-//#pragma config FWDTWINSZ = PS25_0       // Watchdog Timer Window Size bits (Watchdog timer window size is 25%)
-//#pragma config WINDIS = OFF             // Windowed Watchdog Timer Disable bit (Watchdog timer is in non-window mode)
-//#pragma config RWDTPS = PS1048576       // Run Mode Watchdog Timer Postscale Selection bits (1:1048576)
-//#pragma config RCLKSEL = LPRC           // Run Mode Watchdog Timer Clock Source Selection bits (Clock source is LPRC (same as for sleep mode))
-//#pragma config FWDTEN = OFF             // Watchdog Timer Enable bit (WDT is disabled)
-//
-//// FOSCSEL
-//#pragma config FNOSC = FRCDIV           // Oscillator Selection bits (Fast RC oscillator (FRC) with divide-by-N)
-//#pragma config PLLSRC = PRI             // System PLL Input Clock Selection bit (Primary oscillator is selected as PLL reference input on device reset)
-//#pragma config SOSCEN = OFF             // Secondary Oscillator Enable bit (Secondary oscillator is disabled)
-//#pragma config IESO = ON                // Two Speed Startup Enable bit (Two speed startup is enabled)
-//#pragma config POSCMOD = XT             // Primary Oscillator Selection bit (XT oscillator mode is selected)
-//#pragma config OSCIOFNC = ON            // System Clock on CLKO Pin Enable bit (System clock is connected to CLKO/OSC2 pin)
-//#pragma config SOSCSEL = OFF            // Secondary Oscillator External Clock Enable bit (SOSC pins configured for Crystal mode)
-//#pragma config FCKSM = CSECME           // Clock Switching and Fail-Safe Clock Monitor Enable bits (Clock switching is enabled; Fail-safe clock monitor is enabled)
-//
-//// FSEC
-//#pragma config CP = OFF                 // Code Protection Enable bit (Code protection is disabled)
-//
-//// #pragma config statements should precede project file includes.
-//// Use project enums instead of #define for ON and OFF.
-//
-//
-//
-////</editor-fold>
-
 //<editor-fold defaultstate="collapsed" desc="Defines">
-#define ARRAY_SIZE      12
-
 
 //</editor-fold>
 
@@ -96,21 +44,11 @@ static void MAIN_init()
 {
     SYSTEM_Initialize();
     
-//    CLK_Initialize();     
-//    BTN_init();
-//    BTN_initInt();
-    
-//    LEDA_SetDigitalOutput();
-//    LEDB_SetDigitalOutput();
-
-//    TMR_2_init();
-//    INT_init();
-    
+   
 }
 
 //</editor-fold>
  
-
 
 
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 1">
@@ -214,7 +152,6 @@ int main ()
 #endif
 //</editor-fold>
 
-
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3">
 #ifdef LABORATORIO_3
 int main ()
@@ -254,6 +191,79 @@ int main ()
         }
         
     }
+    
+    return 0;
+}
+#endif
+//</editor-fold>
+
+
+//<editor-fold defaultstate="collapsed" desc="Laboratorio 3_2">
+#ifdef LABORATORIO_3_2
+int main ()
+{
+
+    MAIN_init();
+    
+    LED_A_SetLow();    
+    LED_B_SetLow();    
+    
+    USB_DEVICE_STATE estado;
+    bool estado2;
+    
+    while(1)
+        {
+            USBDeviceTasks(); 
+            
+//            if( UTS_delayms(1000,false) )
+//            {
+//                putsUSBUSART("hola mundo");
+//            }
+//            
+//            
+//            
+//            
+            estado = USBGetDeviceState();
+            estado2 = USBIsDeviceSuspended(); 
+            
+            switch(estado)
+            {
+                case ATTACHED_STATE:
+                    LED_A_SetLow();
+                    LED_B_SetLow();
+                    break;
+                
+                case DEFAULT_STATE:
+                    LED_A_SetHigh();
+                    LED_B_SetLow();
+                    break;
+                    
+                case ADR_PENDING_STATE:
+                    LED_A_SetHigh();
+                    LED_B_SetHigh();
+                    break;
+                    
+                case CONFIGURED_STATE:
+                    LED_A_SetLow();
+                    LED_B_SetHigh();
+                    break;
+                    
+                default:
+                    break;
+            }
+            
+//         if(( estado < CONFIGURED_STATE ) || (estado2 == true))
+//            {
+//                // no esta configurado aun o esta suspendido
+//                LED_A_SetHigh();    
+//                
+//            }
+//            else 
+//            {
+//                //esta configurado Y habilitado
+//                LED_B_SetHigh();    
+//            }
+        }
     
     return 0;
 }
