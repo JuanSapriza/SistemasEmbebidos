@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION MCC_branch_3
+#define COMMIT_VERSION MCC_branch_4
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
@@ -19,13 +19,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "platform/Buttons.h"
-#include "platform/Leds.h"
-#include "mcc_generated_files/usb/usb.h"
-
 #include "mcc_generated_files/system.h"
 #include "mcc_generated_files/pin_manager.h"
-#include "utils/Utils.h"
-
+#include "mcc_generated_files/usb/usb.h"
 //</editor-fold>
 
 
@@ -152,44 +148,16 @@ int main ()
 #endif
 //</editor-fold>
 
+
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3">
 #ifdef LABORATORIO_3
 int main ()
 {
-    bool btnAWasPressed = false;
-    bool btnBWasPressed = false;
-    
     MAIN_init();
-    
-    LED_A_SetHigh();
-    LED_B_SetHigh();
     
     while( 1 )
     {
-        if( BTN_isButtonPressed( BTN_BUTTON_A ) && !btnAWasPressed )
-        {
-            btnAWasPressed = true;
-        }
-        else if( !BTN_isButtonPressed( BTN_BUTTON_A ) && btnAWasPressed )
-        {
-            btnAWasPressed = false;
-            LED_A_Toggle();
-        }
-             
-        if( BTN_isButtonPressed( BTN_BUTTON_B ) && !btnBWasPressed )
-        {
-            btnBWasPressed = true;
-        }
-        else if( !BTN_isButtonPressed( BTN_BUTTON_B ) && btnBWasPressed )
-        {
-            btnBWasPressed = false;
-            LED_B_Toggle();
-        }
-        
-        while( ! UTS_delayms( 100, false ) )
-        {           
-        }
-        
+       MCC_USB_CDC_DemoTasks();
     }
     
     return 0;
@@ -248,72 +216,16 @@ void MCC_USB_CDC_DemoTasks(void)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3_2">
 #ifdef LABORATORIO_3_2
 int main ()
 {
-
-    static uint8_t readBuffer[64];
-    static uint8_t writeBuffer[64];
-    uint8_t i;
-    uint8_t numBytesRead;
     
     MAIN_init();
  
     while(1)
     {   
-         if( USBGetDeviceState() < CONFIGURED_STATE )
-        {
-            break;
-        }
-
-        if( USBIsDeviceSuspended()== true )
-        {
-            break;
-        }
-
-        if( USBUSARTIsTxTrfReady() == true)
-        {
-
-            numBytesRead = getsUSBUSART(readBuffer, sizeof(readBuffer));
-
-            for(i=0; i<numBytesRead; i++)
-            {
-                switch(readBuffer[i])
-                {
-                    /* echo line feeds and returns without modification. */
-                    case 0x0A:
-                    case 0x0D:
-                        writeBuffer[i] = readBuffer[i];
-                        break;
-
-                    /* all other characters get +1 (e.g. 'a' -> 'b') */
-                    default:
-                        writeBuffer[i] = readBuffer[i] + 1;
-                        break;
-                }
-            }
-
-            if(numBytesRead > 0)
-            {
-                putUSBUSART(writeBuffer,numBytesRead);
-            }
-        }
-
-        CDCTxService();
+       MCC_USB_CDC_DemoTasks();  
 
     }    
     return 0;

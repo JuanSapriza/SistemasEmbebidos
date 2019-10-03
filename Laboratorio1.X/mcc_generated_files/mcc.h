@@ -52,9 +52,10 @@
 #include <stdbool.h>
 #include "usb/usb.h"
 #include "tmr2.h"
+#include "watchdog.h"
 #include "interrupt_manager.h"
 #include "exceptions.h"
-#include "watchdog.h"
+#include "usb/usb.h"
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ  24000000UL
 #endif
