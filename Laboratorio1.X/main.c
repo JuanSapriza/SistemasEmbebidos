@@ -198,60 +198,187 @@ int main ()
 //</editor-fold>
 
 
+static uint8_t readBuffer[64];
+static uint8_t writeBuffer[64];
+
+void MCC_USB_CDC_DemoTasks(void)
+{
+    if( USBGetDeviceState() < CONFIGURED_STATE )
+    {
+        return;
+    }
+
+    if( USBIsDeviceSuspended()== true )
+    {
+        return;
+    }
+
+    if( USBUSARTIsTxTrfReady() == true)
+    {
+        uint8_t i;
+        uint8_t numBytesRead;
+
+        numBytesRead = getsUSBUSART(readBuffer, sizeof(readBuffer));
+
+        for(i=0; i<numBytesRead; i++)
+        {
+            switch(readBuffer[i])
+            {
+                /* echo line feeds and returns without modification. */
+                case 0x0A:
+                case 0x0D:
+                    writeBuffer[i] = readBuffer[i];
+                    break;
+
+                /* all other characters get +1 (e.g. 'a' -> 'b') */
+                default:
+                    writeBuffer[i] = readBuffer[i] + 1;
+                    break;
+            }
+        }
+
+        if(numBytesRead > 0)
+        {
+            putUSBUSART(writeBuffer,numBytesRead);
+        }
+    }
+
+    CDCTxService();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3_2">
 #ifdef LABORATORIO_3_2
 int main ()
 {
 
+    static uint8_t readBuffer[64];
+    static uint8_t writeBuffer[64];
+    uint8_t i;
+    uint8_t numBytesRead;
+    
     MAIN_init();
+ 
+    while(1)
+    {   
+         if( USBGetDeviceState() < CONFIGURED_STATE )
+        {
+            break;
+        }
+
+        if( USBIsDeviceSuspended()== true )
+        {
+            break;
+        }
+
+        if( USBUSARTIsTxTrfReady() == true)
+        {
+
+            numBytesRead = getsUSBUSART(readBuffer, sizeof(readBuffer));
+
+            for(i=0; i<numBytesRead; i++)
+            {
+                switch(readBuffer[i])
+                {
+                    /* echo line feeds and returns without modification. */
+                    case 0x0A:
+                    case 0x0D:
+                        writeBuffer[i] = readBuffer[i];
+                        break;
+
+                    /* all other characters get +1 (e.g. 'a' -> 'b') */
+                    default:
+                        writeBuffer[i] = readBuffer[i] + 1;
+                        break;
+                }
+            }
+
+            if(numBytesRead > 0)
+            {
+                putUSBUSART(writeBuffer,numBytesRead);
+            }
+        }
+
+        CDCTxService();
+
+    }    
+    return 0;
+}
+#endif
+//</editor-fold>
+
+
+/*   
+//    MCC_USB_CDC_DemoTasks();
     
-    LED_A_SetLow();    
-    LED_B_SetLow();    
     
+    
+    
+//    
+//    LED_A_SetLow();    
+//    LED_B_SetLow();    
+//    
     USB_DEVICE_STATE estado;
     bool estado2;
-    
+//    
     while(1)
         {
             USBDeviceTasks(); 
+            
+            
+            
             
 //            if( UTS_delayms(1000,false) )
 //            {
 //                putsUSBUSART("hola mundo");
 //            }
-//            
-//            
-//            
-//            
+            
+            
+            
+            
             estado = USBGetDeviceState();
             estado2 = USBIsDeviceSuspended(); 
             
             switch(estado)
             {
                 case ATTACHED_STATE:
-                    LED_A_SetLow();
-                    LED_B_SetLow();
+//                    LED_A_SetLow();
+//                    LED_B_SetLow();
                     break;
                 
                 case DEFAULT_STATE:
-                    LED_A_SetHigh();
-                    LED_B_SetLow();
+//                    LED_A_SetHigh();
+//                    LED_B_SetLow();
                     break;
                     
                 case ADR_PENDING_STATE:
-                    LED_A_SetHigh();
-                    LED_B_SetHigh();
+//                    LED_A_SetHigh();
+//                    LED_B_SetHigh();
                     break;
                     
                 case CONFIGURED_STATE:
-                    LED_A_SetLow();
-                    LED_B_SetHigh();
+//                    LED_A_SetHigh();
+//                    LED_B_SetHigh();
                     break;
                     
                 default:
                     break;
             }
-            
+//            
 //         if(( estado < CONFIGURED_STATE ) || (estado2 == true))
 //            {
 //                // no esta configurado aun o esta suspendido
@@ -264,8 +391,4 @@ int main ()
 //                LED_B_SetHigh();    
 //            }
         }
-    
-    return 0;
-}
-#endif
-//</editor-fold>
+    */

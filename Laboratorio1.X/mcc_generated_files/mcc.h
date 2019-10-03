@@ -50,10 +50,10 @@
 #include "pin_manager.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include "usb/usb.h"
 #include "tmr2.h"
 #include "interrupt_manager.h"
 #include "exceptions.h"
-#include "usb/usb.h"
 #include "watchdog.h"
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ  24000000UL

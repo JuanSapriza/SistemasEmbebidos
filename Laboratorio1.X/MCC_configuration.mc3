@@ -54,8 +54,8 @@
       </entry>
    </usedClasses>
    <usedLibraries class="java.util.ArrayList">
-      <ILibraryFile class="com.microchip.mcc.core.library.BaseLibraryFile" libraryClass="com.microchip.mcc.mcu16.Mcu16PeripheralLibrary" version="1.145.0"/>
       <ILibraryFile class="com.microchip.mcc.core.library.BaseLibraryFile" libraryClass="com.microchip.mcc.USBDEVICELite.USBDEVICELite" version="1.26.1"/>
+      <ILibraryFile class="com.microchip.mcc.core.library.BaseLibraryFile" libraryClass="com.microchip.mcc.mcu16.Mcu16PeripheralLibrary" version="1.145.0"/>
    </usedLibraries>
    <tokenMap class="java.util.HashMap">
       <entry>
@@ -2264,7 +2264,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="USB" name="SerialNumberString"/>
-         <value></value>
+         <value/>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="INTERNAL OSCILLATOR" registerAlias="CLKSTAT" settingAlias="FRCRDY" alias="enabled"/>
@@ -3104,7 +3104,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="System Module" registerAlias="FDEVOPT"/>
-         <value>49176</value>
+         <value>32792</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="USB" registerAlias="UEP14" settingAlias="EPSTALL14" alias="disabled"/>
@@ -7284,7 +7284,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="System Module" registerAlias="FDEVOPT" settingAlias="FUSBIDIO"/>
-         <value>OFF</value>
+         <value>ON</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="System Module" registerAlias="FOSCSEL" settingAlias="POSCMOD" alias="XT"/>
@@ -11272,7 +11272,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="CDCDevice" name="GenerateExampleCode"/>
-         <value>disabled</value>
+         <value>enabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="INTERNAL OSCILLATOR" registerAlias="REFOCON" settingAlias="DIVSWEN"/>
@@ -12858,7 +12858,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\usb\usb_device_config.h</file>
-         <hash>f5d8aaf925567a4d69d9ce45108962a34418610ac592fe7bc79c5e9bc8f0a110</hash>
+         <hash>1d3696dbc0b2ef46f5bb7bcb5a36591a85cf1b9f70d3672fe4442699fbeeb66a</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\usb\usb_device_cdc.h</file>
@@ -12874,7 +12874,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\system.c</file>
-         <hash>b4c124baa6e4cb1d4d2d7c72684a06534240b911f774b47927a9459bce9c54b2</hash>
+         <hash>9c85ef99e31a225abea254f399a4c5fcc86f3372efac4e30d0d42ed53121452d</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\clock.h</file>
@@ -12882,15 +12882,15 @@
       </entry>
       <entry>
          <file>mcc_generated_files\mcc.c</file>
-         <hash>cedc066e3b0e65328ffc8fc8d13daf23b4e8fd4512b04151e151e4c89967654f</hash>
+         <hash>192b0dc1ba7db63032f4b5d689e44d7174b5791b389e6c0a88a695a5072b824a</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\usb\usb_descriptors.c</file>
-         <hash>b1a9e213d9c8c6af0eedcb35ff4ec4ff77d9c5f90f6528869791a632f714c285</hash>
+         <hash>2f19023812727fc208cbfcf3790d9ab44cc7350f5ba754566c2b5352e8a90dfe</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\mcc.h</file>
-         <hash>6b7ca6826ee5606550e8b203f73a1461b2466d899612f47f86702366591435e4</hash>
+         <hash>4d304cf7ccffbcea9bfab619559b2f44ddc18575ea9e8eba96b382065ae17e62</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\exceptions.h</file>
@@ -12913,20 +12913,12 @@
          <hash>35e8b162cfb8003dc0575e4fd683981e9205fc8b508d74dc31c386de21f15f15</hash>
       </entry>
       <entry>
-         <file>mcc_generated_files\tmr2.h</file>
-         <hash>2c342e20131510b118e60e71e63382e0ded7cbf459cf13200e842759743f90f0</hash>
-      </entry>
-      <entry>
          <file>mcc_generated_files\usb\usb_device.c</file>
          <hash>386906dcfa271ae2d841b1610df4299ecb586ef8485f04273a6c649c11a5449b</hash>
       </entry>
       <entry>
-         <file>mcc_generated_files\tmr2.c</file>
-         <hash>4ab7a837edf24c6009af1f4143630d9b90fde3584f596bc620e7cef50a6f16b8</hash>
-      </entry>
-      <entry>
-         <file>mcc_generated_files\pin_manager.h</file>
-         <hash>90de92af681750b26aab12f3df44d298578bb61167f49948f5648df4db8a9923</hash>
+         <file>mcc_generated_files\tmr2.h</file>
+         <hash>2c342e20131510b118e60e71e63382e0ded7cbf459cf13200e842759743f90f0</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\usb\usb_device.h</file>
@@ -12941,6 +12933,14 @@
          <hash>fde4b32a9e299a6b8a259ca613f1664a7bf589bf9414573ab4e68b68bddc8351</hash>
       </entry>
       <entry>
+         <file>mcc_generated_files\tmr2.c</file>
+         <hash>4ab7a837edf24c6009af1f4143630d9b90fde3584f596bc620e7cef50a6f16b8</hash>
+      </entry>
+      <entry>
+         <file>mcc_generated_files\pin_manager.h</file>
+         <hash>90de92af681750b26aab12f3df44d298578bb61167f49948f5648df4db8a9923</hash>
+      </entry>
+      <entry>
          <file>mcc_generated_files\usb\usb_hal.h</file>
          <hash>4e4ccc67c8e238ad1033ff8b9d04be5e9f00ba01ee536ac25d203cba119fe24b</hash>
       </entry>
@@ -12951,6 +12951,10 @@
       <entry>
          <file>mcc_generated_files\interrupt_manager.c</file>
          <hash>9d34e6671e7fcd28e91b9d46626afd682488319fbc5cbd2caa265332a5fbdbc0</hash>
+      </entry>
+      <entry>
+         <file>mcc_generated_files\usb\example_mcc_usb_cdc.c</file>
+         <hash>603ea0c25d1412d73c0b8d9cfe46b4845378f815b2a7893cca2742fdba5c9fa6</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\watchdog.h</file>
