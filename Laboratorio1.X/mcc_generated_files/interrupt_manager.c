@@ -55,6 +55,11 @@ void INTERRUPT_Initialize (void)
     // Enable Multi Vector Configuration
     INTCONbits.MVEC = 1;
     
+    //    USBI: USB
+    //    Priority: 1
+        IPC7bits.USBIP = 1;
+    //    Sub Priority: 0
+        IPC7bits.USBIS = 0;
     //    CNAI: PORT A Change Notification
     //    Priority: 1
         IPC2bits.CNAIP = 1;
