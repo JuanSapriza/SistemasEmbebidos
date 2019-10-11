@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION MCC_branch_4
+#define COMMIT_VERSION USB_librerias
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
@@ -166,54 +166,6 @@ int main ()
 //</editor-fold>
 
 
-static uint8_t readBuffer[64];
-static uint8_t writeBuffer[64];
-
-void MCC_USB_CDC_DemoTasks(void)
-{
-    if( USBGetDeviceState() < CONFIGURED_STATE )
-    {
-        return;
-    }
-
-    if( USBIsDeviceSuspended()== true )
-    {
-        return;
-    }
-
-    if( USBUSARTIsTxTrfReady() == true)
-    {
-        uint8_t i;
-        uint8_t numBytesRead;
-
-        numBytesRead = getsUSBUSART(readBuffer, sizeof(readBuffer));
-
-        for(i=0; i<numBytesRead; i++)
-        {
-            switch(readBuffer[i])
-            {
-                /* echo line feeds and returns without modification. */
-                case 0x0A:
-                case 0x0D:
-                    writeBuffer[i] = readBuffer[i];
-                    break;
-
-                /* all other characters get +1 (e.g. 'a' -> 'b') */
-                default:
-                    writeBuffer[i] = readBuffer[i] + 1;
-                    break;
-            }
-        }
-
-        if(numBytesRead > 0)
-        {
-            putUSBUSART(writeBuffer,numBytesRead);
-        }
-    }
-
-    CDCTxService();
-}
-
 
 
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3_2">
@@ -224,83 +176,16 @@ int main ()
     MAIN_init();
  
     while(1)
-    {   
-       MCC_USB_CDC_DemoTasks();  
-
+    {  
+        //echo USB
+       if( USB_CDC_tasks() )
+       {
+           USB_write( USB_read( 0 ) );
+       }
+       
     }    
     return 0;
 }
 #endif
 //</editor-fold>
 
-
-/*   
-//    MCC_USB_CDC_DemoTasks();
-    
-    
-    
-    
-//    
-//    LED_A_SetLow();    
-//    LED_B_SetLow();    
-//    
-    USB_DEVICE_STATE estado;
-    bool estado2;
-//    
-    while(1)
-        {
-            USBDeviceTasks(); 
-            
-            
-            
-            
-//            if( UTS_delayms(1000,false) )
-//            {
-//                putsUSBUSART("hola mundo");
-//            }
-            
-            
-            
-            
-            estado = USBGetDeviceState();
-            estado2 = USBIsDeviceSuspended(); 
-            
-            switch(estado)
-            {
-                case ATTACHED_STATE:
-//                    LED_A_SetLow();
-//                    LED_B_SetLow();
-                    break;
-                
-                case DEFAULT_STATE:
-//                    LED_A_SetHigh();
-//                    LED_B_SetLow();
-                    break;
-                    
-                case ADR_PENDING_STATE:
-//                    LED_A_SetHigh();
-//                    LED_B_SetHigh();
-                    break;
-                    
-                case CONFIGURED_STATE:
-//                    LED_A_SetHigh();
-//                    LED_B_SetHigh();
-                    break;
-                    
-                default:
-                    break;
-            }
-//            
-//         if(( estado < CONFIGURED_STATE ) || (estado2 == true))
-//            {
-//                // no esta configurado aun o esta suspendido
-//                LED_A_SetHigh();    
-//                
-//            }
-//            else 
-//            {
-//                //esta configurado Y habilitado
-//                LED_B_SetHigh();    
-//            }
-        }
-    */
