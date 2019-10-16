@@ -37,6 +37,9 @@
       <logicalFolder name="f2" displayName="Platform" projectFiles="true">
         <itemPath>platform/HardwareProfile.h</itemPath>
       </logicalFolder>
+      <logicalFolder name="f7" displayName="RGB" projectFiles="true">
+        <itemPath>platform/RGB.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="f6" displayName="Timer" projectFiles="true">
         <itemPath>platform/Timer.h</itemPath>
       </logicalFolder>
@@ -79,6 +82,9 @@
         <itemPath>mcc_generated_files/pin_manager.c</itemPath>
         <itemPath>mcc_generated_files/tmr2.c</itemPath>
         <itemPath>mcc_generated_files/rtcc.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f6" displayName="RGB" projectFiles="true">
+        <itemPath>platform/RGB.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="Timer" projectFiles="true">
         <itemPath>platform/Timer.c</itemPath>

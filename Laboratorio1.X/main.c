@@ -6,7 +6,9 @@
 //#define LABORATORIO_2
 //#define LABORATORIO_2_1
 //#define LABORATORIO_3
-#define LABORATORIO_3_2
+//#define LABORATORIO_3_2
+//#define LABORATORIO_3_3
+#define LABORATORIO_3_4
 
 
 
@@ -18,10 +20,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include "platform/Buttons.h"
+#include "platform/RGB.h"
 #include "mcc_generated_files/system.h"
 #include "mcc_generated_files/pin_manager.h"
 #include "mcc_generated_files/usb/usb.h"
+#include "utils/Utils.h"
 //</editor-fold>
 
 
@@ -148,7 +153,6 @@ int main ()
 #endif
 //</editor-fold>
 
-
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3">
 #ifdef LABORATORIO_3
 int main ()
@@ -164,9 +168,6 @@ int main ()
 }
 #endif
 //</editor-fold>
-
-
-
 
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3_2">
 #ifdef LABORATORIO_3_2
@@ -189,3 +190,111 @@ int main ()
 #endif
 //</editor-fold>
 
+//<editor-fold defaultstate="collapsed" desc="Laboratorio 3_3">
+#ifdef LABORATORIO_3_3
+int main ()
+{
+    
+    MAIN_init();
+ 
+    memset( RGB_leds, 0, sizeof(RGB_leds));
+//    RGB_leds[0] = YELLOW;
+//    RGB_leds[1] = VIOLET;
+//    RGB_leds[2] = RED;
+//    RGB_leds[3] = WHITE;
+//    RGB_leds[4] = GREEN;
+//    RGB_leds[5] = BLUE;
+//    RGB_leds[6] = RED;
+//    RGB_leds[7] = CYAN;
+    RGB_setLed(2,CYAN);
+    while(1)
+    {  
+//        RGB_send( RGB_leds, RGB_LEDS_COUNT );
+       
+    }    
+    return 0;
+}
+#endif
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Laboratorio 3_4">
+#ifdef LABORATORIO_3_4
+int main ()
+{
+    UTS_DELAY_HANDLER_t LED_1_delay = UTS_DELAY_HANDLER_1;
+    UTS_DELAY_HANDLER_t LED_2_delay = UTS_DELAY_HANDLER_2;
+    bool led_1 = false;
+    bool led_2 = false;
+   
+    MAIN_init();
+ 
+    while(1)
+    {  
+//        if( UTS_delayms(  1000, false ) )
+        if( UTS_delayms( LED_1_delay, 1000, false ) )
+        {
+            if( led_1 )
+            {
+//                RGB_setLed(1,WHITE);
+//                RGB_setLed(2,WHITE);
+//                RGB_setLed(3,WHITE);
+//                RGB_setLed(4,WHITE);
+//                RGB_setLed(5,WHITE);
+//                RGB_setLed(6,WHITE);
+//                RGB_setLed(0,WHITE);
+//                RGB_setLed(7,WHITE);
+                RGB_setLed(0,GREEN);
+                RGB_setLed(1,GREEN);
+                RGB_setLed(2,GREEN);
+                RGB_setLed(3,GREEN);
+                RGB_setLed(4,GREEN);
+                RGB_setLed(5,GREEN);
+                RGB_setLed(6,GREEN);
+
+                RGB_setLed(7,GREEN);
+                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
+                LED_A_SetHigh();
+                    
+                
+                led_1 = false;
+            }
+            else
+            {
+                RGB_setLed(0,OFF);
+                RGB_setLed(1,OFF);
+                RGB_setLed(2,OFF);
+                RGB_setLed(3,OFF);
+                RGB_setLed(4,OFF);
+                RGB_setLed(5,OFF);
+                RGB_setLed(6,OFF);
+
+                RGB_setLed(7,OFF);
+                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
+                LED_A_SetLow();
+                led_1 = true;
+            }
+        
+        }
+        
+//        if( UTS_delayms( LED_2_delay, 500, false ) )
+//        {
+//            if( led_2 )
+//            {
+////                RGB_setLed(2,VIOLET);
+////                LED_B_SetHigh();
+//                led_2 = false;
+//            }
+//            else
+//            {
+////                RGB_setLed(2,RED);
+////                LED_B_SetLow();
+//                led_2 = true;
+//            }
+        
+  //      }
+        
+    }    
+    return 0;
+}
+#endif
+//</editor-fold>
