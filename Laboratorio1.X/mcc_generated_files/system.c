@@ -47,6 +47,7 @@
 #include "system.h"
 #include "usb/usb.h"
 #include "tmr2.h"
+#include "rtcc.h"
 #include "interrupt_manager.h"
 #include "exceptions.h"
 #include "usb/usb.h"
@@ -54,11 +55,12 @@
 void SYSTEM_Initialize(void)
 {
     PIN_MANAGER_Initialize();
-    INTERRUPT_Initialize();
     CLOCK_Initialize();
+    INTERRUPT_Initialize();
     USBDeviceInit();
     USBDeviceAttach();
     TMR2_Initialize();
+    RTCC_Initialize();
     INTERRUPT_GlobalEnable();
 }
 

@@ -1,12 +1,15 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION MCC_branch_4
+#define COMMIT_VERSION USB_librerias
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
 //#define LABORATORIO_2_1
 //#define LABORATORIO_3
-#define LABORATORIO_3_2
+//#define LABORATORIO_3_2
+//#define LABORATORIO_3_3
+#define LABORATORIO_3_4
+//#define LABORATORIO_3_5
 
 
 
@@ -18,10 +21,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include "platform/Buttons.h"
+#include "platform/RGB.h"
 #include "mcc_generated_files/system.h"
 #include "mcc_generated_files/pin_manager.h"
 #include "mcc_generated_files/usb/usb.h"
+#include "utils/Utils.h"
 //</editor-fold>
 
 
@@ -39,7 +45,15 @@
 static void MAIN_init()
 {
     SYSTEM_Initialize();
-    
+    RGB_setLed(0,OFF);
+    RGB_setLed(1,OFF);
+    RGB_setLed(2,OFF);
+    RGB_setLed(3,OFF);
+    RGB_setLed(4,OFF);
+    RGB_setLed(5,OFF);
+    RGB_setLed(6,OFF);
+    RGB_setLed(7,OFF);
+//    RGB_tasks();
    
 }
 
@@ -148,7 +162,6 @@ int main ()
 #endif
 //</editor-fold>
 
-
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3">
 #ifdef LABORATORIO_3
 int main ()
@@ -165,57 +178,6 @@ int main ()
 #endif
 //</editor-fold>
 
-
-static uint8_t readBuffer[64];
-static uint8_t writeBuffer[64];
-
-void MCC_USB_CDC_DemoTasks(void)
-{
-    if( USBGetDeviceState() < CONFIGURED_STATE )
-    {
-        return;
-    }
-
-    if( USBIsDeviceSuspended()== true )
-    {
-        return;
-    }
-
-    if( USBUSARTIsTxTrfReady() == true)
-    {
-        uint8_t i;
-        uint8_t numBytesRead;
-
-        numBytesRead = getsUSBUSART(readBuffer, sizeof(readBuffer));
-
-        for(i=0; i<numBytesRead; i++)
-        {
-            switch(readBuffer[i])
-            {
-                /* echo line feeds and returns without modification. */
-                case 0x0A:
-                case 0x0D:
-                    writeBuffer[i] = readBuffer[i];
-                    break;
-
-                /* all other characters get +1 (e.g. 'a' -> 'b') */
-                default:
-                    writeBuffer[i] = readBuffer[i] + 1;
-                    break;
-            }
-        }
-
-        if(numBytesRead > 0)
-        {
-            putUSBUSART(writeBuffer,numBytesRead);
-        }
-    }
-
-    CDCTxService();
-}
-
-
-
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3_2">
 #ifdef LABORATORIO_3_2
 int main ()
@@ -224,8 +186,125 @@ int main ()
     MAIN_init();
  
     while(1)
-    {   
-       MCC_USB_CDC_DemoTasks();  
+    {  
+        //echo USB
+       if( USB_CDC_tasks() )
+       {
+           USB_write( USB_read( 0 ) );
+       }
+       
+    }    
+    return 0;
+}
+#endif
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Laboratorio 3_3">
+#ifdef LABORATORIO_3_3
+int main ()
+{
+    
+    MAIN_init();
+ 
+    memset( RGB_leds, 0, sizeof(RGB_leds));
+//    RGB_leds[0] = YELLOW;
+//    RGB_leds[1] = VIOLET;
+//    RGB_leds[2] = RED;
+//    RGB_leds[3] = WHITE;
+//    RGB_leds[4] = GREEN;
+//    RGB_leds[5] = BLUE;
+//    RGB_leds[6] = RED;
+//    RGB_leds[7] = CYAN;
+    RGB_setLed(2,CYAN);
+    while(1)
+    {  
+//        RGB_send( RGB_leds, RGB_LEDS_COUNT );
+       
+    }    
+    return 0;
+}
+#endif
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Laboratorio 3_4">
+#ifdef LABORATORIO_3_4
+    bool led_1 = false;
+    bool led_2 = false;
+int main ()
+{
+    UTS_DELAY_HANDLER_t LED_1_delay = UTS_DELAY_HANDLER_1;
+    UTS_DELAY_HANDLER_t LED_2_delay = UTS_DELAY_HANDLER_2;
+   
+    MAIN_init();
+    UTS_delayms( LED_1_delay , 0, true );
+    UTS_delayms( LED_2_delay , 0, true );
+ 
+    while(1)
+    {  
+        if( UTS_delayms( LED_2_delay, 1000, false ) )
+        {
+            if( led_2 )
+            {
+                RGB_setLed(7,VIOLET);
+////                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
+//                USB_write("X\n");
+                led_2 = false;
+            }
+            else
+            {
+                RGB_setLed(7,RED);
+//                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
+//                USB_write("O\n");
+                led_2 = true;
+            }    
+        }
+        
+        if( UTS_delayms( LED_1_delay, 1000, false ) )
+        {
+            if( led_1 )
+            {
+//                RGB_setLed(0,WHITE);
+//                RGB_setLed(1,WHITE);
+//                RGB_setLed(2,WHITE);
+//                RGB_setLed(3,WHITE);
+//                RGB_setLed(4,WHITE);
+//                RGB_setLed(5,WHITE);
+//                RGB_setLed(6,WHITE);
+                RGB_setLed(2,WHITE);
+//                RGB_setLed(0,GREEN);
+//                RGB_setLed(1,GREEN);
+//                RGB_setLed(2,GREEN);
+//                RGB_setLed(3,GREEN);
+//                RGB_setLed(4,GREEN);
+//                RGB_setLed(5,GREEN);
+//                RGB_setLed(6,GREEN);
+//
+//                RGB_setLed(7,GREEN);
+//                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
+//                LED_A_SetHigh();
+                    
+//                USB_write("led 1 = true\n");
+                led_1 = false;
+            }
+            else
+            {
+//                RGB_setLed(0,OFF);
+////                RGB_setLed(1,OFF);
+//////                RGB_setLed(2,OFF);
+////                RGB_setLed(3,OFF);
+////                RGB_setLed(4,OFF);
+////                RGB_setLed(5,OFF);
+////                RGB_setLed(6,OFF);
+//
+                RGB_setLed(2,BLUE);
+////                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
+////                LED_A_SetLow();
+//                USB_write("led 1 = false\n");
+                led_1 = true;
+            }
+        }
+        
+        RGB_tasks();
 
     }    
     return 0;
@@ -233,74 +312,35 @@ int main ()
 #endif
 //</editor-fold>
 
+//<editor-fold defaultstate="collapsed" desc="Laboratorio 3_5">
+#ifdef LABORATORIO_3_5
 
-/*   
-//    MCC_USB_CDC_DemoTasks();
-    
-    
-    
-    
-//    
-//    LED_A_SetLow();    
-//    LED_B_SetLow();    
-//    
-    USB_DEVICE_STATE estado;
-    bool estado2;
-//    
+uint8_t static enum  
+
+int main ()
+{
+    UTS_DELAY_HANDLER_t LED_1_delay = UTS_DELAY_HANDLER_1;
+    UTS_DELAY_HANDLER_t LED_2_delay = UTS_DELAY_HANDLER_2;
+    bool led_1 = false;
+    bool led_2 = false;
+   
+    MAIN_init();
+    LED_A_SetHigh();
     while(1)
+    {  
+//        if( UTS_delayms(  1000, false ) )
+        if( UTS_delayms( LED_1_delay, 400, false ) )
         {
-            USBDeviceTasks(); 
-            
-            
-            
-            
-//            if( UTS_delayms(1000,false) )
-//            {
-//                putsUSBUSART("hola mundo");
-//            }
-            
-            
-            
-            
-            estado = USBGetDeviceState();
-            estado2 = USBIsDeviceSuspended(); 
-            
-            switch(estado)
-            {
-                case ATTACHED_STATE:
-//                    LED_A_SetLow();
-//                    LED_B_SetLow();
-                    break;
-                
-                case DEFAULT_STATE:
-//                    LED_A_SetHigh();
-//                    LED_B_SetLow();
-                    break;
-                    
-                case ADR_PENDING_STATE:
-//                    LED_A_SetHigh();
-//                    LED_B_SetHigh();
-                    break;
-                    
-                case CONFIGURED_STATE:
-//                    LED_A_SetHigh();
-//                    LED_B_SetHigh();
-                    break;
-                    
-                default:
-                    break;
-            }
-//            
-//         if(( estado < CONFIGURED_STATE ) || (estado2 == true))
-//            {
-//                // no esta configurado aun o esta suspendido
-//                LED_A_SetHigh();    
-//                
-//            }
-//            else 
-//            {
-//                //esta configurado Y habilitado
-//                LED_B_SetHigh();    
-//            }
+            LED_A_SetLow();                        
         }
-    */
+        
+        if( UTS_delayms( LED_2_delay, 800, false ) )
+        {
+            LED_A_SetHigh();
+        }
+        
+    }    
+    return 0;
+}
+#endif
+//</editor-fold>
