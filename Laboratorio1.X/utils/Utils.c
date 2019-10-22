@@ -1,8 +1,11 @@
 
 #include "Utils.h"
 #include "../mcc_generated_files/tmr2.h"
+#include <limits.h>
 
 
+
+static UTS_delayHandler_t UTS_delayHandler[UTS_DELAY_HANDLER_COUNT];
 
 
 //bool UTS_delayms( uint32_t p_tiempo, bool p_reiniciar )
@@ -68,7 +71,7 @@
 
 
 
-bool UTS_delayms( uint8_t p_handlerIndex, uint32_t p_tiempo, bool p_reiniciar )
+bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_reiniciar )
 {
     uint32_t esteTiempo;
     
@@ -88,32 +91,40 @@ bool UTS_delayms( uint8_t p_handlerIndex, uint32_t p_tiempo, bool p_reiniciar )
     }
     
     esteTiempo = TMR2_SoftwareCounterGet();
-
-    if( ( ( esteTiempo - UTS_delayHandler[p_handlerIndex].initialTime ) < 0 ) ) //overflow
+    
+    if( TMR2_SoftwareCounterGet() >= UTS_delayHandler[p_handlerIndex].initialTime + UTS_delayHandler[p_handlerIndex].countTime )
     {
-        if( (esteTiempo + MAX_NUM_16_BITS+1 - UTS_delayHandler[p_handlerIndex].initialTime) >= UTS_delayHandler[p_handlerIndex].countTime )
-        {   // [                                                       ] 32bits
-            //        ^tiempo Actual           ^ tiempo Inicial   
-            //                                 |---------------------->
-            //  |----->
-            //                     Tiempo Transcurrido
+        UTS_delayHandler[p_handlerIndex].initialTime = 0;
+        UTS_delayHandler[p_handlerIndex].countTime = 0;
+        UTS_delayHandler[p_handlerIndex].active = false;
+        return true;
+    }
 
-            UTS_delayHandler[p_handlerIndex].initialTime = 0;
-            UTS_delayHandler[p_handlerIndex].countTime = 0;
-            UTS_delayHandler[p_handlerIndex].active = false;
-            return true;
-        }
-    }
-    else
-    {
-        if( ( esteTiempo - UTS_delayHandler[p_handlerIndex].initialTime ) >= UTS_delayHandler[p_handlerIndex].countTime )
-        {
-            UTS_delayHandler[p_handlerIndex].initialTime = 0;
-            UTS_delayHandler[p_handlerIndex].countTime = 0;
-            UTS_delayHandler[p_handlerIndex].active = false;
-            return true;
-        }
-    }
+//    if( ( ( esteTiempo - UTS_delayHandler[p_handlerIndex].initialTime ) < 0 ) ) //overflow
+//    {
+//        if( (esteTiempo + 4294967296  - UTS_delayHandler[p_handlerIndex].initialTime) >= UTS_delayHandler[p_handlerIndex].countTime )
+//        {   // [                                                       ] 32bits
+//            //        ^tiempo Actual           ^ tiempo Inicial   
+//            //                                 |---------------------->
+//            //  |----->
+//            //                     Tiempo Transcurrido
+//
+//            UTS_delayHandler[p_handlerIndex].initialTime = 0;
+//            UTS_delayHandler[p_handlerIndex].countTime = 0;
+//            UTS_delayHandler[p_handlerIndex].active = false;
+//            return true;
+//        }
+//    }
+//    else
+//    {
+//        if( ( esteTiempo - UTS_delayHandler[p_handlerIndex].initialTime ) >= UTS_delayHandler[p_handlerIndex].countTime )
+//        {
+//            UTS_delayHandler[p_handlerIndex].initialTime = 0;
+//            UTS_delayHandler[p_handlerIndex].countTime = 0;
+//            UTS_delayHandler[p_handlerIndex].active = false;
+//            return true;
+//        }
+//    }
     
     return false;
 

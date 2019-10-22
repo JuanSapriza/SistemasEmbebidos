@@ -3,7 +3,7 @@
 
 
 static uint8_t readBuffer[64];
-//static uint8_t writeBuffer[64];
+static uint8_t writeBuffer[64];
 
 //void MCC_USB_CDC_DemoTasks(void)
 //{
@@ -50,6 +50,37 @@ static uint8_t readBuffer[64];
 //    CDCTxService();
 //}
 
+//bool USB_CDC_tasks()
+//{
+//    if( USBGetDeviceState() < CONFIGURED_STATE )
+//    {
+//        return false;
+//    }
+//
+//    if( USBIsDeviceSuspended()== true )
+//    {
+//        return false;
+//    }
+//    CDCTxService();
+//    return true;
+//}
+//
+//
+//void USB_write( uint8_t *p_text )
+//{
+//    if( strlen(p_text) == 0 ) return;
+//    
+//    if( strlen( p_text ) < 64 )
+//    {
+//        putUSBUSART(p_text,strlen(p_text));
+//    }
+//    else
+//    {
+//        putUSBUSART(p_text, 64);
+//    }
+//}
+
+
 bool USB_CDC_tasks()
 {
     if( USBGetDeviceState() < CONFIGURED_STATE )
@@ -65,21 +96,21 @@ bool USB_CDC_tasks()
     return true;
 }
 
+//        putUSBUSART(p_text,strlen(p_text));
 
 void USB_write( uint8_t *p_text )
 {
     if( strlen(p_text) == 0 ) return;
     
-    if( strlen( p_text ) < 64 )
+    if( strlen( p_text ) < 64 -strlen(writeBuffer)  )
     {
-        putUSBUSART(p_text,strlen(p_text));
+        strcat(writeBuffer, p_text);
     }
     else
     {
-        putUSBUSART(p_text, 64);
+        strncat(writeBuffer, p_text, 64 - strlen(writeBuffer) );
     }
 }
-
 
 uint8_t *USB_read( uint8_t p_length )
 {

@@ -13,4 +13,5 @@ mcc_generated_files/usb/usb_hal.h  \
  mcc_generated_files/usb/usb_hal_pic32mm.h  \
  mcc_generated_files/usb/usb_device_cdc.h  \
 mcc_generated_files/usb/usb.h  \
- utils/Utils.h 
+ utils/Utils.h  \
+utils/../mcc_generated_files/tmr2.h 
