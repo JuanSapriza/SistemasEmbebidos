@@ -241,23 +241,6 @@ int main ()
  
     while(1)
     {  
-        if( UTS_delayms( LED_2_delay, 1000, false ) )
-        {
-            if( led_2 )
-            {
-                RGB_setLed(7,VIOLET);
-////                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
-//                USB_write("X\n");
-                led_2 = false;
-            }
-            else
-            {
-                RGB_setLed(7,RED);
-//                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
-//                USB_write("O\n");
-                led_2 = true;
-            }    
-        }
         
         if( UTS_delayms( LED_1_delay, 1000, false ) )
         {
@@ -304,6 +287,25 @@ int main ()
             }
         }
         
+        if( UTS_delayms( LED_2_delay, 1000, false ) )
+        {
+            if( led_2 )
+            {
+                RGB_setLed(7,VIOLET);
+////                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
+//                USB_write("X\n");
+                led_2 = false;
+            }
+            else
+            {
+                RGB_setLed(7,RED);
+//                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
+//                USB_write("O\n");
+                led_2 = true;
+            }    
+        }
+        
+                
         RGB_tasks();
 
     }    

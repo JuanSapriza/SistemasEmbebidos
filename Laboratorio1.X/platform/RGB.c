@@ -24,6 +24,7 @@
 #include <string.h>
 #include "../mcc_generated_files/pin_manager.h"
 #include "../mcc_generated_files/interrupt_manager.h"
+#include "../utils/Utils.h"
 
 
 /* ************************************************************************** */
@@ -191,6 +192,7 @@ static void RGB_sendSingle( RGB_color* p_led )
 void RGB_send( RGB_color *p_leds, uint8_t p_length )
 {
     uint8_t i;
+    UTS_DELAY_HANDLER_t rgb_delay = UTS_DELAY_HANDLER_3;
     
     INTERRUPT_GlobalDisable();
     
@@ -201,6 +203,7 @@ void RGB_send( RGB_color *p_leds, uint8_t p_length )
     }
     
     INTERRUPT_GlobalEnable();
+    while(!UTS_delayms( rgb_delay, 1, false ));
 }
 
 
