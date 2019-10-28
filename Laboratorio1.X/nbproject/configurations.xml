@@ -7,9 +7,6 @@
       <logicalFolder name="f4" displayName="Buttons" projectFiles="true">
         <itemPath>platform/Buttons.h</itemPath>
       </logicalFolder>
-      <logicalFolder name="f5" displayName="Clock" projectFiles="true">
-        <itemPath>platform/Clock.h</itemPath>
-      </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
                      projectFiles="true">
@@ -34,14 +31,12 @@
         <itemPath>mcc_generated_files/tmr2.h</itemPath>
         <itemPath>mcc_generated_files/rtcc.h</itemPath>
       </logicalFolder>
-      <logicalFolder name="f2" displayName="Platform" projectFiles="true">
-        <itemPath>platform/HardwareProfile.h</itemPath>
-      </logicalFolder>
       <logicalFolder name="f7" displayName="RGB" projectFiles="true">
         <itemPath>platform/RGB.h</itemPath>
+        <itemPath>framework/RGB_fwk.h</itemPath>
       </logicalFolder>
-      <logicalFolder name="f6" displayName="Timer" projectFiles="true">
-        <itemPath>platform/Timer.h</itemPath>
+      <logicalFolder name="f2" displayName="RTCC" projectFiles="true">
+        <itemPath>framework/RTCC_fwk.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="USB" projectFiles="true">
         <itemPath>framework/USB_fwk.h</itemPath>
@@ -50,6 +45,7 @@
         <itemPath>utils/Utils.h</itemPath>
       </logicalFolder>
       <itemPath>FileTemplate.h</itemPath>
+      <itemPath>App.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -60,9 +56,6 @@
                    projectFiles="true">
       <logicalFolder name="f2" displayName="Buttons" projectFiles="true">
         <itemPath>platform/Buttons.c</itemPath>
-      </logicalFolder>
-      <logicalFolder name="f3" displayName="Clock" projectFiles="true">
-        <itemPath>platform/Clock.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -85,9 +78,10 @@
       </logicalFolder>
       <logicalFolder name="f6" displayName="RGB" projectFiles="true">
         <itemPath>platform/RGB.c</itemPath>
+        <itemPath>framework/RGB_fwk.c</itemPath>
       </logicalFolder>
-      <logicalFolder name="f4" displayName="Timer" projectFiles="true">
-        <itemPath>platform/Timer.c</itemPath>
+      <logicalFolder name="f3" displayName="RTCC" projectFiles="true">
+        <itemPath>framework/RTCC_fwk.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="USB" projectFiles="true">
         <itemPath>framework/USB_fwk.c</itemPath>
@@ -737,86 +731,6 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
-      <item path="platform/Clock.c" ex="true" overriding="false">
-        <C32>
-        </C32>
-        <C32-AR>
-        </C32-AR>
-        <C32-AS>
-        </C32-AS>
-        <C32-CO>
-        </C32-CO>
-        <C32-LD>
-        </C32-LD>
-        <C32CPP>
-        </C32CPP>
-        <C32Global>
-        </C32Global>
-      </item>
-      <item path="platform/Clock.h" ex="true" overriding="false">
-        <C32>
-        </C32>
-        <C32-AR>
-        </C32-AR>
-        <C32-AS>
-        </C32-AS>
-        <C32-CO>
-        </C32-CO>
-        <C32-LD>
-        </C32-LD>
-        <C32CPP>
-        </C32CPP>
-        <C32Global>
-        </C32Global>
-      </item>
-      <item path="platform/HardwareProfile.h" ex="true" overriding="false">
-        <C32>
-        </C32>
-        <C32-AR>
-        </C32-AR>
-        <C32-AS>
-        </C32-AS>
-        <C32-CO>
-        </C32-CO>
-        <C32-LD>
-        </C32-LD>
-        <C32CPP>
-        </C32CPP>
-        <C32Global>
-        </C32Global>
-      </item>
-      <item path="platform/Timer.c" ex="true" overriding="false">
-        <C32>
-        </C32>
-        <C32-AR>
-        </C32-AR>
-        <C32-AS>
-        </C32-AS>
-        <C32-CO>
-        </C32-CO>
-        <C32-LD>
-        </C32-LD>
-        <C32CPP>
-        </C32CPP>
-        <C32Global>
-        </C32Global>
-      </item>
-      <item path="platform/Timer.h" ex="true" overriding="false">
-        <C32>
-        </C32>
-        <C32-AR>
-        </C32-AR>
-        <C32-AS>
-        </C32-AS>
-        <C32-CO>
-        </C32-CO>
-        <C32-LD>
-        </C32-LD>
-        <C32CPP>
-        </C32CPP>
-        <C32Global>
-        </C32Global>
-      </item>
       <snap>
         <property key="ADC 1" value="true"/>
         <property key="AutoSelectMemRanges" value="auto"/>

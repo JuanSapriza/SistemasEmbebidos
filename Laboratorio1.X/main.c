@@ -8,8 +8,8 @@
 //#define LABORATORIO_3
 //#define LABORATORIO_3_2
 //#define LABORATORIO_3_3
-#define LABORATORIO_3_4
-//#define LABORATORIO_3_5
+//#define LABORATORIO_3_4
+#define LABORATORIO_3_5
 
 
 
@@ -22,11 +22,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include "App.h"
+#include "framework/RGB_fwk.h"
+#include "framework/USB_fwk.h"
 #include "platform/Buttons.h"
-#include "platform/RGB.h"
 #include "mcc_generated_files/system.h"
-#include "mcc_generated_files/pin_manager.h"
-#include "mcc_generated_files/usb/usb.h"
+#include "mcc_generated_files/pin_manager.h" //armar libreria de LEDS
 #include "utils/Utils.h"
 //</editor-fold>
 
@@ -44,18 +45,48 @@
 
 static void MAIN_init()
 {
-    SYSTEM_Initialize();
-    RGB_setLed(0,OFF);
-    RGB_setLed(1,OFF);
-    RGB_setLed(2,OFF);
-    RGB_setLed(3,OFF);
-    RGB_setLed(4,OFF);
-    RGB_setLed(5,OFF);
-    RGB_setLed(6,OFF);
-    RGB_setLed(7,OFF);
-//    RGB_tasks();
-   
+    SYSTEM_Initialize();   
 }
+
+
+//<editor-fold defaultstate="collapsed" desc="Main App Lab 3_5">
+#ifdef LABORATORIO_3_5
+void MAIN_app()
+{
+
+    switch( APP_info.state )
+    {
+        case APP_STATE_INIT:
+            if( RGB_goRound( WHITE, 50, 3, GO_ROUND_VARIANT_LOOP ) )
+            {
+                USB_write("Bienvenido! \n");
+                
+                APP_info.time = &RTC_time;
+                APP_info.state = APP_STATE_WAIT;
+            }
+            break; 
+            
+        case APP_STATE_WAIT:
+            if( strstr( USB_read(0),"hola") != 0 )
+            {
+                RGB_setAll(RED);
+            }
+            break;
+            
+            
+        default: break;
+    
+    
+    }
+    
+    
+    
+
+}
+#endif
+//</editor-fold>
+
+
 
 //</editor-fold>
  
@@ -246,66 +277,35 @@ int main ()
         {
             if( led_1 )
             {
-//                RGB_setLed(0,WHITE);
-//                RGB_setLed(1,WHITE);
-//                RGB_setLed(2,WHITE);
-//                RGB_setLed(3,WHITE);
-//                RGB_setLed(4,WHITE);
-//                RGB_setLed(5,WHITE);
-//                RGB_setLed(6,WHITE);
                 RGB_setLed(2,WHITE);
-//                RGB_setLed(0,GREEN);
-//                RGB_setLed(1,GREEN);
-//                RGB_setLed(2,GREEN);
-//                RGB_setLed(3,GREEN);
-//                RGB_setLed(4,GREEN);
-//                RGB_setLed(5,GREEN);
-//                RGB_setLed(6,GREEN);
-//
-//                RGB_setLed(7,GREEN);
-//                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
-//                LED_A_SetHigh();
-                    
-//                USB_write("led 1 = true\n");
+                USB_write("hola \n");
                 led_1 = false;
             }
             else
             {
-//                RGB_setLed(0,OFF);
-////                RGB_setLed(1,OFF);
-//////                RGB_setLed(2,OFF);
-////                RGB_setLed(3,OFF);
-////                RGB_setLed(4,OFF);
-////                RGB_setLed(5,OFF);
-////                RGB_setLed(6,OFF);
-//
+                USB_write("chau \n");
                 RGB_setLed(2,BLUE);
-////                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
-////                LED_A_SetLow();
-//                USB_write("led 1 = false\n");
                 led_1 = true;
             }
         }
         
-        if( UTS_delayms( LED_2_delay, 1000, false ) )
+        if( UTS_delayms( LED_2_delay, 1200, false ) )
         {
             if( led_2 )
             {
                 RGB_setLed(7,VIOLET);
-////                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
-//                USB_write("X\n");
+                USB_write("mundo \n");
                 led_2 = false;
             }
             else
             {
                 RGB_setLed(7,RED);
-//                RGB_send( RGB_leds, RGB_LEDS_COUNT ); 
-//                USB_write("O\n");
+                USB_write("pajarito \n");
                 led_2 = true;
             }    
         }
         
-                
+        USB_CDC_tasks();        
         RGB_tasks();
 
     }    
@@ -317,32 +317,17 @@ int main ()
 //<editor-fold defaultstate="collapsed" desc="Laboratorio 3_5">
 #ifdef LABORATORIO_3_5
 
-uint8_t static enum  
 
 int main ()
 {
-    UTS_DELAY_HANDLER_t LED_1_delay = UTS_DELAY_HANDLER_1;
-    UTS_DELAY_HANDLER_t LED_2_delay = UTS_DELAY_HANDLER_2;
-    bool led_1 = false;
-    bool led_2 = false;
-   
     MAIN_init();
-    LED_A_SetHigh();
     while(1)
-    {  
-//        if( UTS_delayms(  1000, false ) )
-        if( UTS_delayms( LED_1_delay, 400, false ) )
-        {
-            LED_A_SetLow();                        
-        }
-        
-        if( UTS_delayms( LED_2_delay, 800, false ) )
-        {
-            LED_A_SetHigh();
-        }
-        
-    }    
-    return 0;
+    {
+        MAIN_app();
+        USB_CDC_tasks();
+        RGB_tasks();
+    }
+    
 }
 #endif
 //</editor-fold>

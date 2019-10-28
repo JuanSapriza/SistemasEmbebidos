@@ -2,8 +2,9 @@
 #include <string.h>
 
 
-static uint8_t readBuffer[64];
-static uint8_t writeBuffer[64];
+static uint8_t readBuffer[USB_BUFFER_SIZE];
+static uint8_t writeBuffer[USB_BUFFER_SIZE];
+static bool sth2write;
 
 //void MCC_USB_CDC_DemoTasks(void)
 //{
@@ -81,6 +82,7 @@ static uint8_t writeBuffer[64];
 //}
 
 
+
 bool USB_CDC_tasks()
 {
     if( USBGetDeviceState() < CONFIGURED_STATE )
@@ -92,24 +94,36 @@ bool USB_CDC_tasks()
     {
         return false;
     }
+    
+    if( sth2write ) //hay algo para escribir
+    {
+       putUSBUSART(writeBuffer,strlen(writeBuffer)); 
+       sth2write = false;
+    }
+    
     CDCTxService();
     return true;
 }
 
-//        putUSBUSART(p_text,strlen(p_text));
 
 void USB_write( uint8_t *p_text )
 {
     if( strlen(p_text) == 0 ) return;
     
-    if( strlen( p_text ) < 64 -strlen(writeBuffer)  )
+    if( !sth2write )
+    {
+        memset(writeBuffer, 0, sizeof(writeBuffer));
+    }
+    
+    if( strlen( p_text ) < USB_BUFFER_SIZE -strlen(writeBuffer)  )
     {
         strcat(writeBuffer, p_text);
     }
     else
     {
-        strncat(writeBuffer, p_text, 64 - strlen(writeBuffer) );
+        strncat(writeBuffer, p_text, USB_BUFFER_SIZE - strlen(writeBuffer) );
     }
+    sth2write = true;
 }
 
 uint8_t *USB_read( uint8_t p_length )
