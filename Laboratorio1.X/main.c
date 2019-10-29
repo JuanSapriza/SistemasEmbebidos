@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION USB_librerias
+#define COMMIT_VERSION USB_modificar_FechayHora
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
@@ -22,9 +22,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 #include "App.h"
 #include "framework/RGB_fwk.h"
 #include "framework/USB_fwk.h"
+#include "framework/RTCC_fwk.h"
 #include "platform/Buttons.h"
 #include "mcc_generated_files/system.h"
 #include "mcc_generated_files/pin_manager.h" //armar libreria de LEDS
@@ -59,17 +61,18 @@ void MAIN_app()
         case APP_STATE_INIT:
             if( RGB_goRound( WHITE, 50, 3, GO_ROUND_VARIANT_LOOP ) )
             {
-                USB_write("Bienvenido! \n");
-                
+                USB_write("Bienvenido! Qué deseas hacer? \n");
                 APP_info.time = &RTC_time;
                 APP_info.state = APP_STATE_WAIT;
             }
             break; 
             
         case APP_STATE_WAIT:
-            if( strstr( USB_read(0),"hola") != 0 )
+            if( RTC_getUserTime( APP_info.time ) )
             {
-                RGB_setAll(RED);
+                sprintf(USB_dummyBuffer,">>%02d - %02d - %04d \n",APP_info.time->tm_mday,APP_info.time->tm_mon, APP_info.time->tm_year);
+                USB_write( USB_dummyBuffer );
+                APP_info.state = 3;
             }
             break;
             

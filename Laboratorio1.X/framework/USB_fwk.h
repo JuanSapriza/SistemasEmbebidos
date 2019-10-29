@@ -5,7 +5,7 @@
 #include "../mcc_generated_files/usb/usb.h"
 
 
-#define USB_BUFFER_SIZE 64
+#define USB_BUFFER_SIZE 128
 
 uint8_t USB_dummyBuffer[USB_BUFFER_SIZE];
 

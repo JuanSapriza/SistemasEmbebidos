@@ -22,8 +22,11 @@ enum RTC_TM_ELEMENTS
 enum RTC_GET_TIME_STATE
 {
     GET_TIME_INIT,
-    GET_TIME_GET,
+    GET_TIME_GET_DATE,
+    GET_TIME_GET_TIME,
     GET_TIME_CHECK,
 };
+
+bool RTC_getUserTime( struct tm* p_time );
 
 #endif
