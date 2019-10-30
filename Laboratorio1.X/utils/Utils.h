@@ -7,6 +7,9 @@
 #include <stdbool.h>
 #include "../mcc_generated_files/tmr2.h"
 
+
+
+
 #define UTS_DELAY_CYCLES 1000
 
 enum UTS_DELAY_ESTADOS
@@ -24,8 +27,11 @@ typedef enum UTS_DELAY_HANDLER
     UTS_DELAY_HANDLER_3 = 2,
     UTS_DELAY_HANDLER_4 = 3,
     UTS_DELAY_HANDLER_5 = 4,
-    UTS_DELAY_HANDLER_COUNT = 5,
+    UTS_DELAY_HANDLER_6 = 5,
+    UTS_DELAY_HANDLER_7 = 6,
+    UTS_DELAY_HANDLER_COUNT = 7,
 }UTS_DELAY_HANDLER_t;
+
 
 
 typedef struct UTS_DELAY_HANDLER_TYPE

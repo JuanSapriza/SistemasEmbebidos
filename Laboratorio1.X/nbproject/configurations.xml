@@ -10,6 +10,9 @@
       <logicalFolder name="f5" displayName="Clock" projectFiles="true">
         <itemPath>platform/Clock.h</itemPath>
       </logicalFolder>
+      <logicalFolder name="f8" displayName="GPS" projectFiles="true">
+        <itemPath>platform/GPS.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
                      projectFiles="true">
@@ -33,6 +36,7 @@
         <itemPath>mcc_generated_files/system.h</itemPath>
         <itemPath>mcc_generated_files/tmr2.h</itemPath>
         <itemPath>mcc_generated_files/rtcc.h</itemPath>
+        <itemPath>mcc_generated_files/uart1.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Platform" projectFiles="true">
         <itemPath>platform/HardwareProfile.h</itemPath>
@@ -64,6 +68,9 @@
       <logicalFolder name="f3" displayName="Clock" projectFiles="true">
         <itemPath>platform/Clock.c</itemPath>
       </logicalFolder>
+      <logicalFolder name="f7" displayName="GPS" projectFiles="true">
+        <itemPath>platform/GPS.c</itemPath>
+      </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
                      projectFiles="true">
@@ -82,6 +89,7 @@
         <itemPath>mcc_generated_files/pin_manager.c</itemPath>
         <itemPath>mcc_generated_files/tmr2.c</itemPath>
         <itemPath>mcc_generated_files/rtcc.c</itemPath>
+        <itemPath>mcc_generated_files/uart1.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="RGB" projectFiles="true">
         <itemPath>platform/RGB.c</itemPath>
