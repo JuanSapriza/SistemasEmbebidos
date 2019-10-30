@@ -51,6 +51,7 @@
 */
 #include <xc.h>
 #include <stdbool.h>
+#include "../platform/Buttons.h"
 /**
     Section: Device Pin Macros
 */
