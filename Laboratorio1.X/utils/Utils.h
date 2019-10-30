@@ -7,6 +7,9 @@
 #include <stdbool.h>
 #include "../mcc_generated_files/tmr2.h"
 
+
+//<editor-fold defaultstate="collapsed" desc="DELAY">
+
 #define UTS_DELAY_CYCLES 1000
 
 enum UTS_DELAY_ESTADOS
@@ -38,15 +41,41 @@ typedef struct UTS_DELAY_HANDLER_TYPE
 }UTS_delayHandler_t;
 
 
-
-
-
-
 bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_reiniciar );
-//bool UTS_delayms( uint32_t p_tiempo, bool p_reiniciar );
+
+//</editor-fold>
 
 
 
+//<editor-fold defaultstate="collapsed" desc="MENÚ">
+
+#define UTS_MENU_ITEM_TITLE_LENGTH 35
+
+#define UTS_MENU_MAX_OPTIONS 15
+#define UTS_MENU_MAX_OPTION_NAME_LENGTH 35
+
+typedef enum 
+{
+    UTS_MENU_HANDLER_MENU_PRINCIPAL,
+    UTS_MENU_HANDLER_COUNT,
+} UTS_MENU_HANDLER_t;
+
+typedef struct 
+{
+    uint8_t title[ UTS_MENU_ITEM_TITLE_LENGTH ];
+    uint8_t optionsNumber;
+    uint8_t optionNames[UTS_MENU_MAX_OPTIONS][UTS_MENU_MAX_OPTION_NAME_LENGTH];
+    UTS_MENU_HANDLER_t handler;
+}UTS_MENU_ITEM_t;
+
+UTS_MENU_ITEM_t UTS_menusVector[UTS_MENU_HANDLER_COUNT];
+
+bool UTS_addOption2Menu( UTS_MENU_HANDLER_t p_menu, uint8_t* p_optionName );
+bool UTS_addTitle2Menu( UTS_MENU_HANDLER_t p_menu, uint8_t* p_title );
+uint8_t* UTS_getMenuTitle( UTS_MENU_HANDLER_t p_menu );
+uint8_t* UTS_getMenuOption( UTS_MENU_HANDLER_t p_menu, uint8_t p_option );
+uint8_t UTS_getmenuOptionsNumber( UTS_MENU_HANDLER_t p_menu );
+//</editor-fold>
 
 
 

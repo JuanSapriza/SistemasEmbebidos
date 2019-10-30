@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION USB_modificar_FechayHora
+#define COMMIT_VERSION USB_modificar_EsturcturaDeMenu
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
@@ -61,20 +61,62 @@ void MAIN_app()
         case APP_STATE_INIT:
             if( RGB_goRound( WHITE, 50, 3, GO_ROUND_VARIANT_LOOP ) )
             {
-                USB_write("Bienvenido! Qué deseas hacer? \n");
+                USB_write("Bienvenido!\n");
+                USB_write("Presione una tecla \n");
                 APP_info.time = &RTC_time;
                 APP_info.state = APP_STATE_WAIT;
             }
             break; 
             
         case APP_STATE_WAIT:
-            if( RTC_getUserTime( APP_info.time ) )
+//            if( RTC_getUserTime( APP_info.time ) )
+//            {
+//                sprintf(USB_dummyBuffer,">>%02d - %02d - %04d \n",APP_info.time->tm_mday,APP_info.time->tm_mon, APP_info.time->tm_year);
+//                USB_write( USB_dummyBuffer );
+//                APP_info.state = 3;
+//            }
+            if( *USB_read(0) != 0 )
             {
-                sprintf(USB_dummyBuffer,">>%02d - %02d - %04d \n",APP_info.time->tm_mday,APP_info.time->tm_mon, APP_info.time->tm_year);
-                USB_write( USB_dummyBuffer );
-                APP_info.state = 3;
+                APP_info.state = APP_STATE_MAIN_MENU_CREATE;
             }
             break;
+        
+        case APP_STATE_MAIN_MENU_CREATE:
+            UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Menu Principal. ¿Qué LED prendo?" );
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Led 1 Rojo" );
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Led 2 Verde" );
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Led 3 Azul" );
+            APP_info.state = APP_STATE_MAIN_MENU_SHOW;
+            break;
+            
+        case APP_STATE_MAIN_MENU_SHOW:
+            switch( USB_showMenuAndGetAnswer(UTS_MENU_HANDLER_MENU_PRINCIPAL ) )
+            {
+                case 1:
+                    RGB_setAll(OFF);
+                    RGB_setLed(1,RED);
+                    break;
+                    
+                case 2: 
+                    RGB_setAll(OFF);
+                    RGB_setLed(2,GREEN);
+                    break;
+                    
+                case 3:
+                    RGB_setAll(OFF);
+                    RGB_setLed(3,BLUE);
+                    break;
+                    
+                case -1:
+                    RGB_setAll(OFF);
+                    break;
+                    
+                default: break;
+            
+            }
+            break;
+            
+            
             
             
         default: break;

@@ -14,6 +14,18 @@ void USB_write( uint8_t *p_text );
 bool USB_CDC_tasks();
 
 
+//<editor-fold defaultstate="collapsed" desc="Menu">
+
+enum USB_SHOW_MENU_STATES
+{
+    USB_SHOW_MENU_STATES_INIT,
+    USB_SHOW_MENU_STATES_SHOW,
+    USB_SHOW_MENU_STATES_WAIT,
+};
+
+
+
+//</editor-fold>
 
 
 #endif

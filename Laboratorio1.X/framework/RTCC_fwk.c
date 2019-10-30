@@ -31,7 +31,7 @@ bool RTC_getUserTime( struct tm* p_time )
                 msgShow = false;
             }
             strcpy( USB_dummyBuffer, USB_read(0) );
-            keyWord = strstr(USB_dummyBuffer,"fecha:");
+            keyWord = strstr(USB_dummyBuffer,"fecha:"); //puntero al primer caracter de la palabra 'fecha' (si la encontro)
             if( keyWord != 0 )
             {
                 keyWord += 6 ; //largo de "fecha:" 
