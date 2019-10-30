@@ -102,8 +102,6 @@ enum MODEM_ESTADO
     MODEM_ESTADOS_STATUS,
 };
 
-UTS_DELAY_HANDLER_t MODEM_power = UTS_DELAY_HANDLER_3;
-
 bool MODEM_Init(void);
         
 void UART1_Initialize(void);

@@ -55,6 +55,8 @@ static void MAIN_init()
     RGB_setLed(5,OFF);
     RGB_setLed(6,OFF);
     RGB_setLed(7,OFF);
+    GPRS_PWR_SetDigitalInput();
+   
 //    RGB_tasks();
    
 }
@@ -354,6 +356,9 @@ int main ()
 
 int main ()
 {
+    
+    
+    
     UTS_DELAY_HANDLER_t LED_1_delay = UTS_DELAY_HANDLER_1;
     UTS_DELAY_HANDLER_t LED_2_delay = UTS_DELAY_HANDLER_2;
 //    UTS_DELAY_HANDLER_t MODEM_power = UTS_DELAY_HANDLER_3;
@@ -362,7 +367,12 @@ int main ()
    
     MAIN_init();
     LED_A_SetHigh();
-    MODEM_Init();
+    
+    while(!MODEM_Init())
+    {
+    }
+    
+    
     while(1)
     {  
 //        if( UTS_delayms(  1000, false ) )
