@@ -32,13 +32,13 @@
 /* Section: File Scope or Global Data                                         */
 /* ************************************************************************** */
 /* ************************************************************************** */
-RGB_color WHITE     = {255, 255, 255};
-RGB_color RED       = {255, 0, 0};
-RGB_color GREEN     = {0, 255, 0};
-RGB_color BLUE      = {0, 0, 255};
+RGB_color WHITE     = {25, 25, 25};
+RGB_color RED       = {25, 0, 0};
+RGB_color GREEN     = {0, 25, 0};
+RGB_color BLUE      = {0, 0, 25};
 RGB_color VIOLET    = {27, 10, 36};
 RGB_color CYAN      = {32, 91, 92};
-RGB_color YELLOW    = {217, 209, 67};
+RGB_color YELLOW    = {21, 20, 6};
 RGB_color OFF       = {00, 00, 00};
 
 bool RGB_newConfig = false;

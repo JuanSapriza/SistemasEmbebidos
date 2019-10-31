@@ -32,6 +32,13 @@ enum HDT_OTRO_ENUM
     HDT_OTRO_ENUM_ENUM = -1,
 };
 
+typedef enum
+{
+    HDT_ENUM_TIPO_A,
+    HDT_ENUM_TIPO_B,
+    HDT_ENUM_TIPO_C,
+    
+} HDT_ENUM_TIPO_t;
 
 //</editor-fold>
 
