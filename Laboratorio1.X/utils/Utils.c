@@ -3,6 +3,7 @@
 #include <string.h>
 #include "Utils.h"
 #include "../mcc_generated_files/tmr2.h"
+#include "../mcc_generated_files/pin_manager.h"
 
 
 
@@ -69,6 +70,33 @@ bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_
 }
 //</editor-fold>
 
+
+//<editor-fold defaultstate="collapsed" desc="LEDS">
+
+void UTS_ledBlink( uint32_t p_ON, uint32_t p_OFF )
+{
+    static UTS_DELAY_HANDLER_t LED_1_delay = UTS_DELAY_HANDLER_LED_A;    
+    static bool ledState = false;
+    
+    if( ledState )
+    {
+        if( UTS_delayms( LED_1_delay, p_OFF, false ) )
+        {
+            LED_A_SetHigh(); 
+            ledState = false;
+        }    
+    }
+    else
+    {
+        if( UTS_delayms( LED_1_delay, p_ON, false ) )
+        {
+            LED_A_SetLow();
+            ledState = true;
+        }
+    }
+}
+
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="MENÚ">
 

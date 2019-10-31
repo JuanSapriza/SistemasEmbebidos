@@ -15,7 +15,10 @@ bool MDM_Init(void)
     switch( MODEM_ESTADO )
     {
         case MODEM_ESTADOS_INIT:
-            
+            if( GPRS_STATUS_GetValue() )
+            {
+                return true;
+            }
             GPRS_PWR_SetLow(); //PWR OFF
             GPRS_PWR_SetDigitalOutput();
             MODEM_ESTADO = MODEM_ESTADOS_WAIT; //No agregamos break para poder iniciar el delay
@@ -42,16 +45,6 @@ bool MDM_Init(void)
                 MODEM_ESTADO = MODEM_ESTADOS_INIT;
                 return true;
             }
-//            else 
-//            {
-//                if ( UTS_delayms( MODEM_power_timer_handler, 3000, false ) )
-//                {
-//                    if (GPRS_STATUS_GetValue())
-//                    {
-//                        MODEM_ESTADO = MODEM_ESTADOS_INIT;
-//                        return true;
-//                    }
-//                }
             break;
     }
     
@@ -66,6 +59,7 @@ void MDM_read( uint8_t* p_string )
 
 uint8_t* MDM_readString()
 {
+    memset( MDM_rxBuffer, 0, sizeof( MDM_rxBuffer ) );
     MDM_read( MDM_rxBuffer );
     return MDM_rxBuffer;
 }
@@ -73,6 +67,6 @@ uint8_t* MDM_readString()
 uint8_t MDM_write(uint8_t *p_string)
 {
     if( strlen(p_string) == 0 ) return 0;  
-    return UART1_WriteBuffer(*p_string,strlen(p_string));
+    return UART1_WriteBuffer( p_string , strlen(p_string));
 }
 

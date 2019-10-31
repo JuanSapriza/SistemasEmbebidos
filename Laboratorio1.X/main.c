@@ -63,8 +63,6 @@ static void MAIN_init()
     RGB_setLed(7,OFF);
     GPRS_PWR_SetDigitalInput();
    
-//    RGB_tasks();
-   
 }
 
 
@@ -399,37 +397,55 @@ int main ()
 
 int main ()
 {
-    
-    
-    
-    UTS_DELAY_HANDLER_t LED_1_delay = UTS_DELAY_HANDLER_1;
-    UTS_DELAY_HANDLER_t LED_2_delay = UTS_DELAY_HANDLER_2;
-//    UTS_DELAY_HANDLER_t MODEM_power = UTS_DELAY_HANDLER_3;
-    bool led_1 = false;
-    bool led_2 = false;
-   
+    UTS_DELAY_HANDLER_t AT_delay_handler = UTS_DELAY_HANDLER_INITIAL_AT;
+    uint8_t dummyBuffer[ 64 ];
     MAIN_init();
-    LED_A_SetHigh();
-    
-    while(!MODEM_Init())
-    {
-    }
-    
+    APP_info.state = APP_STATE_PREVIO;
     
     while(1)
-    {  
-//        if( UTS_delayms(  1000, false ) )
-        if( UTS_delayms( LED_1_delay, 400, false ) )
+    {
+        if( MDM_Init() )
         {
-            LED_A_SetLow();                        
+            UTS_ledBlink( 500, 500 );
+            
+            switch( APP_info.state )
+            {
+                case APP_STATE_PREVIO:
+                    MDM_write( "A" );
+                    APP_info.state = APP_STATE_INTERMEDIO;
+                    break;
+                    
+                case APP_STATE_INTERMEDIO:
+                    if( UTS_delayms( AT_delay_handler, 4000, false ) )
+                    {
+                        APP_info.state = APP_STATE_INIT;
+                    }
+                    break;
+                    
+                case APP_STATE_INIT:
+                    MDM_write( "AT\r" );
+                    APP_info.state = APP_STATE_CHECK;
+                    break;
+                    
+                case APP_STATE_CHECK:
+                    MDM_read( dummyBuffer );
+                    if( strstr( dummyBuffer, "OK" ) != NULL )
+                    {
+                        RGB_setLed( 1, WHITE );
+                        APP_info.state = APP_STATE_WAIT;
+                    }
+                    else
+                    {
+                        RGB_setLed( 1, RED );
+                    }
+                    break;
+            
+            }
+            
         }
-        
-        if( UTS_delayms( LED_2_delay, 800, false ) )
-        {
-            LED_A_SetHigh();
-        }
-        
-    }    
+        RGB_tasks();
+        USB_CDC_tasks();
+    }
     return 0;
 }
 #endif

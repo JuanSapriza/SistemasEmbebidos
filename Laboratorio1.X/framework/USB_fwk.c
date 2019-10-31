@@ -22,7 +22,7 @@ bool USB_CDC_tasks()
         return false;
     }
     
-    if( sth2write ) //hay algo para escribir
+    if( sth2write && USBUSARTIsTxTrfReady() ) //hay algo para escribir
     {
        putUSBUSART(writeBuffer,strlen(writeBuffer)); 
        sth2write = false;

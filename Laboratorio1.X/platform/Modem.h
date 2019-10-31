@@ -1,7 +1,8 @@
 #ifndef MODEM_H
 #define	MODEM_H
 
-
+#include <stdint.h>
+#include <stdbool.h>
 
 #define MDM_RX_BUFFER_SIZE 128
 

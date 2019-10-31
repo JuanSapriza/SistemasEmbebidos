@@ -2,13 +2,12 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
-//#include "../platform/Timer.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include "../mcc_generated_files/tmr2.h"
 
 
-
+//<editor-fold defaultstate="collapsed" desc="DELAY">
 
 #define UTS_DELAY_CYCLES 1000
 
@@ -22,9 +21,8 @@ enum UTS_DELAY_ESTADOS
 
 typedef enum UTS_DELAY_HANDLER
 {
-
-    UTS_DELAY_HANDLER_1,
-    UTS_DELAY_HANDLER_2,
+    UTS_DELAY_HANDLER_LED_A,
+    UTS_DELAY_HANDLER_INITIAL_AT,
     UTS_DELAY_HANDLER_3,
     UTS_DELAY_HANDLER_4,
     UTS_DELAY_HANDLER_5,
@@ -47,6 +45,12 @@ bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_
 
 //</editor-fold>
 
+
+//<editor-fold defaultstate="collapsed" desc="LEDS">
+
+void UTS_ledBlink( uint32_t p_ON, uint32_t p_OFF );
+
+//</editor-fold>
 
 
 //<editor-fold defaultstate="collapsed" desc="MENÚ">
