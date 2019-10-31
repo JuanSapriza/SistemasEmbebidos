@@ -58,8 +58,19 @@ bool MDM_Init(void)
     return false;
 }
 
-uint8_t MDM_write(uint8_t *p_string)
 
+void MDM_read( uint8_t* p_string )
+{
+    UART1_ReadBuffer( p_string, sizeof( p_string ) );
+}
+
+uint8_t* MDM_readString()
+{
+    MDM_read( MDM_rxBuffer );
+    return MDM_rxBuffer;
+}
+
+uint8_t MDM_write(uint8_t *p_string)
 {
     if( strlen(p_string) == 0 ) return 0;  
     return UART1_WriteBuffer(*p_string,strlen(p_string));

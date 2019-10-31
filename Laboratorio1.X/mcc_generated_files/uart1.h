@@ -373,7 +373,7 @@ typedef enum
     }
     </code>
 */
-unsigned int __attribute__((deprecated)) UART1_ReadBuffer( uint8_t *buffer ,  unsigned int numbytes);
+unsigned int UART1_ReadBuffer( uint8_t *buffer ,  unsigned int numbytes);
 
 /**
   @Summary
@@ -420,7 +420,7 @@ unsigned int __attribute__((deprecated)) UART1_ReadBuffer( uint8_t *buffer ,  un
     }
     </code>
 */
-unsigned int __attribute__((deprecated)) UART1_WriteBuffer( uint8_t *buffer , unsigned int numbytes );
+unsigned int UART1_WriteBuffer( uint8_t *buffer , unsigned int numbytes );
 
 /**
   @Summary
