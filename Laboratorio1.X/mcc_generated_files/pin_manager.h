@@ -51,7 +51,6 @@
 */
 #include <xc.h>
 #include <stdbool.h>
-#include "../platform/Buttons.h"
 /**
     Section: Device Pin Macros
 */
@@ -237,6 +236,188 @@ inline static void GPRS_PWR_SetValue(bool value)
 
 */
 #define GPRS_PWR_SetDigitalOutput()   ( TRISACLR = (1 << 0) )
+/**
+  @Summary
+    Sets the GPIO pin, RA1, high using LATA1.
+
+  @Description
+    Sets the GPIO pin, RA1, high using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA1 high (1)
+    GPRS_RESET_SetHigh();
+    </code>
+
+*/
+#define GPRS_RESET_SetHigh()          ( LATASET = (1 << 1) )
+/**
+  @Summary
+    Sets the GPIO pin, RA1, low using LATA1.
+
+  @Description
+    Sets the GPIO pin, RA1, low using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA1 low (0)
+    GPRS_RESET_SetLow();
+    </code>
+
+*/
+#define GPRS_RESET_SetLow()           ( LATACLR = (1 << 1) )
+
+/**
+  @Summary
+    Sets a value to the GPIO pin.
+
+  @Description
+    Sets or Resets the GPIO pin, RA1, low or high using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    bool value; : value to be set to the GPIO pin.
+
+  @Example
+    <code>
+    // Set RA1 to low.
+    GPRS_RESET_SetValue(false);
+    </code>
+
+*/
+inline static void GPRS_RESET_SetValue(bool value)
+{
+  if(value)
+  {
+    GPRS_RESET_SetHigh();
+  }
+  else
+  {
+    GPRS_RESET_SetLow();
+  }
+}
+
+/**
+  @Summary
+    Toggles the GPIO pin, RA1, using LATA1.
+
+  @Description
+    Toggles the GPIO pin, RA1, using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RA1
+    GPRS_RESET_Toggle();
+    </code>
+
+*/
+#define GPRS_RESET_Toggle()           ( LATAINV = (1 << 1) )
+/**
+  @Summary
+    Reads the value of the GPIO pin, RA1.
+
+  @Description
+    Reads the value of the GPIO pin, RA1.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RA1
+    postValue = GPRS_RESET_GetValue();
+    </code>
+
+*/
+#define GPRS_RESET_GetValue()         PORTAbits.RA1
+/**
+  @Summary
+    Configures the GPIO pin, RA1, as an input.
+
+  @Description
+    Configures the GPIO pin, RA1, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA1 as an input
+    GPRS_RESET_SetDigitalInput();
+    </code>
+
+*/
+#define GPRS_RESET_SetDigitalInput()   ( TRISASET = (1 << 1) )
+/**
+  @Summary
+    Configures the GPIO pin, RA1, as an output.
+
+  @Description
+    Configures the GPIO pin, RA1, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA1 as an output
+    GPRS_RESET_SetDigitalOutput();
+    </code>
+
+*/
+#define GPRS_RESET_SetDigitalOutput()   ( TRISACLR = (1 << 1) )
 /**
   @Summary
     Sets the GPIO pin, RA10, high using LATA10.
