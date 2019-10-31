@@ -51,7 +51,7 @@
 #include "rtcc.h"
 #include "interrupt_manager.h"
 #include "exceptions.h"
-#include "usb/usb.h"
+
 
 void SYSTEM_Initialize(void)
 {

@@ -73,6 +73,6 @@ uint8_t* MDM_readString()
 uint8_t MDM_write(uint8_t *p_string)
 {
     if( strlen(p_string) == 0 ) return 0;  
-    return UART1_WriteBuffer(*p_string,strlen(p_string));
+    return UART1_WriteBuffer( p_string, strlen(p_string) );
 }
 

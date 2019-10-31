@@ -27,6 +27,4 @@ mcc_generated_files/usb/usb.h  \
  mcc_generated_files/../mcc_generated_files/pin_manager.h  \
 utils/Utils.h  \
  utils/../mcc_generated_files/tmr2.h  \
-platform/Modem.h  \
- platform/../utils/Utils.h  \
-platform/../mcc_generated_files/pin_manager.h 
+platform/Modem.h 

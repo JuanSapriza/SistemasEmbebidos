@@ -62,7 +62,8 @@ static void MAIN_init()
     RGB_setLed(6,OFF);
     RGB_setLed(7,OFF);
     GPRS_PWR_SetDigitalInput();
-   
+    GPRS_RESET_SetHigh();
+    
 //    RGB_tasks();
    
 }
@@ -411,7 +412,7 @@ int main ()
     MAIN_init();
     LED_A_SetHigh();
     
-    while(!MODEM_Init())
+    while(!MDM_Init())
     {
     }
     
