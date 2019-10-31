@@ -21,7 +21,6 @@ platform/Buttons.h  \
 platform/GPS.h  \
 mcc_generated_files/system.h  \
  mcc_generated_files/pin_manager.h  \
- mcc_generated_files/../platform/Buttons.h  \
 mcc_generated_files/usb/usb.h  \
  mcc_generated_files/uart1.h  \
  mcc_generated_files/../mcc_generated_files/pin_manager.h  \

@@ -5,10 +5,6 @@
 //#include "HardwareProfile.h"
 #include <stdbool.h>
 
-bool BTN_A_pressed; 
-bool BTN_B_pressed; 
-
-
 enum BTN_BUTTON_NAMES
 {
     BTN_BUTTON_A,
