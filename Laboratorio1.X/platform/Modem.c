@@ -1,4 +1,9 @@
 #include "Modem.h"
+#include "../mcc_generated_files/uart1.h"
+
+
+
+
 
 bool MODEM_Init(void)
 {
@@ -50,4 +55,16 @@ bool MODEM_Init(void)
     }
     
     return false;
+}
+
+
+void MDM_read( uint8_t* p_string )
+{
+    UART1_ReadBuffer( p_string, sizeof( p_string ) );
+}
+
+uint8_t* MDM_readString()
+{
+    MDM_read( MDM_rxBuffer );
+    return MDM_rxBuffer;
 }

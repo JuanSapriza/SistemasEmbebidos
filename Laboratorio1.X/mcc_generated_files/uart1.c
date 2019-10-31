@@ -344,7 +344,7 @@ static uint8_t UART1_TxDataAvailable(void)
     return size;
 }
 
-unsigned int __attribute__((deprecated)) UART1_ReadBuffer( uint8_t *buffer ,  unsigned int numbytes)
+unsigned int UART1_ReadBuffer( uint8_t *buffer ,  unsigned int numbytes)
 {
     unsigned int rx_count = UART1_RxDataAvailable();
     unsigned int i;
@@ -362,7 +362,7 @@ unsigned int __attribute__((deprecated)) UART1_ReadBuffer( uint8_t *buffer ,  un
     return rx_count;    
 }
 
-unsigned int __attribute__((deprecated)) UART1_WriteBuffer( uint8_t *buffer , unsigned int numbytes )
+unsigned int UART1_WriteBuffer( uint8_t *buffer , unsigned int numbytes )
 {
     unsigned int tx_count = UART1_TxDataAvailable();
     unsigned int i;
