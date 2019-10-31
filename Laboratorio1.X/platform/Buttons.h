@@ -2,11 +2,9 @@
 #ifndef _BUTTONS_H
 #define _BUTTONS_H
 
-//#include "HardwareProfile.h"
 #include <stdbool.h>
 
-bool BTN_A_pressed; 
-bool BTN_B_pressed; 
+
 
 
 enum BTN_BUTTON_NAMES
@@ -17,8 +15,6 @@ enum BTN_BUTTON_NAMES
 
 
 
-//void BTN_init();
-//void BTN_initInt();
 bool BTN_isButtonPressed( enum BTN_BUTTON_NAMES p_button );
 
 

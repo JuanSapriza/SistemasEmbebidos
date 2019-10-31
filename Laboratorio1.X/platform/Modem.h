@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #define MDM_RX_BUFFER_SIZE 128
+#define MDM_TX_BUFFER_SIZE 128
 
 enum MODEM_ESTADO
 {
@@ -13,6 +14,15 @@ enum MODEM_ESTADO
     MODEM_ESTADOS_CHECK,
     MODEM_ESTADOS_STATUS,
 };
+
+typedef enum 
+{
+    MDM_AT_CMD_NAME_PWR_ON,
+    MDM_AT_CMD_NAME_PWR_OFF,
+    MDM_AT_CMD_NAME_NMAE,
+    MDM_AT_CMD_NAME_GET_INFO,
+    MDM_AT_CMD_NAME_REPORTING_OFF,
+} MDM_AT_CMD_NAME_t;
 
 
 uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ];

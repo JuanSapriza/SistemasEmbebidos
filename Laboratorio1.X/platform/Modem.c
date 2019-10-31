@@ -70,3 +70,44 @@ uint8_t MDM_write(uint8_t *p_string)
     return UART1_WriteBuffer( p_string , strlen(p_string));
 }
 
+void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param )
+{
+    uint8_t dummyBuffer[ MDM_TX_BUFFER_SIZE ];
+    
+    strncpy( dummyBuffer, p_cmd );
+    if( p_param != NULL )
+    {
+        strcat( dummyBuffer, p_param );
+    }
+    strcat( dummyBuffer, "\r" );
+}
+
+void MDM_sendAndWaitResponse(  )
+{
+
+}
+
+uint8_t* MDM_command( MDM_AT_CMD_NAME_t p_cmd )
+{
+    switch( p_cmd )
+    {
+        case MDM_AT_CMD_NAME_PWR_ON:
+            return MDM_AT_CMD_PWR_ON;
+            
+        case MDM_AT_CMD_NAME_PWR_OFF:
+            return MDM_AT_CMD_PWR_OFF;
+            
+        case MDM_AT_CMD_NAME_NMAE:
+            return MDM_AT_CMD_NMAE;    
+            
+        case MDM_AT_CMD_NAME_GET_INFO:
+            return MDM_AT_CMD_GET_INFO;
+            
+        case MDM_AT_CMD_NAME_REPORTING_OFF:
+            return MDM_AT_CMD_REPORTING_OFF;
+            
+        default: return NULL;
+    }
+}
+
+
