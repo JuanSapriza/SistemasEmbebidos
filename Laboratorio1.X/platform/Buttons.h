@@ -4,9 +4,6 @@
 
 #include <stdbool.h>
 
-
-
-
 enum BTN_BUTTON_NAMES
 {
     BTN_BUTTON_A,
