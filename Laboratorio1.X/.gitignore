@@ -1,8 +1,0 @@
-build
-debug
-dist
-private
-*.mk
-Makefile-genesis.properties
-Package-default.bash
-Makefile-local-default.mk
