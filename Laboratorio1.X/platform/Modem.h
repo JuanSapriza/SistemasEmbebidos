@@ -1,8 +1,6 @@
 #ifndef MODEM_H
 #define	MODEM_H
 
-#include "../utils/Utils.h"
-#include "../mcc_generated_files/pin_manager.h"
 
 enum MODEM_ESTADO
 {
@@ -12,6 +10,7 @@ enum MODEM_ESTADO
     MODEM_ESTADOS_STATUS,
 };
 
-bool MODEM_Init(void);
+bool MDM_Init(void);
+uint8_t MDM_write(uint8_t *p_string);
 
 #endif

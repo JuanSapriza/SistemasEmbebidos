@@ -1,6 +1,12 @@
 #include "Modem.h"
+#include <stdio.h>
+#include <string.h>
+#include "../utils/Utils.h"
+#include "../mcc_generated_files/uart1.h"
+#include "../mcc_generated_files/pin_manager.h"
 
-bool MODEM_Init(void)
+
+bool MDM_Init(void)
 {
     
     static UTS_DELAY_HANDLER_t MODEM_power_timer_handler = UTS_DELAY_HANDLER_3;
@@ -51,3 +57,11 @@ bool MODEM_Init(void)
     
     return false;
 }
+
+uint8_t MDM_write(uint8_t *p_string)
+
+{
+    if( strlen(p_string) == 0 ) return 0;  
+    return UART1_WriteBuffer(*p_string,strlen(p_string));
+}
+
