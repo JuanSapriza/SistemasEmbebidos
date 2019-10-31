@@ -51,7 +51,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "../utils/Utils.h"
 #include "../mcc_generated_files/pin_manager.h"
 
 #ifdef __cplusplus  // Provide C++ Compatibility
@@ -93,17 +92,7 @@
 //#define PWRKEY_SetOutput() (TRISAbits.TRISA0 = 0)
 ////#define PWRKEY_ON() (LATAbits.LATA0 = 1)
 //#define PWRKEY_OFF() (LATAbits.LATA0 = 0)       
-
-enum MODEM_ESTADO
-{
-    MODEM_ESTADOS_INIT,
-    MODEM_ESTADOS_WAIT,
-    MODEM_ESTADOS_CHECK,
-    MODEM_ESTADOS_STATUS,
-};
-
-bool MODEM_Init(void);
-        
+      
 void UART1_Initialize(void);
 
 /**

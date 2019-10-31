@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION Lab4_GPS_22oct
+#define COMMIT_VERSION Lab4_GPS_31oct
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
@@ -30,6 +30,7 @@
 #include "mcc_generated_files/usb/usb.h"
 #include "mcc_generated_files/uart1.h"
 #include "utils/Utils.h"
+#include "platform/Modem.h"
 //</editor-fold>
 
 
