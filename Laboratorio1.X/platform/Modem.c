@@ -74,7 +74,7 @@ void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param )
 {
     uint8_t dummyBuffer[ MDM_TX_BUFFER_SIZE ];
     
-    strncpy( dummyBuffer, p_cmd );
+    strcpy( dummyBuffer, p_cmd );
     if( p_param != NULL )
     {
         strcat( dummyBuffer, p_param );
