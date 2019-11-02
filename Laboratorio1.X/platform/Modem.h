@@ -9,8 +9,9 @@
 
 //Comandos AT para GPS
 
-#define MDM_AT_CMD_PWR_ON "AT+CGNSPWR=1"
-#define MDM_AT_CMD_PWR_OFF "AT+CGNSPWR=0"
+//#define MDM_AT_CMD_PWR_ON "AT+CGNSPWR=1"
+//#define MDM_AT_CMD_PWR_OFF "AT+CGNSPWR=0"
+#define MDM_AT_CMD_PWR "AT+CGNSPWR="
 #define MDM_AT_CMD_NMAE "AT+CGNSSEQ=RMC"
 #define MDM_AT_CMD_GET_INFO "AT+CGNSINF"
 #define MDM_AT_CMD_REPORTING_OFF "AT+CGNSURC=0"
@@ -25,8 +26,7 @@ enum MODEM_ESTADO
 
 typedef enum 
 {
-    MDM_AT_CMD_NAME_PWR_ON,
-    MDM_AT_CMD_NAME_PWR_OFF,
+    MDM_AT_CMD_NAME_PWR,
     MDM_AT_CMD_NAME_NMAE,
     MDM_AT_CMD_NAME_GET_INFO,
     MDM_AT_CMD_NAME_REPORTING_OFF,
@@ -40,5 +40,7 @@ uint8_t* MDM_readString();
 
 bool MDM_Init(void);
 uint8_t MDM_write(uint8_t *p_string);
+
+uint8_t *MDM_response(MDM_AT_CMD_NAME_t P_cmd, uint8_t P_index);
 
 #endif

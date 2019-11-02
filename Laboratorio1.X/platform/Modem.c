@@ -5,6 +5,7 @@
 #include "../mcc_generated_files/uart1.h"
 #include "../mcc_generated_files/pin_manager.h"
 
+uint8_t MDM_respBuffer[20]; 
 
 bool MDM_Init(void)
 {
@@ -91,11 +92,8 @@ uint8_t* MDM_command( MDM_AT_CMD_NAME_t p_cmd )
 {
     switch( p_cmd )
     {
-        case MDM_AT_CMD_NAME_PWR_ON:
-            return MDM_AT_CMD_PWR_ON;
-            
-        case MDM_AT_CMD_NAME_PWR_OFF:
-            return MDM_AT_CMD_PWR_OFF;
+        case MDM_AT_CMD_NAME_PWR:
+            return MDM_AT_CMD_PWR;
             
         case MDM_AT_CMD_NAME_NMAE:
             return MDM_AT_CMD_NMAE;    
@@ -111,3 +109,65 @@ uint8_t* MDM_command( MDM_AT_CMD_NAME_t p_cmd )
 }
 
 
+uint8_t *MDM_response (MDM_AT_CMD_NAME_t P_cmd, uint8_t P_index)
+{
+    switch ( P_cmd )
+    {
+        case MDM_AT_CMD_NAME_PWR:
+            switch ( P_index )
+            {
+                case 1:
+                    strcpy (MDM_respBuffer,"+CGNSPWR:" );
+                    return MDM_respBuffer;
+                case 2:
+                    strcpy (MDM_respBuffer,"ERROR" );
+                    return MDM_respBuffer;    
+                case 3:
+                    strcpy (MDM_respBuffer,"OK" );
+                    return MDM_respBuffer;
+                default: return NULL;       
+            }            
+                   
+         case MDM_AT_CMD_NAME_NMAE:
+            switch ( P_index )
+            {
+                case 1:
+                    strcpy (MDM_respBuffer,"ERROR" );
+                    return MDM_respBuffer;
+                case 2:
+                    strcpy (MDM_respBuffer,"OK" );
+                    return MDM_respBuffer;
+                default: return NULL;   
+            }   
+                               
+         case MDM_AT_CMD_NAME_GET_INFO:
+            switch ( P_index )
+            {
+                case 1:
+                    strcpy (MDM_respBuffer,"+CGNSINF:" );
+                    return MDM_respBuffer;
+                case 2:
+                    strcpy (MDM_respBuffer,"OK" );
+                    return MDM_respBuffer;
+                default: return NULL; 
+            }
+            
+                    
+         case MDM_AT_CMD_NAME_REPORTING_OFF:
+            switch ( P_index )
+            {
+                case 1:
+                    strcpy (MDM_respBuffer,"ERROR" );
+                    return MDM_respBuffer;
+                case 2:
+                    strcpy (MDM_respBuffer,"OK" );
+                    return MDM_respBuffer;
+                    
+                default: return NULL;          
+            } 
+           
+        default: return NULL;              
+    }
+
+
+}
