@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=platform/Buttons.c platform/Clock.c platform/GPS.c mcc_generated_files/usb/usb_device_events.c mcc_generated_files/usb/usb_device.c mcc_generated_files/usb/usb_descriptors.c mcc_generated_files/usb/usb_device_cdc.c mcc_generated_files/usb/example_mcc_usb_cdc.c mcc_generated_files/system.c mcc_generated_files/clock.c mcc_generated_files/exceptions.c mcc_generated_files/interrupt_manager.c mcc_generated_files/mcc.c mcc_generated_files/pin_manager.c mcc_generated_files/tmr2.c mcc_generated_files/rtcc.c mcc_generated_files/uart1.c platform/Modem.c platform/RGB.c framework/RGB_fwk.c framework/RTCC_fwk.c framework/USB_fwk.c utils/Utils.c main.c
+SOURCEFILES_QUOTED_IF_SPACED=platform/Buttons.c platform/Clock.c framework/RTCC_fwk.c platform/GPS.c mcc_generated_files/usb/usb_device_events.c mcc_generated_files/usb/usb_device.c mcc_generated_files/usb/usb_descriptors.c mcc_generated_files/usb/usb_device_cdc.c mcc_generated_files/usb/example_mcc_usb_cdc.c mcc_generated_files/system.c mcc_generated_files/clock.c mcc_generated_files/exceptions.c mcc_generated_files/interrupt_manager.c mcc_generated_files/mcc.c mcc_generated_files/pin_manager.c mcc_generated_files/tmr2.c mcc_generated_files/rtcc.c mcc_generated_files/uart1.c platform/Modem.c platform/RGB.c framework/RGB_fwk.c framework/USB_fwk.c utils/Utils.c main.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/platform/Buttons.o ${OBJECTDIR}/platform/Clock.o ${OBJECTDIR}/platform/GPS.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device_events.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device.o ${OBJECTDIR}/mcc_generated_files/usb/usb_descriptors.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device_cdc.o ${OBJECTDIR}/mcc_generated_files/usb/example_mcc_usb_cdc.o ${OBJECTDIR}/mcc_generated_files/system.o ${OBJECTDIR}/mcc_generated_files/clock.o ${OBJECTDIR}/mcc_generated_files/exceptions.o ${OBJECTDIR}/mcc_generated_files/interrupt_manager.o ${OBJECTDIR}/mcc_generated_files/mcc.o ${OBJECTDIR}/mcc_generated_files/pin_manager.o ${OBJECTDIR}/mcc_generated_files/tmr2.o ${OBJECTDIR}/mcc_generated_files/rtcc.o ${OBJECTDIR}/mcc_generated_files/uart1.o ${OBJECTDIR}/platform/Modem.o ${OBJECTDIR}/platform/RGB.o ${OBJECTDIR}/framework/RGB_fwk.o ${OBJECTDIR}/framework/RTCC_fwk.o ${OBJECTDIR}/framework/USB_fwk.o ${OBJECTDIR}/utils/Utils.o ${OBJECTDIR}/main.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/platform/Buttons.o.d ${OBJECTDIR}/platform/Clock.o.d ${OBJECTDIR}/platform/GPS.o.d ${OBJECTDIR}/mcc_generated_files/usb/usb_device_events.o.d ${OBJECTDIR}/mcc_generated_files/usb/usb_device.o.d ${OBJECTDIR}/mcc_generated_files/usb/usb_descriptors.o.d ${OBJECTDIR}/mcc_generated_files/usb/usb_device_cdc.o.d ${OBJECTDIR}/mcc_generated_files/usb/example_mcc_usb_cdc.o.d ${OBJECTDIR}/mcc_generated_files/system.o.d ${OBJECTDIR}/mcc_generated_files/clock.o.d ${OBJECTDIR}/mcc_generated_files/exceptions.o.d ${OBJECTDIR}/mcc_generated_files/interrupt_manager.o.d ${OBJECTDIR}/mcc_generated_files/mcc.o.d ${OBJECTDIR}/mcc_generated_files/pin_manager.o.d ${OBJECTDIR}/mcc_generated_files/tmr2.o.d ${OBJECTDIR}/mcc_generated_files/rtcc.o.d ${OBJECTDIR}/mcc_generated_files/uart1.o.d ${OBJECTDIR}/platform/Modem.o.d ${OBJECTDIR}/platform/RGB.o.d ${OBJECTDIR}/framework/RGB_fwk.o.d ${OBJECTDIR}/framework/RTCC_fwk.o.d ${OBJECTDIR}/framework/USB_fwk.o.d ${OBJECTDIR}/utils/Utils.o.d ${OBJECTDIR}/main.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/platform/Buttons.o ${OBJECTDIR}/platform/Clock.o ${OBJECTDIR}/framework/RTCC_fwk.o ${OBJECTDIR}/platform/GPS.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device_events.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device.o ${OBJECTDIR}/mcc_generated_files/usb/usb_descriptors.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device_cdc.o ${OBJECTDIR}/mcc_generated_files/usb/example_mcc_usb_cdc.o ${OBJECTDIR}/mcc_generated_files/system.o ${OBJECTDIR}/mcc_generated_files/clock.o ${OBJECTDIR}/mcc_generated_files/exceptions.o ${OBJECTDIR}/mcc_generated_files/interrupt_manager.o ${OBJECTDIR}/mcc_generated_files/mcc.o ${OBJECTDIR}/mcc_generated_files/pin_manager.o ${OBJECTDIR}/mcc_generated_files/tmr2.o ${OBJECTDIR}/mcc_generated_files/rtcc.o ${OBJECTDIR}/mcc_generated_files/uart1.o ${OBJECTDIR}/platform/Modem.o ${OBJECTDIR}/platform/RGB.o ${OBJECTDIR}/framework/RGB_fwk.o ${OBJECTDIR}/framework/USB_fwk.o ${OBJECTDIR}/utils/Utils.o ${OBJECTDIR}/main.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/platform/Buttons.o.d ${OBJECTDIR}/platform/Clock.o.d ${OBJECTDIR}/framework/RTCC_fwk.o.d ${OBJECTDIR}/platform/GPS.o.d ${OBJECTDIR}/mcc_generated_files/usb/usb_device_events.o.d ${OBJECTDIR}/mcc_generated_files/usb/usb_device.o.d ${OBJECTDIR}/mcc_generated_files/usb/usb_descriptors.o.d ${OBJECTDIR}/mcc_generated_files/usb/usb_device_cdc.o.d ${OBJECTDIR}/mcc_generated_files/usb/example_mcc_usb_cdc.o.d ${OBJECTDIR}/mcc_generated_files/system.o.d ${OBJECTDIR}/mcc_generated_files/clock.o.d ${OBJECTDIR}/mcc_generated_files/exceptions.o.d ${OBJECTDIR}/mcc_generated_files/interrupt_manager.o.d ${OBJECTDIR}/mcc_generated_files/mcc.o.d ${OBJECTDIR}/mcc_generated_files/pin_manager.o.d ${OBJECTDIR}/mcc_generated_files/tmr2.o.d ${OBJECTDIR}/mcc_generated_files/rtcc.o.d ${OBJECTDIR}/mcc_generated_files/uart1.o.d ${OBJECTDIR}/platform/Modem.o.d ${OBJECTDIR}/platform/RGB.o.d ${OBJECTDIR}/framework/RGB_fwk.o.d ${OBJECTDIR}/framework/USB_fwk.o.d ${OBJECTDIR}/utils/Utils.o.d ${OBJECTDIR}/main.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/platform/Buttons.o ${OBJECTDIR}/platform/Clock.o ${OBJECTDIR}/platform/GPS.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device_events.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device.o ${OBJECTDIR}/mcc_generated_files/usb/usb_descriptors.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device_cdc.o ${OBJECTDIR}/mcc_generated_files/usb/example_mcc_usb_cdc.o ${OBJECTDIR}/mcc_generated_files/system.o ${OBJECTDIR}/mcc_generated_files/clock.o ${OBJECTDIR}/mcc_generated_files/exceptions.o ${OBJECTDIR}/mcc_generated_files/interrupt_manager.o ${OBJECTDIR}/mcc_generated_files/mcc.o ${OBJECTDIR}/mcc_generated_files/pin_manager.o ${OBJECTDIR}/mcc_generated_files/tmr2.o ${OBJECTDIR}/mcc_generated_files/rtcc.o ${OBJECTDIR}/mcc_generated_files/uart1.o ${OBJECTDIR}/platform/Modem.o ${OBJECTDIR}/platform/RGB.o ${OBJECTDIR}/framework/RGB_fwk.o ${OBJECTDIR}/framework/RTCC_fwk.o ${OBJECTDIR}/framework/USB_fwk.o ${OBJECTDIR}/utils/Utils.o ${OBJECTDIR}/main.o
+OBJECTFILES=${OBJECTDIR}/platform/Buttons.o ${OBJECTDIR}/platform/Clock.o ${OBJECTDIR}/framework/RTCC_fwk.o ${OBJECTDIR}/platform/GPS.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device_events.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device.o ${OBJECTDIR}/mcc_generated_files/usb/usb_descriptors.o ${OBJECTDIR}/mcc_generated_files/usb/usb_device_cdc.o ${OBJECTDIR}/mcc_generated_files/usb/example_mcc_usb_cdc.o ${OBJECTDIR}/mcc_generated_files/system.o ${OBJECTDIR}/mcc_generated_files/clock.o ${OBJECTDIR}/mcc_generated_files/exceptions.o ${OBJECTDIR}/mcc_generated_files/interrupt_manager.o ${OBJECTDIR}/mcc_generated_files/mcc.o ${OBJECTDIR}/mcc_generated_files/pin_manager.o ${OBJECTDIR}/mcc_generated_files/tmr2.o ${OBJECTDIR}/mcc_generated_files/rtcc.o ${OBJECTDIR}/mcc_generated_files/uart1.o ${OBJECTDIR}/platform/Modem.o ${OBJECTDIR}/platform/RGB.o ${OBJECTDIR}/framework/RGB_fwk.o ${OBJECTDIR}/framework/USB_fwk.o ${OBJECTDIR}/utils/Utils.o ${OBJECTDIR}/main.o
 
 # Source Files
-SOURCEFILES=platform/Buttons.c platform/Clock.c platform/GPS.c mcc_generated_files/usb/usb_device_events.c mcc_generated_files/usb/usb_device.c mcc_generated_files/usb/usb_descriptors.c mcc_generated_files/usb/usb_device_cdc.c mcc_generated_files/usb/example_mcc_usb_cdc.c mcc_generated_files/system.c mcc_generated_files/clock.c mcc_generated_files/exceptions.c mcc_generated_files/interrupt_manager.c mcc_generated_files/mcc.c mcc_generated_files/pin_manager.c mcc_generated_files/tmr2.c mcc_generated_files/rtcc.c mcc_generated_files/uart1.c platform/Modem.c platform/RGB.c framework/RGB_fwk.c framework/RTCC_fwk.c framework/USB_fwk.c utils/Utils.c main.c
+SOURCEFILES=platform/Buttons.c platform/Clock.c framework/RTCC_fwk.c platform/GPS.c mcc_generated_files/usb/usb_device_events.c mcc_generated_files/usb/usb_device.c mcc_generated_files/usb/usb_descriptors.c mcc_generated_files/usb/usb_device_cdc.c mcc_generated_files/usb/example_mcc_usb_cdc.c mcc_generated_files/system.c mcc_generated_files/clock.c mcc_generated_files/exceptions.c mcc_generated_files/interrupt_manager.c mcc_generated_files/mcc.c mcc_generated_files/pin_manager.c mcc_generated_files/tmr2.c mcc_generated_files/rtcc.c mcc_generated_files/uart1.c platform/Modem.c platform/RGB.c framework/RGB_fwk.c framework/USB_fwk.c utils/Utils.c main.c
 
 
 
@@ -118,6 +118,12 @@ ${OBJECTDIR}/platform/Clock.o: platform/Clock.c  nbproject/Makefile-${CND_CONF}.
 	@${RM} ${OBJECTDIR}/platform/Clock.o.d 
 	@${RM} ${OBJECTDIR}/platform/Clock.o 
 	@${FIXDEPS} "${OBJECTDIR}/platform/Clock.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/platform/Clock.o.d" -o ${OBJECTDIR}/platform/Clock.o platform/Clock.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/framework/RTCC_fwk.o: framework/RTCC_fwk.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/framework" 
+	@${RM} ${OBJECTDIR}/framework/RTCC_fwk.o.d 
+	@${RM} ${OBJECTDIR}/framework/RTCC_fwk.o 
+	@${FIXDEPS} "${OBJECTDIR}/framework/RTCC_fwk.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/framework/RTCC_fwk.o.d" -o ${OBJECTDIR}/framework/RTCC_fwk.o framework/RTCC_fwk.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
 	
 ${OBJECTDIR}/platform/GPS.o: platform/GPS.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}/platform" 
@@ -227,12 +233,6 @@ ${OBJECTDIR}/framework/RGB_fwk.o: framework/RGB_fwk.c  nbproject/Makefile-${CND_
 	@${RM} ${OBJECTDIR}/framework/RGB_fwk.o 
 	@${FIXDEPS} "${OBJECTDIR}/framework/RGB_fwk.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/framework/RGB_fwk.o.d" -o ${OBJECTDIR}/framework/RGB_fwk.o framework/RGB_fwk.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
 	
-${OBJECTDIR}/framework/RTCC_fwk.o: framework/RTCC_fwk.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/framework" 
-	@${RM} ${OBJECTDIR}/framework/RTCC_fwk.o.d 
-	@${RM} ${OBJECTDIR}/framework/RTCC_fwk.o 
-	@${FIXDEPS} "${OBJECTDIR}/framework/RTCC_fwk.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/framework/RTCC_fwk.o.d" -o ${OBJECTDIR}/framework/RTCC_fwk.o framework/RTCC_fwk.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
-	
 ${OBJECTDIR}/framework/USB_fwk.o: framework/USB_fwk.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}/framework" 
 	@${RM} ${OBJECTDIR}/framework/USB_fwk.o.d 
@@ -263,6 +263,12 @@ ${OBJECTDIR}/platform/Clock.o: platform/Clock.c  nbproject/Makefile-${CND_CONF}.
 	@${RM} ${OBJECTDIR}/platform/Clock.o.d 
 	@${RM} ${OBJECTDIR}/platform/Clock.o 
 	@${FIXDEPS} "${OBJECTDIR}/platform/Clock.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/platform/Clock.o.d" -o ${OBJECTDIR}/platform/Clock.o platform/Clock.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/framework/RTCC_fwk.o: framework/RTCC_fwk.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/framework" 
+	@${RM} ${OBJECTDIR}/framework/RTCC_fwk.o.d 
+	@${RM} ${OBJECTDIR}/framework/RTCC_fwk.o 
+	@${FIXDEPS} "${OBJECTDIR}/framework/RTCC_fwk.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/framework/RTCC_fwk.o.d" -o ${OBJECTDIR}/framework/RTCC_fwk.o framework/RTCC_fwk.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
 	
 ${OBJECTDIR}/platform/GPS.o: platform/GPS.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}/platform" 
@@ -371,12 +377,6 @@ ${OBJECTDIR}/framework/RGB_fwk.o: framework/RGB_fwk.c  nbproject/Makefile-${CND_
 	@${RM} ${OBJECTDIR}/framework/RGB_fwk.o.d 
 	@${RM} ${OBJECTDIR}/framework/RGB_fwk.o 
 	@${FIXDEPS} "${OBJECTDIR}/framework/RGB_fwk.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/framework/RGB_fwk.o.d" -o ${OBJECTDIR}/framework/RGB_fwk.o framework/RGB_fwk.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
-	
-${OBJECTDIR}/framework/RTCC_fwk.o: framework/RTCC_fwk.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/framework" 
-	@${RM} ${OBJECTDIR}/framework/RTCC_fwk.o.d 
-	@${RM} ${OBJECTDIR}/framework/RTCC_fwk.o 
-	@${FIXDEPS} "${OBJECTDIR}/framework/RTCC_fwk.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/framework/RTCC_fwk.o.d" -o ${OBJECTDIR}/framework/RTCC_fwk.o framework/RTCC_fwk.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD) 
 	
 ${OBJECTDIR}/framework/USB_fwk.o: framework/USB_fwk.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}/framework" 

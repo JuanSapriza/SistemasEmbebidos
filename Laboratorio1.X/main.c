@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION Lab4_GPS_31oct
+#define COMMIT_VERSION Lab4_GPS_commands
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
@@ -9,8 +9,8 @@
 //#define LABORATORIO_3_2
 //#define LABORATORIO_3_3
 //#define LABORATORIO_3_4
-#define LABORATORIO_3_5
-//#define LABORATORIO_4
+//#define LABORATORIO_3_5
+#define LABORATORIO_4
 
 
 
@@ -400,54 +400,37 @@ int main ()
 
 int main ()
 {
-    UTS_DELAY_HANDLER_t AT_delay_handler = UTS_DELAY_HANDLER_INITIAL_AT;
     uint8_t dummyBuffer[ 64 ];
     MAIN_init();
-    APP_info.state = APP_STATE_PREVIO;
+    APP_info.state = APP_STATE_INIT;
     
     while(1)
     {
-        if( MDM_Init() )
+        if( !BTN_switch( BTN_BUTTON_B ) )
         {
-            UTS_ledBlink( 500, 500 );
-            
             switch( APP_info.state )
             {
-                case APP_STATE_PREVIO:
-                    MDM_write( "A" );
-                    APP_info.state = APP_STATE_INTERMEDIO;
-                    break;
-                    
-                case APP_STATE_INTERMEDIO:
-                    if( UTS_delayms( AT_delay_handler, 4000, false ) )
-                    {
-                        APP_info.state = APP_STATE_INIT;
-                    }
-                    break;
-                    
                 case APP_STATE_INIT:
-                    MDM_write( "AT\r" );
-                    APP_info.state = APP_STATE_CHECK;
-                    break;
-                    
-                case APP_STATE_CHECK:
-                    MDM_read( dummyBuffer );
-                    if( strstr( dummyBuffer, "OK" ) != NULL )
+                    if( MDM_Init() )
                     {
-                        RGB_setLed( 1, WHITE );
-                        APP_info.state = APP_STATE_WAIT;
-                    }
-                    else
-                    {
-                        RGB_setLed( 1, RED );
+                        UTS_ledBlink( 500, 500 );
+                        if( MDM_sendInitialAT() )
+                        {
+                            RGB_setLed( 3, GREEN );
+                            APP_info.state = APP_STATE_CHECK;
+                        }
                     }
                     break;
-            
+
+                case APP_STATE_GPS_GET:
+
+                    break;
+
+
             }
-            
+            RGB_tasks();
+            USB_CDC_tasks();
         }
-        RGB_tasks();
-        USB_CDC_tasks();
     }
     return 0;
 }

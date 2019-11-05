@@ -192,8 +192,6 @@ static void RGB_sendSingle( RGB_color* p_led )
 void RGB_send( RGB_color *p_leds, uint8_t p_length )
 {
     uint8_t i;
-    UTS_DELAY_HANDLER_t rgb_delay = UTS_DELAY_HANDLER_3;
-    
     INTERRUPT_GlobalDisable();
     
     //WS2812_sendMultiple( p_leds, p_length );
@@ -203,7 +201,7 @@ void RGB_send( RGB_color *p_leds, uint8_t p_length )
     }
     
     INTERRUPT_GlobalEnable();
-    while(!UTS_delayms( rgb_delay, 1, false ));
+    while(!UTS_delayms( UTS_DELAY_HANDLER_RGB_SEND, 1, false ));
 }
 
 

@@ -11,10 +11,11 @@
 
 //#define MDM_AT_CMD_PWR_ON "AT+CGNSPWR=1"
 //#define MDM_AT_CMD_PWR_OFF "AT+CGNSPWR=0"
-#define MDM_AT_CMD_PWR "AT+CGNSPWR="
-#define MDM_AT_CMD_NMAE "AT+CGNSSEQ=RMC"
-#define MDM_AT_CMD_GET_INFO "AT+CGNSINF"
-#define MDM_AT_CMD_REPORTING_OFF "AT+CGNSURC=0"
+//#define MDM_AT_CMD_AT "AT"
+//#define MDM_AT_CMD_PWR "AT+CGNSPWR="
+//#define MDM_AT_CMD_NMAE "AT+CGNSSEQ=RMC"
+//#define MDM_AT_CMD_GET_INFO "AT+CGNSINF"
+//#define MDM_AT_CMD_REPORTING_OFF "AT+CGNSURC=0"
 
 enum MODEM_ESTADO
 {
@@ -22,25 +23,46 @@ enum MODEM_ESTADO
     MODEM_ESTADOS_WAIT,
     MODEM_ESTADOS_CHECK,
     MODEM_ESTADOS_STATUS,
+    MODEM_ESTADOS_SEND,
+    MODEM_ESTADOS_TIMEOUT_CHECK,
 };
 
 typedef enum 
 {
+    MDM_AT_CMD_NAME_AT,
     MDM_AT_CMD_NAME_PWR,
     MDM_AT_CMD_NAME_NMAE,
     MDM_AT_CMD_NAME_GET_INFO,
     MDM_AT_CMD_NAME_REPORTING_OFF,
 } MDM_AT_CMD_NAME_t;
 
+typedef enum
+{
+    MDM_AT_RESP_NAME_WORKING,
+    MDM_AT_RESP_NAME_TIMEOUT,
+    MDM_AT_RESP_NAME_UNKNOWN,
+    MDM_AT_RESP_NAME_OK,
+    MDM_AT_RESP_NAME_ERROR,
+    MDM_AT_RESP_NAME_GNS_PWR,
+    MDM_AT_RESP_NAME_GNS_INF,
+    
+} MDM_AT_RESP_NAME_t;
+
 
 uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ];
-
-void MDM_read( uint8_t* p_string );
-uint8_t* MDM_readString();
+uint8_t MDM_cmdBuffer[20];  //solo para guardar los string con los comandos
+uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de respuesta
 
 bool MDM_Init(void);
+void MDM_read( uint8_t* p_string );
+uint8_t* MDM_readString();
 uint8_t MDM_write(uint8_t *p_string);
+void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param );
+MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_param, uint32_t p_timeout );
+MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
+uint8_t* MDM_commandString( MDM_AT_CMD_NAME_t p_cmd );
+uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
 
-uint8_t *MDM_response(MDM_AT_CMD_NAME_t P_cmd, uint8_t P_index);
+bool MDM_sendInitialAT();
 
 #endif

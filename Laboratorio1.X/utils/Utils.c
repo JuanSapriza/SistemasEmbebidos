@@ -7,35 +7,31 @@
 
 
 
-static UTS_delayHandler_t UTS_delayHandler[UTS_DELAY_HANDLER_COUNT];
+static UTS_delayHandler_t UTS_delayHandlerVector[UTS_DELAY_HANDLER_COUNT];
 
 //<editor-fold defaultstate="collapsed" desc="DELAY">
 bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_reiniciar )
 {
-    uint32_t esteTiempo;
-    
-    if( !UTS_delayHandler[p_handlerIndex].active )
+    if( !UTS_delayHandlerVector[p_handlerIndex].active )
     {
-        UTS_delayHandler[p_handlerIndex].initialTime = TMR2_SoftwareCounterGet();
-        UTS_delayHandler[p_handlerIndex].countTime = p_tiempo;
-        UTS_delayHandler[p_handlerIndex].active = true;
+        UTS_delayHandlerVector[p_handlerIndex].initialTime = TMR2_SoftwareCounterGet();
+        UTS_delayHandlerVector[p_handlerIndex].countTime = p_tiempo;
+        UTS_delayHandlerVector[p_handlerIndex].active = true;
     }
     
     if( p_reiniciar )
     {
-        UTS_delayHandler[p_handlerIndex].initialTime = 0;
-        UTS_delayHandler[p_handlerIndex].countTime = 0;
-        UTS_delayHandler[p_handlerIndex].active = false;
+        UTS_delayHandlerVector[p_handlerIndex].initialTime = 0;
+        UTS_delayHandlerVector[p_handlerIndex].countTime = 0;
+        UTS_delayHandlerVector[p_handlerIndex].active = false;
         return true;
     }
     
-    esteTiempo = TMR2_SoftwareCounterGet();
-    
-    if( TMR2_SoftwareCounterGet() >= UTS_delayHandler[p_handlerIndex].initialTime + UTS_delayHandler[p_handlerIndex].countTime )
+    if( TMR2_SoftwareCounterGet() >= UTS_delayHandlerVector[p_handlerIndex].initialTime + UTS_delayHandlerVector[p_handlerIndex].countTime )
     {
-        UTS_delayHandler[p_handlerIndex].initialTime = 0;
-        UTS_delayHandler[p_handlerIndex].countTime = 0;
-        UTS_delayHandler[p_handlerIndex].active = false;
+        UTS_delayHandlerVector[p_handlerIndex].initialTime = 0;
+        UTS_delayHandlerVector[p_handlerIndex].countTime = 0;
+        UTS_delayHandlerVector[p_handlerIndex].active = false;
         return true;
     }
 

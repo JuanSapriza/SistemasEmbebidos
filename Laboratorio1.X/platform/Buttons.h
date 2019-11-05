@@ -4,17 +4,17 @@
 
 #include <stdbool.h>
 
-enum BTN_BUTTON_NAMES
+typedef enum 
 {
     BTN_BUTTON_A,
     BTN_BUTTON_B,
-};
+}BTN_BUTTON_NAMES_t;
 
 
 
-bool BTN_isButtonPressed( enum BTN_BUTTON_NAMES p_button );
+bool BTN_isButtonPressed( BTN_BUTTON_NAMES_t p_button );
 
-
+bool BTN_switch( BTN_BUTTON_NAMES_t p_button );
 
 
 
