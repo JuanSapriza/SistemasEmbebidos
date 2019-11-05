@@ -69,7 +69,6 @@ uint8_t *USB_read( uint8_t p_length )
 
 //</editor-fold>
 
-
 //<editor-fold defaultstate="collapsed" desc="Menu">
 
 int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
@@ -122,5 +121,22 @@ int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
 }
 
 
+
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Others">
+void USB_sniff( uint8_t* p_string, bool p_direction )
+{
+    if( p_direction )
+    {
+        USB_write("\n>");
+    }
+    else
+    {
+        USB_write("\n<");
+    }
+    USB_write( p_string );  
+    USB_write("\n");
+}
 
 //</editor-fold>

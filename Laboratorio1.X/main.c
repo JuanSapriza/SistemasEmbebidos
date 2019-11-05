@@ -1,6 +1,6 @@
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION Lab4_GPS_commands
+#define COMMIT_VERSION Lab4_GPS_commandsFuncionando
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2

@@ -52,8 +52,8 @@
 #include <xc.h>
 #include <stdbool.h>
 
-bool BTN_A_pressed; 
-bool BTN_B_pressed; 
+volatile bool BTN_A_pressed; 
+volatile bool BTN_B_pressed; 
 
 /**
     Section: Device Pin Macros

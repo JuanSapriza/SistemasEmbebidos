@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define MDM_SNIFF_TO_USB
+
 #define MDM_RX_BUFFER_SIZE 128
 #define MDM_TX_BUFFER_SIZE 128
 
@@ -49,9 +51,6 @@ typedef enum
 } MDM_AT_RESP_NAME_t;
 
 
-uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ];
-uint8_t MDM_cmdBuffer[20];  //solo para guardar los string con los comandos
-uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de respuesta
 
 bool MDM_Init(void);
 void MDM_read( uint8_t* p_string );

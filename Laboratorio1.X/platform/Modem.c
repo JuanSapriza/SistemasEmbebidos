@@ -9,6 +9,12 @@
 
 
 
+
+uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ];
+uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ]; 
+uint8_t MDM_cmdBuffer[20];  //solo para guardar los string con los comandos
+uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de respuesta
+
 bool MDM_Init(void)
 {
     static uint8_t MODEM_ESTADO = MODEM_ESTADOS_INIT;
@@ -56,7 +62,9 @@ bool MDM_Init(void)
 void MDM_read( uint8_t* p_string )
 {
     UART1_ReadBuffer( p_string, sizeof( p_string ) );
-    USB_write( p_string );  //debug!
+#ifdef MDM_SNIFF_TO_USB
+    USB_sniff( p_string, false );
+#endif
 }
 
 uint8_t* MDM_readString()
@@ -69,22 +77,23 @@ uint8_t* MDM_readString()
 uint8_t MDM_write(uint8_t *p_string)
 {
     if( strlen(p_string) == 0 ) return 0;  
-    USB_write( p_string );  //debug!
+#ifdef MDM_SNIFF_TO_USB
+    USB_sniff( p_string, true);
+#endif
     return UART1_WriteBuffer( p_string , strlen(p_string));
 }
 
 void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param )
 {
-    uint8_t dummyBuffer[ MDM_TX_BUFFER_SIZE ];
-    
-    strcpy( dummyBuffer, p_cmd );
+    if( p_cmd == NULL || p_cmd[0] == 0 ) return;
+    memset( MDM_txBuffer, 0, sizeof(MDM_txBuffer ));
+    strcpy( MDM_txBuffer, p_cmd );
     if( p_param != NULL )
     {
-        strcat( dummyBuffer, p_param );
+        strcat( MDM_txBuffer, p_param );
     }
-    strcat( dummyBuffer, "\r" );
-    MDM_write( dummyBuffer );
-    
+    strcat( MDM_txBuffer, "\r" );
+    MDM_write( MDM_txBuffer );
 }
 
 MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_param, uint32_t p_timeout )
@@ -101,27 +110,31 @@ MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_
             break;
             
         case MODEM_ESTADOS_CHECK:
-            MDM_read( MDM_rxBuffer );
-            i = 1;
-            do
+            if( UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_ACHIQUEN, 1, false ) ) //si no no le da el tiempo a que lleguen todos los caracteres!!!!! 
             {
-                retPtr = MDM_responseString( p_cmd, i );
-                if( retPtr == NULL )
+                memset( MDM_rxBuffer, 0, sizeof( MDM_rxBuffer ) ); //esto es necesario afuera para que no borre el buffer cada vez que voy a comparar con una respuesta
+                MDM_read( MDM_rxBuffer );
+                i = 1;
+                do
                 {
-                    sendAndWaitState = MODEM_ESTADOS_TIMEOUT_CHECK;
-                    break;
-                }
-                else
-                {
-                    if( strstr( MDM_rxBuffer, retPtr ) != NULL )
+                    retPtr = MDM_responseString( p_cmd, i );
+                    if( retPtr == NULL )
                     {
-                        sendAndWaitState = MODEM_ESTADOS_SEND;
-                        UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_TIMEOUT, p_timeout, true );
-                        return MDM_responseName( p_cmd, i );
+                        sendAndWaitState = MODEM_ESTADOS_TIMEOUT_CHECK;
+                        break;
                     }
-                }
-                i++;
-            } while( retPtr != NULL );
+                    else
+                    {
+                        if( strstr( MDM_rxBuffer, retPtr ) != NULL )
+                        {
+                            sendAndWaitState = MODEM_ESTADOS_SEND;
+                            UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_TIMEOUT, p_timeout, true );
+                            return MDM_responseName( p_cmd, i );
+                        }
+                    }
+                    i++;
+                } while( retPtr != NULL );
+            }
             break;
             
         case MODEM_ESTADOS_TIMEOUT_CHECK:
@@ -205,6 +218,7 @@ MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
 
 uint8_t* MDM_commandString( MDM_AT_CMD_NAME_t p_cmd )
 {
+    memset( MDM_cmdBuffer, 0, sizeof(MDM_cmdBuffer) );
     switch( p_cmd )
     {
         case MDM_AT_CMD_NAME_AT:
@@ -314,7 +328,7 @@ bool MDM_sendInitialAT()
     switch( initialATState )
             {
                 case MODEM_ESTADOS_INIT:
-                    MDM_write( "A" );
+                    MDM_write( "A\r" );
                     initialATState = MODEM_ESTADOS_WAIT;
                     break;
                     
@@ -353,6 +367,5 @@ bool MDM_sendInitialAT()
             }
     return false;
 }
-
 
 
