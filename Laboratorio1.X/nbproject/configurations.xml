@@ -37,6 +37,7 @@
         <itemPath>mcc_generated_files/tmr2.h</itemPath>
         <itemPath>mcc_generated_files/rtcc.h</itemPath>
         <itemPath>mcc_generated_files/uart1.h</itemPath>
+        <itemPath>mcc_generated_files/adc1.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f9" displayName="Modem" projectFiles="true">
         <itemPath>platform/Modem.h</itemPath>
@@ -44,6 +45,9 @@
       <logicalFolder name="f2" displayName="Platform" projectFiles="true">
         <itemPath>platform/HardwareProfile.h</itemPath>
         <itemPath>framework/RTCC_fwk.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f6" displayName="Potenciometro" projectFiles="true">
+        <itemPath>platform/Potenciometro.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="RGB" projectFiles="true">
         <itemPath>platform/RGB.h</itemPath>
@@ -94,9 +98,13 @@
         <itemPath>mcc_generated_files/tmr2.c</itemPath>
         <itemPath>mcc_generated_files/rtcc.c</itemPath>
         <itemPath>mcc_generated_files/uart1.c</itemPath>
+        <itemPath>mcc_generated_files/adc1.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f8" displayName="Modem" projectFiles="true">
         <itemPath>platform/Modem.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f4" displayName="Potenciometro" projectFiles="true">
+        <itemPath>platform/Potenciometro.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="RGB" projectFiles="true">
         <itemPath>platform/RGB.c</itemPath>

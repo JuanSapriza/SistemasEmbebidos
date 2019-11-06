@@ -82,8 +82,8 @@ void RTCC_Initialize(void)
        // ON enabled; OUTSEL Alarm Event; WRLOCK disabled; AMASK Every Half Second; ALMRPT 0; RTCOE disabled; CHIME disabled; ALRMEN disabled; 
        RTCCON1 = 0x8000;
    
-       // DIV 0; CLKSEL SOSC; FDIV 0; 
-       RTCCON2 = 0x00;
+       // DIV 15999; CLKSEL LPRC; FDIV 0; 
+       RTCCON2 = 0x3E7F0001;
 
    // Enable RTCC 
    RTCCON1SET = (1 << _RTCCON1_ON_POSITION);
