@@ -68,17 +68,16 @@ void MDM_read( uint8_t* p_string )
 {
     static uint8_t state = 1;
     bool finished = false;
-    uint16_t DBG_rxCount;
-    uint8_t DBG_dummyString[100];
+    uint8_t dummyBlockBuffer[100];
     
     while( !finished )
     {
         switch( state )
         {
             case 1: 
-                DBG_rxCount = (uint16_t)UART1_ReadBuffer( p_string, sizeof( p_string ) );
-                sprintf(DBG_dummyString, "$%d #%d \n",DBG_rxCount, UART1_ReceiveBufferSizeGet());
-                USB_write( DBG_dummyString );
+                memset( dummyBlockBuffer, 0, sizeof( dummyBlockBuffer ) );
+                UART1_ReadBuffer( dummyBlockBuffer, sizeof( dummyBlockBuffer ));
+                strcat( p_string, dummyBlockBuffer );
                 state = 2;
                 //intentional breakthrough
 
