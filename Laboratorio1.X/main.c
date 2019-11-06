@@ -417,15 +417,14 @@ int main ()
                         if( MDM_sendInitialAT() )
                         {
                             RGB_setLed( 3, GREEN );
-                            APP_info.state = APP_STATE_CHECK;
+                            APP_info.state = APP_STATE_GPS_GET;
                         }
                     }
                     break;
 
                 case APP_STATE_GPS_GET:
-
+                    USB_send2Modem();
                     break;
-
 
             }
             RGB_tasks();

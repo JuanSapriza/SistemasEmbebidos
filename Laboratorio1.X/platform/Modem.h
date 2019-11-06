@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MDM_SNIFF_TO_USB
-
 #define MDM_RX_BUFFER_SIZE 128
 #define MDM_TX_BUFFER_SIZE 128
 

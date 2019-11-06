@@ -8,12 +8,13 @@
 #include "../framework/USB_fwk.h"
 
 
-
-
-uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ];
+uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ]; //guarda que no puede ser mayor que el largo del buffer de la uart1!!!
 uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ]; 
 uint8_t MDM_cmdBuffer[20];  //solo para guardar los string con los comandos
 uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de respuesta
+
+
+
 
 bool MDM_Init(void)
 {
@@ -59,12 +60,43 @@ bool MDM_Init(void)
     return false;
 }
 
+
+
+
+
 void MDM_read( uint8_t* p_string )
 {
-    UART1_ReadBuffer( p_string, sizeof( p_string ) );
-#ifdef MDM_SNIFF_TO_USB
-    USB_sniff( p_string, false );
-#endif
+    static uint8_t state = 1;
+    bool finished = false;
+    uint16_t DBG_rxCount;
+    uint8_t DBG_dummyString[100];
+    
+    while( !finished )
+    {
+        switch( state )
+        {
+            case 1: 
+                DBG_rxCount = (uint16_t)UART1_ReadBuffer( p_string, sizeof( p_string ) );
+                sprintf(DBG_dummyString, "$%d #%d \n",DBG_rxCount, UART1_ReceiveBufferSizeGet());
+                USB_write( DBG_dummyString );
+                state = 2;
+                //intentional breakthrough
+
+            case 2:
+                if( UTS_delayms( UTS_DELAY_HANDLER_USB_READ_FROM_MODEM_ACHIQUEN, 10, false  )) 
+                {
+                    if( UART1_ReceiveBufferSizeGet() != 0 )  
+                    { //tengo algo pa leer todavia
+                        state = 1;
+                        break;
+                    }
+                    finished = true;
+                }
+                break;
+        }
+            
+    }
+    USB_sniff( p_string, USB_SNIFF_TYPE_RX );
 }
 
 uint8_t* MDM_readString()
@@ -77,9 +109,7 @@ uint8_t* MDM_readString()
 uint8_t MDM_write(uint8_t *p_string)
 {
     if( strlen(p_string) == 0 ) return 0;  
-#ifdef MDM_SNIFF_TO_USB
-    USB_sniff( p_string, true);
-#endif
+    USB_sniff( p_string, USB_SNIFF_TYPE_TX);
     return UART1_WriteBuffer( p_string , strlen(p_string));
 }
 
@@ -95,6 +125,10 @@ void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param )
     strcat( MDM_txBuffer, "\r" );
     MDM_write( MDM_txBuffer );
 }
+
+
+
+
 
 MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_param, uint32_t p_timeout )
 {
@@ -152,6 +186,10 @@ MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_
     return MDM_AT_RESP_NAME_WORKING;
 
 }
+
+
+
+
 
 MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
 {
@@ -321,6 +359,10 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
 
 }
 
+
+
+
+
 bool MDM_sendInitialAT()
 {
     static uint8_t initialATState = MODEM_ESTADOS_INIT;
@@ -352,9 +394,11 @@ bool MDM_sendInitialAT()
                         case MDM_AT_RESP_NAME_TIMEOUT:
                             initialATState = MODEM_ESTADOS_INIT;
                             return false;
+                            
                         case MDM_AT_RESP_NAME_ERROR:
                             initialATState = MODEM_ESTADOS_INIT;
                             return false;
+                            
                         case MDM_AT_RESP_NAME_UNKNOWN:
                             initialATState = MODEM_ESTADOS_INIT;
                             return false;

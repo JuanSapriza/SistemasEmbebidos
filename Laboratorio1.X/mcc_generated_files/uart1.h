@@ -58,6 +58,11 @@
     extern "C" {
 
 #endif
+        
+        
+#define UART1_CONFIG_TX_BYTEQ_LENGTH (128+1)
+#define UART1_CONFIG_RX_BYTEQ_LENGTH (128+1)
+        
 /**
   Section: UART1 Driver Routines
 */
@@ -316,6 +321,10 @@ typedef enum
     /* Indicates that the core driver transmitter buffer is empty */
     UART1_TRANSFER_STATUS_TX_EMPTY = (1 << 4) 
 } UART1_TRANSFER_STATUS;
+
+
+
+
 
 /**
   @Summary
