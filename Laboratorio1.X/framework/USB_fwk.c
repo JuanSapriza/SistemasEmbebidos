@@ -161,7 +161,7 @@ void USB_send2Modem()
 {
     USB_SNIFF_TYPE_t previousSniffType; 
             
-    if( UTS_delayms( UTS_DELAY_HANDLER_USB_SEND_TO_MODEM_ACHIQUEN, 3000, false) )
+    if( UTS_delayms( UTS_DELAY_HANDLER_USB_SEND_TO_MODEM_ACHIQUEN, 10, false) ) //VER DE ACHICAR ESTE DELAY
     {
         if( *USB_read(0) !=  0 ) //mandamos algo
         {

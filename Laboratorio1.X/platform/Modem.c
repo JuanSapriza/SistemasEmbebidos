@@ -15,6 +15,7 @@ uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de r
 
 
 
+//<editor-fold defaultstate="collapsed" desc="Init">
 
 bool MDM_Init(void)
 {
@@ -61,8 +62,10 @@ bool MDM_Init(void)
 }
 
 
+//</editor-fold>
 
 
+//<editor-fold defaultstate="collapsed" desc="Read Write">
 
 void MDM_read( uint8_t* p_string )
 {
@@ -112,6 +115,10 @@ uint8_t MDM_write(uint8_t *p_string)
     return UART1_WriteBuffer( p_string , strlen(p_string));
 }
 
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Commands">
+
 void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param )
 {
     if( p_cmd == NULL || p_cmd[0] == 0 ) return;
@@ -124,10 +131,6 @@ void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param )
     strcat( MDM_txBuffer, "\r" );
     MDM_write( MDM_txBuffer );
 }
-
-
-
-
 
 MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_param, uint32_t p_timeout )
 {
@@ -186,10 +189,6 @@ MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_
 
 }
 
-
-
-
-
 MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
 {
     switch ( p_cmd )
@@ -204,7 +203,7 @@ MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                 default: return MDM_AT_RESP_NAME_UNKNOWN;
             }
         
-        case MDM_AT_CMD_NAME_PWR:
+        case MDM_AT_CMD_NAME_GNS_PWR:
             switch ( p_index )
             {
                 case 1:
@@ -216,7 +215,7 @@ MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                 default: return MDM_AT_RESP_NAME_UNKNOWN;       
             }            
                    
-         case MDM_AT_CMD_NAME_NMAE:
+         case MDM_AT_CMD_NAME_GNS_NMEA:
             switch ( p_index )
             {
                 case 1:
@@ -226,18 +225,18 @@ MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                 default: return MDM_AT_RESP_NAME_UNKNOWN;   
             }   
                                
-         case MDM_AT_CMD_NAME_GET_INFO:
+         case MDM_AT_CMD_NAME_GNS_GET_INFO:
             switch ( p_index )
             {
                 case 1:
-                    return MDM_AT_RESP_NAME_GNS_INF;
+                    return MDM_AT_RESP_NAME_GNS_GET_INF;
                 case 2:
                     return MDM_AT_RESP_NAME_OK;
                 default: return MDM_AT_RESP_NAME_UNKNOWN; 
             }
             
                     
-         case MDM_AT_CMD_NAME_REPORTING_OFF:
+         case MDM_AT_CMD_NAME_GNS_URC:
             switch ( p_index )
             {
                 case 1:
@@ -262,22 +261,22 @@ uint8_t* MDM_commandString( MDM_AT_CMD_NAME_t p_cmd )
             strcpy (MDM_cmdBuffer,"AT" );
             return MDM_cmdBuffer;
         
-        case MDM_AT_CMD_NAME_PWR:
+        case MDM_AT_CMD_NAME_GNS_PWR:
             strcpy (MDM_cmdBuffer,"AT+CGNSPWR=" );
             return MDM_cmdBuffer;
             
-        case MDM_AT_CMD_NAME_NMAE:
+        case MDM_AT_CMD_NAME_GNS_NMEA:
             strcpy (MDM_cmdBuffer,"AT+CGNSSEQ=RMC" );
             return MDM_cmdBuffer; 
             
-        case MDM_AT_CMD_NAME_GET_INFO:
+        case MDM_AT_CMD_NAME_GNS_GET_INFO:
             strcpy (MDM_cmdBuffer,"AT+CGNSINF" );
             return MDM_cmdBuffer;
             
-        case MDM_AT_CMD_NAME_REPORTING_OFF:
-            strcpy (MDM_cmdBuffer,"AT+CGNSURC=0" );
+        case MDM_AT_CMD_NAME_GNS_URC:
+            strcpy (MDM_cmdBuffer,"AT+CGNSURC=" );
             return MDM_cmdBuffer;
-            
+                        
         default: return NULL;
     }
 }
@@ -299,7 +298,7 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                 default: return NULL;   
             }
         
-        case MDM_AT_CMD_NAME_PWR:
+        case MDM_AT_CMD_NAME_GNS_PWR:
             switch ( p_index )
             {
                 case 1:
@@ -314,7 +313,7 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                 default: return NULL;       
             }            
                    
-         case MDM_AT_CMD_NAME_NMAE:
+         case MDM_AT_CMD_NAME_GNS_NMEA:
             switch ( p_index )
             {
                 case 1:
@@ -326,7 +325,7 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                 default: return NULL;   
             }   
                                
-         case MDM_AT_CMD_NAME_GET_INFO:
+         case MDM_AT_CMD_NAME_GNS_GET_INFO:
             switch ( p_index )
             {
                 case 1:
@@ -339,7 +338,7 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
             }
             
                     
-         case MDM_AT_CMD_NAME_REPORTING_OFF:
+         case MDM_AT_CMD_NAME_GNS_URC:
             switch ( p_index )
             {
                 case 1:
@@ -358,9 +357,12 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
 
 }
 
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Sequences">
 
 
-
+//<editor-fold defaultstate="collapsed" desc="Gral">
 
 bool MDM_sendInitialAT()
 {
@@ -411,4 +413,68 @@ bool MDM_sendInitialAT()
     return false;
 }
 
+//</editor-fold>
 
+//<editor-fold defaultstate="collapsed" desc="GPS">
+
+MDM_AT_RESP_NAME_t MDM_GNSS_init( uint8_t* p_nmea )
+{
+    static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GNS_PWR;
+    MDM_AT_RESP_NAME_t ret;
+    
+    switch( state )
+    {
+        case MDM_AT_CMD_NAME_GNS_PWR:
+            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_PWR, "1", MDM_COMMAND_DEFAULT_TIMEOUT ) ;
+            switch( ret )
+            {
+                case MDM_AT_RESP_NAME_OK:
+                    state = MDM_AT_CMD_NAME_GNS_NMEA;
+                    break;
+
+                default:
+                    return ret;
+            }
+            break;
+            
+        case MDM_AT_CMD_NAME_GNS_NMEA:
+            ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_NMEA, p_nmea , MDM_COMMAND_DEFAULT_TIMEOUT );
+            switch( ret )
+            {
+                case MDM_AT_RESP_NAME_OK:
+                    state = MDM_AT_CMD_NAME_GNS_GET_INFO;
+                    break;;
+
+                default:
+                    return ret;
+            }
+            break;
+            
+        case MDM_AT_CMD_NAME_GNS_GET_INFO:
+            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_GET_INFO, NULL , MDM_COMMAND_DEFAULT_TIMEOUT );
+            switch( ret )
+            {
+                case MDM_AT_RESP_NAME_GNS_GET_INF:
+                    state = MDM_AT_CMD_NAME_GNS_PWR;
+                    return ret;
+
+                default:
+                    return ret;
+            }
+            break;
+    
+    
+    }
+    
+
+
+}
+
+
+
+//</editor-fold>
+
+
+
+
+//</editor-fold>
