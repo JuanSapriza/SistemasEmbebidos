@@ -36,6 +36,9 @@
 #include "mcc_generated_files/uart1.h"
 #include "utils/Utils.h"
 #include "platform/Modem.h"
+#include "mcc_generated_files/adc1.h"
+#include "platform/Potenciometro.h"
+
 //</editor-fold>
 
 
@@ -63,6 +66,7 @@ static void MAIN_init()
     RGB_setLed(7,OFF);
     GPRS_PWR_SetDigitalInput();
     GPRS_RESET_SetHigh();
+    ADC1_ChannelSelect( ADC1_POT );
     
 //    RGB_tasks();
    
@@ -400,38 +404,49 @@ int main ()
 
 int main ()
 {
-    uint8_t dummyBuffer[ 64 ];
-    MAIN_init();
-    APP_info.state = APP_STATE_INIT;
+//    uint8_t dummyBuffer[ 64 ];
+    uint16_t datos_potenciometro;
+    uint16_t *p_datos_potenciometro;
+    p_datos_potenciometro=&datos_potenciometro;
     
-    while(1)
+    MAIN_init();
+    
+    while (1)
+        
     {
-        if( !BTN_switch( BTN_BUTTON_B ) )
-        {
-            switch( APP_info.state )
-            {
-                case APP_STATE_INIT:
-                    if( MDM_Init() )
-                    {
-                        UTS_ledBlink( 500, 500 );
-                        if( MDM_sendInitialAT() )
-                        {
-                            RGB_setLed( 3, GREEN );
-                            APP_info.state = APP_STATE_CHECK;
-                        }
-                    }
-                    break;
+        
+        POT_Convert( p_datos_potenciometro );
+    }    
+//    APP_info.state = APP_STATE_INIT;
+//    
+//    while(1)
+//    {
+//        if( !BTN_switch( BTN_BUTTON_B ) )
+//        {
+//            switch( APP_info.state )
+//            {
+//                case APP_STATE_INIT:
+//                    if( MDM_Init() )
+//                    {
+//                        UTS_ledBlink( 500, 500 );
+//                        if( MDM_sendInitialAT() )
+//                        {
+//                            RGB_setLed( 3, GREEN );
+//                            APP_info.state = APP_STATE_CHECK;
+//                        }
+//                    }
+//                    break;
+//
+//                case APP_STATE_GPS_GET:
+//
+//                    break;
+//
+//
+//            }
+//            RGB_tasks();
+//            USB_CDC_tasks();
+//        }
 
-                case APP_STATE_GPS_GET:
-
-                    break;
-
-
-            }
-            RGB_tasks();
-            USB_CDC_tasks();
-        }
-    }
     return 0;
 }
 #endif

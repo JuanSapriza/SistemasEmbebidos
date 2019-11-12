@@ -38,6 +38,7 @@
         <itemPath>mcc_generated_files/rtcc.h</itemPath>
         <itemPath>mcc_generated_files/uart1.h</itemPath>
         <itemPath>mcc_generated_files/adc1.h</itemPath>
+        <itemPath>mcc_generated_files/cdac.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f9" displayName="Modem" projectFiles="true">
         <itemPath>platform/Modem.h</itemPath>
@@ -99,6 +100,7 @@
         <itemPath>mcc_generated_files/rtcc.c</itemPath>
         <itemPath>mcc_generated_files/uart1.c</itemPath>
         <itemPath>mcc_generated_files/adc1.c</itemPath>
+        <itemPath>mcc_generated_files/cdac.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f8" displayName="Modem" projectFiles="true">
         <itemPath>platform/Modem.c</itemPath>

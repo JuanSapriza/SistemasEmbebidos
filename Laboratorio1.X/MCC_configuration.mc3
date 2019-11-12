@@ -29,45 +29,49 @@
          <string>class com.microchip.mcc.mcu16.interruptManager_PIC32MM.InterruptManager_PIC32MM</string>
       </entry>
       <entry>
-         <string>ADC1</string>
-         <string>class com.microchip.mcc.mcu16.modules.adc.ADC</string>
-      </entry>
-      <entry>
          <string>UART1</string>
          <string>class com.microchip.mcc.mcu16.modules.uart_irda_upb.UART</string>
+      </entry>
+      <entry>
+         <string>ADC1</string>
+         <string>class com.microchip.mcc.mcu16.modules.adc.ADC</string>
       </entry>
       <entry>
          <string>System Module</string>
          <string>class com.microchip.mcc.mcu16.systemManager.DefaultSystemManagerMcu16</string>
       </entry>
       <entry>
-         <string>JTAG</string>
-         <string>class com.microchip.mcc.mcu16.systemManager.jtag.JTAG</string>
-      </entry>
-      <entry>
          <string>CDCDevice</string>
          <string>class com.microchip.mcc.modules.mcu16.deviceclass.CDCDevice.CDCDevice</string>
       </entry>
       <entry>
-         <string>INTERNAL OSCILLATOR</string>
-         <string>class com.microchip.mcc.mcu16.systemManager.clk.Clock</string>
+         <string>JTAG</string>
+         <string>class com.microchip.mcc.mcu16.systemManager.jtag.JTAG</string>
       </entry>
       <entry>
          <string>VendorDevice</string>
          <string>class com.microchip.mcc.modules.mcu16.deviceclass.VendorDevice.VendorDevice</string>
       </entry>
       <entry>
-         <string>com.microchip.mcc.mcu16.Mcu16PeripheralLibraryLibraryModule</string>
-         <string>class com.microchip.mcc.protocolServices.base.modules.librarymodule.LibraryModule</string>
+         <string>INTERNAL OSCILLATOR</string>
+         <string>class com.microchip.mcc.mcu16.systemManager.clk.Clock</string>
+      </entry>
+      <entry>
+         <string>CDAC</string>
+         <string>class com.microchip.mcc.mcu16.modules.cdac.CDAC</string>
       </entry>
       <entry>
          <string>TMR2</string>
          <string>class com.microchip.mcc.mcu16.modules.tmr_classa_pb.TMR</string>
       </entry>
+      <entry>
+         <string>com.microchip.mcc.mcu16.Mcu16PeripheralLibraryLibraryModule</string>
+         <string>class com.microchip.mcc.protocolServices.base.modules.librarymodule.LibraryModule</string>
+      </entry>
    </usedClasses>
    <usedLibraries class="java.util.ArrayList">
-      <ILibraryFile class="com.microchip.mcc.core.library.BaseLibraryFile" libraryClass="com.microchip.mcc.mcu16.Mcu16PeripheralLibrary" version="1.145.0"/>
       <ILibraryFile class="com.microchip.mcc.core.library.BaseLibraryFile" libraryClass="com.microchip.mcc.USBDEVICELite.USBDEVICELite" version="1.26.1"/>
+      <ILibraryFile class="com.microchip.mcc.core.library.BaseLibraryFile" libraryClass="com.microchip.mcc.mcu16.Mcu16PeripheralLibrary" version="1.145.0"/>
    </usedLibraries>
    <tokenMap class="java.util.HashMap">
       <entry>
@@ -1135,6 +1139,10 @@
          <value>disabled</value>
       </entry>
       <entry>
+         <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="CDAC" registerAlias="CVRCON"/>
+         <value>33024</value>
+      </entry>
+      <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="ADC1" registerAlias="ADCBUF7"/>
          <value>0</value>
       </entry>
@@ -1220,7 +1228,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="ADC1" registerAlias="ADCON2" settingAlias="CSCNA"/>
-         <value>enabled</value>
+         <value>disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="Pin Module" registerAlias="CNEN1D" settingAlias="CNIE1D0" alias="enabled"/>
@@ -2036,6 +2044,10 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="ADC1" registerAlias="ADCBUF9"/>
+         <value>0</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVR"/>
          <value>0</value>
       </entry>
       <entry>
@@ -3188,6 +3200,10 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="Pin Module" registerAlias="LATB" settingAlias="LATB4" alias="set"/>
+         <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVREN" alias="Powered On"/>
          <value>1</value>
       </entry>
       <entry>
@@ -4436,7 +4452,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="ADC1" registerAlias="ADCSS" settingAlias="CSS15"/>
-         <value>enabled</value>
+         <value>disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="Pin Module" registerAlias="ODCC" settingAlias="ODCC1" alias="disabled"/>
@@ -4611,6 +4627,10 @@
          <value>1</value>
       </entry>
       <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVROE" alias="disabled"/>
+         <value>0</value>
+      </entry>
+      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="USTA" settingAlias="ADDEN"/>
          <value>disabled</value>
       </entry>
@@ -4783,12 +4803,12 @@
          <value>disabled</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="TMR2" registerAlias="TI" settingAlias="context"/>
-         <value>OFF</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="ADC1" registerAlias="ADCSS" settingAlias="CSS15" alias="enabled"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="TMR2" registerAlias="TI" settingAlias="context"/>
+         <value>OFF</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="INTERNAL OSCILLATOR" registerAlias="PMDCON" settingAlias="PMDLOCK" alias="enabled"/>
@@ -4900,7 +4920,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="ADC1" name="tad"/>
-         <value>4.1666667E-7</value>
+         <value>0.0000041667</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="Pin Module" name="iocUserSet RA11"/>
@@ -6751,12 +6771,12 @@
          <value>1</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="TMR2" registerAlias="TCON" settingAlias="TCKPS" alias="1:32"/>
-         <value>5</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="ADC1" registerAlias="ADCON1" settingAlias="SSRC" alias="SCCP6"/>
          <value>13</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="TMR2" registerAlias="TCON" settingAlias="TCKPS" alias="1:32"/>
+         <value>5</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="Pin Module" name="anselUserSetRA6"/>
@@ -6883,6 +6903,10 @@
          <value>disabled</value>
       </entry>
       <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVROE"/>
+         <value>enabled</value>
+      </entry>
+      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="Pin Module" registerAlias="ANSELA" settingAlias="ANSA11" alias="digital"/>
          <value>0</value>
       </entry>
@@ -6912,7 +6936,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="ADC1" name="adcsCustomKey"/>
-         <value>10</value>
+         <value>100</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="Pin Module" name="anselUserSetRC5"/>
@@ -6941,6 +6965,10 @@
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="Pin Module" registerAlias="CNPUB" settingAlias="CNPUB15"/>
          <value>disabled</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVRSS"/>
+         <value>AVSS</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="Pin Module" name="anselUserSetRC8"/>
@@ -7756,7 +7784,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="ADC1" registerAlias="ADCON2"/>
-         <value>1024</value>
+         <value>0</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="Pin Module" name="trisUserSetRA10"/>
@@ -8415,6 +8443,10 @@
          <value>0</value>
       </entry>
       <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVREN" alias="Powered Off"/>
+         <value>0</value>
+      </entry>
+      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="ADC1" registerAlias="ADCON2" settingAlias="OFFCAL" alias="enabled"/>
          <value>1</value>
       </entry>
@@ -8512,7 +8544,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="ADC1" registerAlias="ADCON3"/>
-         <value>4105</value>
+         <value>2659</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="Pin Module" registerAlias="CNPDB" settingAlias="CNPDB8" alias="enabled"/>
@@ -9623,12 +9655,12 @@
          <value>1</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="TMR2" name="minPeriod"/>
-         <value>0.0000053333</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="ADC1" registerAlias="ADCON1" settingAlias="SIDL" alias="disabled"/>
          <value>0</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="TMR2" name="minPeriod"/>
+         <value>0.0000053333</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="RTCC" registerAlias="ALMTIMEL" settingAlias="MINONE"/>
@@ -10351,6 +10383,10 @@
          <value>input</value>
       </entry>
       <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVRSS" alias="AVSS"/>
+         <value>0</value>
+      </entry>
+      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="Pin Module" registerAlias="RPOR2" settingAlias="RP11R"/>
          <value>0</value>
       </entry>
@@ -10776,7 +10812,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="ADC1" registerAlias="ADCON3" settingAlias="ADCS"/>
-         <value>9</value>
+         <value>99</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="INTERNAL OSCILLATOR" name="FeatureAuxClockChange"/>
@@ -11065,6 +11101,10 @@
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="ADC1" registerAlias="ADCON1" settingAlias="FORM" alias="Signed Integer 32-bit"/>
          <value>5</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVROE" alias="enabled"/>
+         <value>1</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="INTERNAL OSCILLATOR" registerAlias="OSCTUN" settingAlias="TUN" alias="Center Frequency-0.047%"/>
@@ -11679,6 +11719,10 @@
          <value>1</value>
       </entry>
       <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVRSS" alias="AVDD"/>
+         <value>3</value>
+      </entry>
+      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="USB" registerAlias="UCON" settingAlias="SE0" alias="disabled"/>
          <value>0</value>
       </entry>
@@ -11693,6 +11737,10 @@
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="USB" registerAlias="UEP0" settingAlias="RETRYDIS0" alias="enabled"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVREN"/>
+         <value>Powered On</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="USB" registerAlias="UEP3" settingAlias="EPRXEN3" alias="disabled"/>
@@ -12444,7 +12492,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="ADC1" name="Scan_Count"/>
-         <value>1</value>
+         <value>0</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="Pin Module" registerAlias="CNSTATB" settingAlias="CNSTATB8"/>
@@ -12488,7 +12536,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="ADC1" registerAlias="ADCSS"/>
-         <value>32768</value>
+         <value>0</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="USB" registerAlias="UEP11" settingAlias="EPCONDIS11" alias="disabled"/>
@@ -12720,7 +12768,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="ADC1" registerAlias="ADCON3" settingAlias="SAMC"/>
-         <value>16</value>
+         <value>10</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="Pin Module" registerAlias="RPINR7"/>
@@ -13008,6 +13056,10 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="USB" registerAlias="UOTGSTAT" settingAlias="VBUSVD" alias="enabled"/>
+         <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="CDAC" registerAlias="CVRCON" settingAlias="CVRSS" alias="VREF+"/>
          <value>1</value>
       </entry>
       <entry>
@@ -15325,8 +15377,12 @@
          <hash>a4c693ff15ed4f34357c98ed2c704c6c3646c4862fd500619c047ca0ac3ea4ff</hash>
       </entry>
       <entry>
+         <file>mcc_generated_files\cdac.h</file>
+         <hash>08575eb81fb6714492c454480860d53928bf13e919f95dfc93eb06c8a698c67b</hash>
+      </entry>
+      <entry>
          <file>mcc_generated_files\system.c</file>
-         <hash>b8fd9f5cebeb299ce692d6884994f2ac49e4b2d9207fe326cec9f463dea06f90</hash>
+         <hash>b51e59e9a70299e2ce26e16cc84f30a841acb3c14dd8bde80f1d1003b515bc27</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\clock.h</file>
@@ -15342,7 +15398,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\mcc.h</file>
-         <hash>d54f3355aa1f65be0a47ca2df669a58cc4fcaf384cc1c1cc83432ffa45959227</hash>
+         <hash>2a9346bfa76ccf060d8af8fa9f422b69eee1bf347d491cb9a3460f951d33bd8e</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\exceptions.h</file>
@@ -15374,15 +15430,19 @@
       </entry>
       <entry>
          <file>mcc_generated_files\adc1.c</file>
-         <hash>fb6bc1fc1adea2ec38bbfcee43fb19fdcf173c3050d97b653655e74e83bb0e07</hash>
+         <hash>88879d7fca6a06d9a366e5a97e21a28f197115fe3bd6d923c0aad5875d5a41b6</hash>
+      </entry>
+      <entry>
+         <file>mcc_generated_files\tmr2.h</file>
+         <hash>2c342e20131510b118e60e71e63382e0ded7cbf459cf13200e842759743f90f0</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\usb\usb_device.c</file>
          <hash>386906dcfa271ae2d841b1610df4299ecb586ef8485f04273a6c649c11a5449b</hash>
       </entry>
       <entry>
-         <file>mcc_generated_files\tmr2.h</file>
-         <hash>2c342e20131510b118e60e71e63382e0ded7cbf459cf13200e842759743f90f0</hash>
+         <file>mcc_generated_files\tmr2.c</file>
+         <hash>4ab7a837edf24c6009af1f4143630d9b90fde3584f596bc620e7cef50a6f16b8</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\usb\usb_device.h</file>
@@ -15397,16 +15457,16 @@
          <hash>fde4b32a9e299a6b8a259ca613f1664a7bf589bf9414573ab4e68b68bddc8351</hash>
       </entry>
       <entry>
-         <file>mcc_generated_files\tmr2.c</file>
-         <hash>4ab7a837edf24c6009af1f4143630d9b90fde3584f596bc620e7cef50a6f16b8</hash>
-      </entry>
-      <entry>
          <file>mcc_generated_files\pin_manager.h</file>
          <hash>f1817a4e68770c9599c4238435c602a3f657c8ee06b244b3551afed47bc92166</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\usb\usb_hal.h</file>
          <hash>4e4ccc67c8e238ad1033ff8b9d04be5e9f00ba01ee536ac25d203cba119fe24b</hash>
+      </entry>
+      <entry>
+         <file>mcc_generated_files\cdac.c</file>
+         <hash>182a40dc0ef03554e310b157ccf34dddabefe9902251a4d73f490baaaa5a9640</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\pin_manager.c</file>
@@ -15422,7 +15482,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\interrupt_manager.c</file>
-         <hash>ab47e8c559aac20beb373575fe74f14f14212ac80e271a058de2507b0c227fca</hash>
+         <hash>9dfd98ddc2636a5c12f56abaab99b33c3f5e8d53e583a2bbaa2a29cf44e86d55</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\usb\example_mcc_usb_cdc.c</file>
