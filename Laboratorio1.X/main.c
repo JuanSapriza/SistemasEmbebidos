@@ -415,7 +415,10 @@ int main ()
         
     {
         
-        POT_Convert( p_datos_potenciometro );
+        if(POT_Convert( p_datos_potenciometro ))
+        {
+         Nop();   
+        }
     }    
 //    APP_info.state = APP_STATE_INIT;
 //    
