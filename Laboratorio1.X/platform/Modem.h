@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <time.h>
 
 #define MDM_RX_BUFFER_SIZE 128
 #define MDM_TX_BUFFER_SIZE 128
@@ -80,5 +81,6 @@ uint8_t* MDM_commandString( MDM_AT_CMD_NAME_t p_cmd );
 uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
 
 bool MDM_sendInitialAT();
+MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr );
 
 #endif

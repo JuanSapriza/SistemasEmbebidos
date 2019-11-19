@@ -15,6 +15,7 @@ uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de r
 
 
 
+
 //<editor-fold defaultstate="collapsed" desc="Init">
 
 bool MDM_Init(void)
@@ -266,7 +267,7 @@ uint8_t* MDM_commandString( MDM_AT_CMD_NAME_t p_cmd )
             return MDM_cmdBuffer;
             
         case MDM_AT_CMD_NAME_GNS_NMEA:
-            strcpy (MDM_cmdBuffer,"AT+CGNSSEQ=RMC" );
+            strcpy (MDM_cmdBuffer,"AT+CGNSSEQ=" );
             return MDM_cmdBuffer; 
             
         case MDM_AT_CMD_NAME_GNS_GET_INFO:
@@ -417,36 +418,49 @@ bool MDM_sendInitialAT()
 
 //<editor-fold defaultstate="collapsed" desc="GPS">
 
-MDM_AT_RESP_NAME_t MDM_GNSS_init( uint8_t* p_nmea )
+
+uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea );
+
+
+
+MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr )
 {
     static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GNS_PWR;
     MDM_AT_RESP_NAME_t ret;
     
+    state = ( !p_pwr ? MDM_AT_CMD_NAME_GNS_PWR : state );
+    
     switch( state )
     {
         case MDM_AT_CMD_NAME_GNS_PWR:
-            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_PWR, "1", MDM_COMMAND_DEFAULT_TIMEOUT ) ;
+            ret = ( p_pwr ? MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_PWR, "1", MDM_COMMAND_DEFAULT_TIMEOUT ) : MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_PWR, "0", MDM_COMMAND_DEFAULT_TIMEOUT ) );
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_OK:
-                    state = MDM_AT_CMD_NAME_GNS_NMEA;
+                    state = ( p_pwr ? MDM_AT_CMD_NAME_GNS_NMEA : state );
                     break;
 
-                default:
+                case MDM_AT_RESP_NAME_ERROR:
                     return ret;
+                    
+                default:
+                     break;
             }
             break;
             
         case MDM_AT_CMD_NAME_GNS_NMEA:
-            ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_NMEA, p_nmea , MDM_COMMAND_DEFAULT_TIMEOUT );
+            ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_NMEA, MDM_GNSS_nmea2String( p_nmea ) , MDM_COMMAND_DEFAULT_TIMEOUT );
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_OK:
                     state = MDM_AT_CMD_NAME_GNS_GET_INFO;
-                    break;;
-
-                default:
+                    break;
+                    
+                case MDM_AT_RESP_NAME_ERROR:
                     return ret;
+                    
+                default:
+                    break;
             }
             break;
             
@@ -455,22 +469,46 @@ MDM_AT_RESP_NAME_t MDM_GNSS_init( uint8_t* p_nmea )
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_GNS_GET_INF:
-                    state = MDM_AT_CMD_NAME_GNS_PWR;
                     return ret;
 
-                default:
+                case MDM_AT_RESP_NAME_ERROR:
                     return ret;
+                    
+                default:
+                     break;
             }
             break;
-    
-    
     }
-    
-
-
+    return MDM_AT_RESP_NAME_WORKING;
 }
 
-
+uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea )
+{
+    static uint8_t MDM_nmeaBuffer[4];           //QUE TAN PROLIJO ES HACER ESTOOO???
+    
+    switch( p_nmea )
+    {
+        case MDM_GNS_NMEA_RMC:
+            strcpy(MDM_nmeaBuffer,"RMC");
+            break;
+        case MDM_GNS_NMEA_GGA:
+            strcpy(MDM_nmeaBuffer,"GGA");
+            break;
+            
+        case MDM_GNS_NMEA_GSV:
+            strcpy(MDM_nmeaBuffer,"GSV");
+            break;
+            
+        case MDM_GNS_NMEA_GSA:
+            strcpy(MDM_nmeaBuffer,"GSA");
+            break;
+            
+        default:
+            memset( MDM_nmeaBuffer,0,sizeof(MDM_nmeaBuffer) );
+            break;
+    }
+    return MDM_nmeaBuffer;
+}
 
 //</editor-fold>
 
