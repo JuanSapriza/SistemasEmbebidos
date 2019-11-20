@@ -42,3 +42,11 @@ bool POT_Convert( uint16_t* p_conversion )
     
     return false;
 }
+
+uint8_t POT_Linearized ( uint16_t ADC_result )
+{
+    uint16_t aux1=ADC_result*60/1023;
+    uint8_t aux2;
+    aux2=(uint8_t)aux1;
+    return aux2;
+}

@@ -409,6 +409,9 @@ int main ()
     uint16_t *p_datos_potenciometro;
     p_datos_potenciometro=&datos_potenciometro;
     
+    //uint16_t aux3=0;
+    uint8_t aux3=0;
+    
     MAIN_init();
     
     while (1)
@@ -418,6 +421,8 @@ int main ()
         if(POT_Convert( p_datos_potenciometro ))
         {
          Nop();   
+         
+         aux3 = POT_Linearized ( *p_datos_potenciometro );
         }
     }    
 //    APP_info.state = APP_STATE_INIT;

@@ -16,5 +16,9 @@ enum POT_ESTADO
 
 bool POT_Convert( uint16_t* p_conversion );
 
+//bool POT_Convert( uint16_t* p_conversion )
+
+uint8_t POT_Linearized ( uint16_t ADC_result );
+
 
 #endif
