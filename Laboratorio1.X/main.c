@@ -420,10 +420,14 @@ int main ()
         
         if(POT_Convert( p_datos_potenciometro ))
         {
-         Nop();   
-         
-         aux3 = POT_Linearized ( *p_datos_potenciometro );
+            Nop();   
+            aux3 = POT_Linearized ( *p_datos_potenciometro );
+            APP_RGB_humidity ( aux3 );
+            
         }
+        
+        RGB_tasks();
+        
     }    
 //    APP_info.state = APP_STATE_INIT;
 //    

@@ -120,6 +120,7 @@
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>FileTemplate.c</itemPath>
+      <itemPath>App.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

@@ -3,6 +3,7 @@
 #define	APP_H
 
 #include "mcc_generated_files/rtcc.h"
+#include <stdint.h>
 
 #ifdef LABORATORIO_3_5
 
@@ -44,12 +45,15 @@ enum APP_STATES
 };
 
 
-
 struct APP_info_t
 {
     enum APP_STATES state;
     struct tm* time;
 }APP_info;
+
+void APP_RGB_humidity ( uint8_t ADC_linearized );
+
+void APP_LEDA_irrigate ( uint8_t ADC_linearized );
 
 #endif
 
