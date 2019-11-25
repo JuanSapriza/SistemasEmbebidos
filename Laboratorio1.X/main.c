@@ -423,7 +423,7 @@ int main ()
             Nop();   
             aux3 = POT_Linearized ( *p_datos_potenciometro );
             APP_RGB_humidity ( aux3 );
-            
+            APP_LEDA_irrigate ( aux3 );
         }
         
         RGB_tasks();
