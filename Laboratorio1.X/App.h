@@ -60,6 +60,7 @@ enum APP_STATES
     APP_STATE_INIT,
     APP_STATE_GPS_GET,
     APP_STATE_WAIT,
+    APP_STATE_PARSE_FRAME,
     APP_STATE_MAIN_MENU_CREATE,
     APP_STATE_MAIN_MENU_SHOW,
     APP_STATE_FINISH,
@@ -73,6 +74,7 @@ struct APP_info_t
 {
     enum APP_STATES state;
     struct tm* time;
+//    GPSPosition_t position;
 }APP_info;
 
 #endif

@@ -20,6 +20,8 @@
 #include <math.h>
 #include <time.h>
 
+#include "Modem.h"
+
 /*******************************************************************************/    
 /************************* LOCAL VARIABLES *************************************/    
 /*******************************************************************************/     
@@ -118,4 +120,20 @@ double GPS_getGroundDistance( GPSPosition_t *a, GPSPosition_t *b ){
 	angle = 2*asin(angle);
 
 	return angle * GPS_EARTH_RADIUS;		 
+}
+
+
+void GPS_parseFrame( uint8_t* p_frame, struct tm p_time, GPSPosition_t* p_position )
+{
+//    uint8_t* index = 0;
+//   
+//    index = strstr( p_frame, MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );
+//    
+//    if( index == NULL ) return;
+//    
+//    //  voy hasta el final de +CGNSINF: 
+//    index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );
+//    
+//    GPS_getUTC( p_time, index );
+//    GPS_getPosition( p_position, index );
 }

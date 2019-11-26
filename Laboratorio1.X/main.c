@@ -37,6 +37,7 @@
 #include "mcc_generated_files/uart1.h"
 #include "utils/Utils.h"
 #include "platform/Modem.h"
+#include "platform/GPS.h"
 //</editor-fold>
 
 
@@ -478,16 +479,26 @@ int main ()
                             break;
                             
                             case MDM_AT_RESP_NAME_WORKING:
-                            RGB_setLed( 4, BLUE );
+                            RGB_setLed( 2, BLUE );
                             break;
                             
                         default:
                             break;
-                    
                     }
                     break;
                     
-              case APP_STATE_WAIT:  
+               case APP_STATE_PARSE_FRAME:
+//                   GPS_parseFrame( MDM_whatsInReadBuffer(), APP_info.time, APP_info.state );
+                   //hacer algo con esta nueva información
+                   break; 
+                    
+              case APP_STATE_WAIT: 
+                  RGB_setLed( 2, BLUE );
+                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 2000, false ) )
+                  {
+                      USB_write( MDM_whatsInReadBuffer() );
+                      APP_info.state = APP_STATE_GPS_GET;
+                  }
                   break;
 
             }

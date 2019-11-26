@@ -116,6 +116,12 @@ uint8_t MDM_write(uint8_t *p_string)
     return UART1_WriteBuffer( p_string , strlen(p_string));
 }
 
+uint8_t* MDM_whatsInReadBuffer()
+{
+    return MDM_rxBuffer;
+}
+
+
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Commands">
