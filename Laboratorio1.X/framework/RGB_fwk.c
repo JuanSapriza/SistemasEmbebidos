@@ -59,7 +59,7 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
                     case GO_ROUND_VARIANT_LAST_ALL_ON:
                         RGB_setAll(p_color);
                         break;
-                      
+                    
                     default:    
                     case GO_ROUND_VARIANT_LAST_ALL_OFF:
                         RGB_setAll(OFF);

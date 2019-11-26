@@ -32,26 +32,26 @@ void APP_RGB_humidity ( uint8_t ADC_humedad )
 
 void APP_LEDA_irrigate ( uint8_t ADC_humedad )
 {
-//    static uint8_t APP_IRRIGATE = APP_IRRIGATE_OFF;
-//    
-//    switch ( APP_IRRIGATE )
-//    {
-//        case APP_IRRIGATE_OFF:        
-//            if( (ADC_humedad)>30 )
-//            {
-//                LED_A_SetHigh();
-//                APP_IRRIGATE = APP_IRRIGATE_ON;
-//            }
-//            break;
-//            
-//        case APP_IRRIGATE_ON:        
-//            if( (ADC_humedad)<15 )
-//            {
-//                LED_A_SetLow();
-//                APP_IRRIGATE = APP_IRRIGATE_OFF;
-//            }
-//            break;
-//            
-//    }    
+    static uint8_t APP_IRRIGATE = APP_IRRIGATE_OFF;
+    
+    switch ( APP_IRRIGATE )
+    {
+        case APP_IRRIGATE_OFF:        
+            if( (ADC_humedad)>30 )
+            {
+                LED_A_SetHigh();
+                APP_IRRIGATE = APP_IRRIGATE_ON;
+            }
+            break;
+            
+        case APP_IRRIGATE_ON:        
+            if( (ADC_humedad)<15 )
+            {
+                LED_A_SetLow();
+                APP_IRRIGATE = APP_IRRIGATE_OFF;
+            }
+            break;
+            
+    }    
     
 }

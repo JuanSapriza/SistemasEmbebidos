@@ -1,22 +1,3 @@
-//<editor-fold defaultstate="collapsed" desc="Versión">
-
-#define COMMIT_VERSION Lab4_GPS_seqFuncionando
-
-//#define LABORATORIO_1
-//#define LABORATORIO_2
-//#define LABORATORIO_2_1
-//#define LABORATORIO_3
-//#define LABORATORIO_3_2
-//#define LABORATORIO_3_3
-//#define LABORATORIO_3_4
-//#define LABORATORIO_3_5
-//#define LABORATORIO_4
-#define LABORATORIO_4_2
-
-
-
-//</editor-fold>
-
 //<editor-fold defaultstate="collapsed" desc="Includes">
 
 
@@ -37,6 +18,9 @@
 #include "mcc_generated_files/uart1.h"
 #include "utils/Utils.h"
 #include "platform/Modem.h"
+#include "mcc_generated_files/adc1.h"
+#include "platform/Potenciometro.h"
+
 #include "platform/GPS.h"
 //</editor-fold>
 
@@ -65,6 +49,7 @@ static void MAIN_init()
     RGB_setLed(7,OFF);
     GPRS_PWR_SetDigitalInput();
     GPRS_RESET_SetHigh();
+    ADC1_ChannelSelect( ADC1_POT );
     
 //    RGB_tasks();
    
@@ -402,110 +387,61 @@ int main ()
 
 int main ()
 {
-    uint8_t dummyBuffer[ 64 ];
-    MAIN_init();
-    APP_info.state = APP_STATE_INIT;
+//    uint8_t dummyBuffer[ 64 ];
+    uint16_t datos_potenciometro;
+    uint16_t *p_datos_potenciometro;
+    p_datos_potenciometro=&datos_potenciometro;
     
-    while(1)
-    {
-        if( !BTN_switch( BTN_BUTTON_B ) )
-        {
-            switch( APP_info.state )
-            {
-                case APP_STATE_INIT:
-                    if( MDM_Init() )
-                    {
-                        UTS_ledBlink( 500, 500 );
-                        if( MDM_sendInitialAT() )
-                        {
-                            RGB_setLed( 3, GREEN );
-                            APP_info.state = APP_STATE_GPS_GET;
-                        }
-                    }
-                    break;
-
-                case APP_STATE_GPS_GET:
-                    USB_send2Modem();
-                    break;
-
-            }
-            RGB_tasks();
-            USB_CDC_tasks();
-        }
-    }
-    return 0;
-}
-#endif
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="Laboratorio 4_2">
-#ifdef LABORATORIO_4_2
-
-int main ()
-{
-    uint8_t dummyBuffer[ 64 ];
-    MAIN_init();
-    APP_info.state = APP_STATE_INIT;
+    //uint16_t aux3=0;
+    uint8_t aux3=0;
     
-    while(1)
+    MAIN_init();
+    
+    while (1)
+        
     {
-        if( !BTN_switch( BTN_BUTTON_B ) )
+        
+        if(POT_Convert( p_datos_potenciometro ))
         {
-            switch( APP_info.state )
-            {
-                case APP_STATE_INIT:
-                    if( MDM_Init() )
-                    {
-                        UTS_ledBlink( 500, 500 );
-                        if( MDM_sendInitialAT() )
-                        {
-                            RGB_setLed( 7, WHITE);
-                            APP_info.state = APP_STATE_GPS_GET;
-                        }
-                    }
-                    break;
-
-                case APP_STATE_GPS_GET:
-                    switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
-                    {
-                        case MDM_AT_RESP_NAME_GNS_GET_INF:
-                            RGB_setLed( 2, GREEN );
-                            APP_info.state = APP_STATE_WAIT;
-                            break;
-                            
-                        case MDM_AT_RESP_NAME_ERROR:
-                            RGB_setLed( 3, RED );
-                            APP_info.state = APP_STATE_WAIT;
-                            break;
-                            
-                            case MDM_AT_RESP_NAME_WORKING:
-                            RGB_setLed( 2, BLUE );
-                            break;
-                            
-                        default:
-                            break;
-                    }
-                    break;
-                    
-               case APP_STATE_PARSE_FRAME:
-//                   GPS_parseFrame( MDM_whatsInReadBuffer(), APP_info.time, APP_info.state );
-                   //hacer algo con esta nueva información
-                   break; 
-                    
-              case APP_STATE_WAIT: 
-                  RGB_setLed( 2, BLUE );
-                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 2000, false ) )
-                  {
-                      USB_write( MDM_whatsInReadBuffer() );
-                      APP_info.state = APP_STATE_GPS_GET;
-                  }
-                  break;
-
-            }
-            RGB_tasks();
-            USB_CDC_tasks();
+            Nop();   
+            aux3 = POT_Linearized ( *p_datos_potenciometro );
+            APP_RGB_humidity ( aux3 );
+            APP_LEDA_irrigate ( aux3 );
         }
-    }
+        
+        RGB_tasks();
+        
+    }    
+//    APP_info.state = APP_STATE_INIT;
+//    
+//    while(1)
+//    {
+//        if( !BTN_switch( BTN_BUTTON_B ) )
+//        {
+//            switch( APP_info.state )
+//            {
+//                case APP_STATE_INIT:
+//                    if( MDM_Init() )
+//                    {
+//                        UTS_ledBlink( 500, 500 );
+//                        if( MDM_sendInitialAT() )
+//                        {
+//                            RGB_setLed( 3, GREEN );
+//                            APP_info.state = APP_STATE_CHECK;
+//                        }
+//                    }
+//                    break;
+//
+//                case APP_STATE_GPS_GET:
+//
+//                    break;
+//
+//
+//            }
+//            RGB_tasks();
+//            USB_CDC_tasks();
+//        }
+
     return 0;
 }
 #endif
