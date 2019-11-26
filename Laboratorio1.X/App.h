@@ -29,7 +29,55 @@ struct APP_info_t
 
 #endif
 
+#ifdef LABORATORIO_4
 
+enum APP_STATES
+{
+    APP_STATE_INIT,
+    APP_STATE_GPS_GET,
+    APP_STATE_WAIT,
+    APP_STATE_MAIN_MENU_CREATE,
+    APP_STATE_MAIN_MENU_SHOW,
+    APP_STATE_FINISH,
+    APP_STATE_CHECK,
+    APP_STATE_TASKS,
+};
+
+
+
+struct APP_info_t
+{
+    enum APP_STATES state;
+    struct tm* time;
+}APP_info;
+
+#endif
+
+#ifdef LABORATORIO_4_2
+
+enum APP_STATES
+{
+    APP_STATE_INIT,
+    APP_STATE_GPS_GET,
+    APP_STATE_WAIT,
+    APP_STATE_PARSE_FRAME,
+    APP_STATE_MAIN_MENU_CREATE,
+    APP_STATE_MAIN_MENU_SHOW,
+    APP_STATE_FINISH,
+    APP_STATE_CHECK,
+    APP_STATE_TASKS,
+};
+
+
+
+struct APP_info_t
+{
+    enum APP_STATES state;
+    struct tm* time;
+//    GPSPosition_t position;
+}APP_info;
+
+#endif
 
 #endif	/* APP_H */
 

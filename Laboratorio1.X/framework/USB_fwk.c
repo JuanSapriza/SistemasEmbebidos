@@ -4,9 +4,10 @@
 #include "../utils/Utils.h" 
 
 
-static uint8_t readBuffer[USB_BUFFER_SIZE];
-static uint8_t writeBuffer[USB_BUFFER_SIZE];
+static uint8_t USB_rxBuffer[USB_BUFFER_SIZE];
+static uint8_t USB_txBuffer[USB_BUFFER_SIZE];
 static bool sth2write;
+static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_BOTH;
 
 //<editor-fold defaultstate="collapsed" desc="USB Gral">
 
@@ -22,9 +23,9 @@ bool USB_CDC_tasks()
         return false;
     }
     
-    if( sth2write ) //hay algo para escribir
+    if( sth2write && USBUSARTIsTxTrfReady() ) //hay algo para escribir
     {
-       putUSBUSART(writeBuffer,strlen(writeBuffer)); 
+       putUSBUSART(USB_txBuffer,strlen(USB_txBuffer)); 
        sth2write = false;
     }
     
@@ -38,37 +39,36 @@ void USB_write( uint8_t *p_text )
     
     if( !sth2write )
     {
-        memset(writeBuffer, 0, sizeof(writeBuffer));
+        memset(USB_txBuffer, 0, sizeof(USB_txBuffer));
     }
     
-    if( strlen( p_text ) < USB_BUFFER_SIZE -strlen(writeBuffer)  )
+    if( strlen( p_text ) < USB_BUFFER_SIZE -strlen(USB_txBuffer)  )
     {
-        strcat(writeBuffer, p_text);
+        strcat(USB_txBuffer, p_text);
     }
     else
     {
-        strncat(writeBuffer, p_text, USB_BUFFER_SIZE - strlen(writeBuffer) );
+        strncat(USB_txBuffer, p_text, USB_BUFFER_SIZE - strlen(USB_txBuffer) );
     }
     sth2write = true;
 }
 
 uint8_t *USB_read( uint8_t p_length )
 {
-    memset( readBuffer, 0, sizeof(readBuffer) ); 
+    memset( USB_rxBuffer, 0, sizeof(USB_rxBuffer) ); 
     
-    if ( p_length <= sizeof(readBuffer) && 0 < p_length )
+    if ( p_length <= sizeof(USB_rxBuffer) && 0 < p_length )
     {
-         getsUSBUSART(readBuffer, p_length);
+         getsUSBUSART(USB_rxBuffer, p_length);
     }
     else
     {
-        getsUSBUSART(readBuffer, sizeof(readBuffer));
+        getsUSBUSART(USB_rxBuffer, sizeof(USB_rxBuffer));
     }
-    return ( readBuffer );
+    return ( USB_rxBuffer );
 }
 
 //</editor-fold>
-
 
 //<editor-fold defaultstate="collapsed" desc="Menu">
 
@@ -121,6 +121,60 @@ int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
     return 0;
 }
 
+
+
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Modem">
+
+void USB_sniff( uint8_t* p_string, USB_SNIFF_TYPE_t p_type )
+{
+    if( *p_string == 0 ) return;
+    if( USB_sniffType() == p_type || USB_sniffType() == USB_SNIFF_TYPE_BOTH )
+    {
+        switch( p_type )
+        {
+            case USB_SNIFF_TYPE_RX:
+                USB_write("\n<");
+                break;
+                
+            case USB_SNIFF_TYPE_TX:
+                USB_write("\n>");
+                break;
+        }
+        USB_write( p_string );  
+        USB_write("\n");
+    }
+}
+
+void USB_sniffSetType( USB_SNIFF_TYPE_t p_type )
+{
+    sniffType = p_type;
+}
+
+USB_SNIFF_TYPE_t USB_sniffType()
+{
+    return sniffType;
+}
+
+void USB_send2Modem()
+{
+    USB_SNIFF_TYPE_t previousSniffType; 
+            
+    if( UTS_delayms( UTS_DELAY_HANDLER_USB_SEND_TO_MODEM_ACHIQUEN, 10, false) ) //VER DE ACHICAR ESTE DELAY
+    {
+        if( *USB_read(0) !=  0 ) //mandamos algo
+        {
+            previousSniffType = USB_sniffType(); 
+            USB_sniffSetType( USB_SNIFF_TYPE_RX ); 
+        
+            MDM_sendATCmd( USB_rxBuffer, NULL);
+            
+            USB_sniffSetType( previousSniffType ); 
+        }
+        MDM_readString();
+    }
+}
 
 
 //</editor-fold>

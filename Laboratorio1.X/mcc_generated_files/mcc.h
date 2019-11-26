@@ -56,6 +56,7 @@
 #include "rtcc.h"
 #include "interrupt_manager.h"
 #include "exceptions.h"
+#include "uart1.h"
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ  24000000UL
 #endif

@@ -3,38 +3,35 @@
 #include <string.h>
 #include "Utils.h"
 #include "../mcc_generated_files/tmr2.h"
+#include "../mcc_generated_files/pin_manager.h"
 
 
 
-static UTS_delayHandler_t UTS_delayHandler[UTS_DELAY_HANDLER_COUNT];
+static UTS_delayHandler_t UTS_delayHandlerVector[UTS_DELAY_HANDLER_COUNT];
 
 //<editor-fold defaultstate="collapsed" desc="DELAY">
 bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_reiniciar )
 {
-    uint32_t esteTiempo;
-    
-    if( !UTS_delayHandler[p_handlerIndex].active )
+    if( !UTS_delayHandlerVector[p_handlerIndex].active )
     {
-        UTS_delayHandler[p_handlerIndex].initialTime = TMR2_SoftwareCounterGet();
-        UTS_delayHandler[p_handlerIndex].countTime = p_tiempo;
-        UTS_delayHandler[p_handlerIndex].active = true;
+        UTS_delayHandlerVector[p_handlerIndex].initialTime = TMR2_SoftwareCounterGet();
+        UTS_delayHandlerVector[p_handlerIndex].countTime = p_tiempo;
+        UTS_delayHandlerVector[p_handlerIndex].active = true;
     }
     
     if( p_reiniciar )
     {
-        UTS_delayHandler[p_handlerIndex].initialTime = 0;
-        UTS_delayHandler[p_handlerIndex].countTime = 0;
-        UTS_delayHandler[p_handlerIndex].active = false;
+        UTS_delayHandlerVector[p_handlerIndex].initialTime = 0;
+        UTS_delayHandlerVector[p_handlerIndex].countTime = 0;
+        UTS_delayHandlerVector[p_handlerIndex].active = false;
         return true;
     }
     
-    esteTiempo = TMR2_SoftwareCounterGet();
-    
-    if( TMR2_SoftwareCounterGet() >= UTS_delayHandler[p_handlerIndex].initialTime + UTS_delayHandler[p_handlerIndex].countTime )
+    if( TMR2_SoftwareCounterGet() >= UTS_delayHandlerVector[p_handlerIndex].initialTime + UTS_delayHandlerVector[p_handlerIndex].countTime )
     {
-        UTS_delayHandler[p_handlerIndex].initialTime = 0;
-        UTS_delayHandler[p_handlerIndex].countTime = 0;
-        UTS_delayHandler[p_handlerIndex].active = false;
+        UTS_delayHandlerVector[p_handlerIndex].initialTime = 0;
+        UTS_delayHandlerVector[p_handlerIndex].countTime = 0;
+        UTS_delayHandlerVector[p_handlerIndex].active = false;
         return true;
     }
 
@@ -69,6 +66,32 @@ bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_
 }
 //</editor-fold>
 
+//<editor-fold defaultstate="collapsed" desc="LEDS">
+
+void UTS_ledBlink( uint32_t p_ON, uint32_t p_OFF )
+{
+    static UTS_DELAY_HANDLER_t LED_1_delay = UTS_DELAY_HANDLER_LED_A;    
+    static bool ledState = false;
+    
+    if( ledState )
+    {
+        if( UTS_delayms( LED_1_delay, p_OFF, false ) )
+        {
+            LED_A_SetHigh(); 
+            ledState = false;
+        }    
+    }
+    else
+    {
+        if( UTS_delayms( LED_1_delay, p_ON, false ) )
+        {
+            LED_A_SetLow();
+            ledState = true;
+        }
+    }
+}
+
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="MENÚ">
 
@@ -121,3 +144,4 @@ uint8_t UTS_getmenuOptionsNumber( UTS_MENU_HANDLER_t p_menu )
 
 
 //</editor-fold>
+

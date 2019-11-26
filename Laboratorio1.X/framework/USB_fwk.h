@@ -9,10 +9,11 @@
 
 uint8_t USB_dummyBuffer[USB_BUFFER_SIZE];
 
+//<editor-fold defaultstate="collapsed" desc="USB Gral">
 uint8_t *USB_read( uint8_t p_length );
 void USB_write( uint8_t *p_text );
 bool USB_CDC_tasks();
-
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Menu">
 
@@ -27,5 +28,21 @@ enum USB_SHOW_MENU_STATES
 
 //</editor-fold>
 
+//<editor-fold defaultstate="collapsed" desc="Modem">
+
+typedef enum 
+{
+    USB_SNIFF_TYPE_TX,
+    USB_SNIFF_TYPE_RX,
+    USB_SNIFF_TYPE_BOTH,
+    USB_SNIFF_TYPE_NONE,
+} USB_SNIFF_TYPE_t;
+
+void USB_sniff( uint8_t* p_string, USB_SNIFF_TYPE_t p_type );
+void USB_sniffSetType( USB_SNIFF_TYPE_t p_type );
+USB_SNIFF_TYPE_t USB_sniffType();
+void USB_send2Modem();
+
+//</editor-fold>
 
 #endif
