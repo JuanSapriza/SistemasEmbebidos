@@ -1,21 +1,3 @@
-//<editor-fold defaultstate="collapsed" desc="Versión">
-
-#define COMMIT_VERSION Lab4_GPS_commandsFuncionando
-
-//#define LABORATORIO_1
-//#define LABORATORIO_2
-//#define LABORATORIO_2_1
-//#define LABORATORIO_3
-//#define LABORATORIO_3_2
-//#define LABORATORIO_3_3
-//#define LABORATORIO_3_4
-//#define LABORATORIO_3_5
-#define LABORATORIO_4
-
-
-
-//</editor-fold>
-
 //<editor-fold defaultstate="collapsed" desc="Includes">
 
 
