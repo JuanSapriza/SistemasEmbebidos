@@ -22,6 +22,10 @@
 
 #include "mcc_generated_files/rtcc.h"
 #include <stdint.h>
+#include "platform/GPS.h"
+#include <time.h>
+
+#define APP_LOG_BUFFER_SIZE 60
 
 #ifdef LABORATORIO_3_5
 
@@ -50,34 +54,70 @@ struct APP_info_t
 
 #ifdef LABORATORIO_4
 
+
+//Funcion para mostrar el nivel de humedad con los leds RGB:
+
+void APP_RGB_humidity ( uint8_t ADC_linearized );
+
+
+
+//Funcion para indicar riego con led A:
+
 enum APP_IRRIGATE
 {
     APP_IRRIGATE_OFF,
     APP_IRRIGATE_ON,
 };
 
-enum APP_STATES
+void APP_LEDA_irrigate ( uint8_t ADC_linearized );
+
+
+
+
+//Funcion que actualiza el registro historico
+
+
+typedef struct
 {
-    APP_STATE_INIT,
-    APP_STATE_GPS_GET,
-    APP_STATE_WAIT,
-    APP_STATE_MAIN_MENU_CREATE,
-    APP_STATE_MAIN_MENU_SHOW,
-    APP_STATE_FINISH,
-    APP_STATE_CHECK,
-    APP_STATE_TASKS,
+    uint8_t humidity;
+    struct tm* time;
+//    struct tm time;
+    GPSPosition_t position;
+}APP_var_t;
+
+APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
+
+enum APP_LOG
+{
+    APP_LOG_PTR_INIT,
+    APP_LOG_PTR_OK,
 };
 
+void APP_LOG_data ( APP_var_t log_data );
 
-struct APP_info_t
-{
-    enum APP_STATES state;
-    struct tm* time;
-}APP_info;
 
-void APP_RGB_humidity ( uint8_t ADC_linearized );
 
-void APP_LEDA_irrigate ( uint8_t ADC_linearized );
+//Estados para app
+
+//enum APP_STATES
+//{
+//    APP_STATE_INIT,
+//    APP_STATE_GPS_GET,
+//    APP_STATE_WAIT,
+//    APP_STATE_MAIN_MENU_CREATE,
+//    APP_STATE_MAIN_MENU_SHOW,
+//    APP_STATE_FINISH,
+//    APP_STATE_CHECK,
+//    APP_STATE_TASKS,
+//};
+
+
+//struct APP_info_t
+//{
+//    enum APP_STATES state;
+//    struct tm* time;
+//}APP_info;
+
 
 #endif
 

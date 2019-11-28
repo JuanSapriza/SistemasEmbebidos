@@ -55,3 +55,35 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad )
     }    
     
 }
+
+void APP_LOG_data ( APP_var_t log_data )
+{
+    static APP_var_t *buffer_ptr;
+    
+    static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
+    
+    switch ( APP_LOG_STATE )
+    {
+        case APP_LOG_PTR_INIT:
+            buffer_ptr = &APP_logBuffer[0];
+            APP_LOG_STATE = APP_LOG_PTR_OK;
+            
+        case APP_LOG_PTR_OK:
+            
+            *buffer_ptr=log_data;
+    
+                if (buffer_ptr=&APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
+                {
+                    buffer_ptr=&APP_logBuffer[0];
+                }
+    
+                else
+                {
+                    buffer_ptr++;
+                }
+            
+            break;
+            
+    }
+        
+}
