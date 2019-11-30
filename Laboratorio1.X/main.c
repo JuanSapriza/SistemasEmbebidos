@@ -403,11 +403,15 @@ int main ()
         
         if(POT_Convert( p_datos_potenciometro ))
         {
-            Nop();   
+            Nop();
             aux3 = POT_Linearized ( *p_datos_potenciometro );
             APP_RGB_humidity ( aux3 );
+            Nop();
             APP_LEDA_irrigate ( aux3 );
+            APP_BTNA_manual_irrigate ( aux3 );
+            
         }
+       
         
         RGB_tasks();
         

@@ -25,6 +25,7 @@
 #include "platform/GPS.h"
 #include <time.h>
 
+
 #define APP_LOG_BUFFER_SIZE 60
 
 #ifdef LABORATORIO_3_5
@@ -69,7 +70,13 @@ enum APP_IRRIGATE
     APP_IRRIGATE_ON,
 };
 
-void APP_LEDA_irrigate ( uint8_t ADC_linearized );
+enum APP_LEDA
+{
+    APP_LEDA_OFF,
+    APP_LEDA_ON,
+};
+
+void APP_LEDA_irrigate ( uint8_t ADC_humedad);
 
 
 
@@ -97,27 +104,18 @@ void APP_LOG_data ( APP_var_t log_data );
 
 
 
-//Estados para app
 
-//enum APP_STATES
-//{
-//    APP_STATE_INIT,
-//    APP_STATE_GPS_GET,
-//    APP_STATE_WAIT,
-//    APP_STATE_MAIN_MENU_CREATE,
-//    APP_STATE_MAIN_MENU_SHOW,
-//    APP_STATE_FINISH,
-//    APP_STATE_CHECK,
-//    APP_STATE_TASKS,
-//};
+//Funcion para riego a demanda con botón A
 
+void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
 
-//struct APP_info_t
-//{
-//    enum APP_STATES state;
-//    struct tm* time;
-//}APP_info;
-
+enum APP_MANUAL_IRRIGATE
+{
+    APP_MANUAL_IRRIGATE_INIT,
+    APP_MANUAL_IRRIGATE_BTN_PRESSED,
+    APP_MANUAL_IRRIGATE_LEDA_OFF,
+    APP_MANUAL_IRRIGATE_LEDA_ON,
+};
 
 #endif
 
