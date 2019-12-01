@@ -678,7 +678,7 @@ void __attribute__((deprecated)) UART1_Disable(void);
  
 */
 
-unsigned int __attribute__((deprecated)) UART1_ReceiveBufferSizeGet(void);
+unsigned int UART1_ReceiveBufferSizeGet(void);
 
 /**
   @Summary

@@ -456,7 +456,7 @@ unsigned int __attribute__((deprecated)) UART1_TransmitBufferSizeGet(void)
     return 0;
 }
 
-unsigned int __attribute__((deprecated)) UART1_ReceiveBufferSizeGet(void)
+unsigned int UART1_ReceiveBufferSizeGet(void)
 {
     if(UART1_RxDataAvailable() != 0)
     {

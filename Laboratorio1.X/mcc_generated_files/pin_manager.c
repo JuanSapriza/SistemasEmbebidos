@@ -153,6 +153,7 @@ void __attribute__ ((vector(_CHANGE_NOTICE_A_VECTOR), interrupt(IPL1SOFT))) _CHA
         }
     }
 }
+
 /* Interrupt service routine for the CNBI interrupt. */
 void __attribute__ ((vector(_CHANGE_NOTICE_B_VECTOR), interrupt(IPL1SOFT))) _CHANGE_NOTICE_B( void )
 {
