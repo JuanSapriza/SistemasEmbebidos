@@ -446,3 +446,76 @@ int main ()
 }
 #endif
 //</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Laboratorio 4_2">
+#ifdef LABORATORIO_4_2
+
+int main ()
+{
+    uint8_t dummyBuffer[ 64 ];
+    MAIN_init();
+    APP_info.state = APP_STATE_INIT;
+    
+    while(1)
+    {
+        if( !BTN_switch( BTN_BUTTON_B ) )
+        {
+            switch( APP_info.state )
+            {
+                case APP_STATE_INIT:
+                    if( MDM_Init() )
+                    {
+                        UTS_ledBlink( 500, 500 );
+                        if( MDM_sendInitialAT() )
+                        {
+                            RGB_setLed( 7, WHITE);
+                            APP_info.state = APP_STATE_GPS_GET;
+                        }
+                    }
+                    break;
+
+                case APP_STATE_GPS_GET:
+                    switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
+                    {
+                        case MDM_AT_RESP_NAME_GNS_GET_INF:
+                            RGB_setLed( 2, GREEN );
+                            APP_info.state = APP_STATE_WAIT;
+                            break;
+                            
+                        case MDM_AT_RESP_NAME_ERROR:
+                            RGB_setLed( 3, RED );
+                            APP_info.state = APP_STATE_WAIT;
+                            break;
+                            
+                            case MDM_AT_RESP_NAME_WORKING:
+                            RGB_setLed( 2, BLUE );
+                            break;
+                            
+                        default:
+                            break;
+                    }
+                    break;
+                    
+               case APP_STATE_PARSE_FRAME:
+//                   GPS_parseFrame( MDM_whatsInReadBuffer(), APP_info.time, APP_info.state );
+                   //hacer algo con esta nueva información
+                   break; 
+                    
+              case APP_STATE_WAIT: 
+                  RGB_setLed( 2, BLUE );
+                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 2000, false ) )
+                  {
+                      USB_write( MDM_whatsInReadBuffer() );
+                      APP_info.state = APP_STATE_GPS_GET;
+                  }
+                  break;
+
+            }
+            RGB_tasks();
+            USB_CDC_tasks();
+        }
+    }
+    return 0;
+}
+#endif
+//</editor-fold>

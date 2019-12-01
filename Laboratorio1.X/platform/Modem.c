@@ -65,7 +65,6 @@ bool MDM_Init(void)
 
 //</editor-fold>
 
-
 //<editor-fold defaultstate="collapsed" desc="Read Write">
 
 void MDM_read( uint8_t* p_string )

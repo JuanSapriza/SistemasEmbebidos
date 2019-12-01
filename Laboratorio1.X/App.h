@@ -4,7 +4,7 @@
 
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION Lab4_GPS_commandsFuncionando
+#define COMMIT_VERSION Lab4_GPS_Y_POTENCIOMETRO
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
@@ -15,6 +15,7 @@
 //#define LABORATORIO_3_4
 //#define LABORATORIO_3_5
 #define LABORATORIO_4
+#define LABORATORIO_4_2
 
 
 
