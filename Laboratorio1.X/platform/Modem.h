@@ -8,9 +8,10 @@
 #define MDM_RX_BUFFER_SIZE 200
 #define MDM_TX_BUFFER_SIZE 200
 
-#define MDM_COMMAND_DEFAULT_TIMEOUT 1000
+#define MDM_COMMAND_DEFAULT_TIMEOUT 2000
+#define MDM_COMMAND_SUPERLONG_TIMEOUT 2000
 
-#define MDM_SIM_GET_READY_TIMEOUT 3000
+#define MDM_SMS_WAIT_TIME 500
 
 #define MDM_COMMAND_SYNTAX_PARAM_ASK "=?"
 #define MDM_COMMAND_SYNTAX_STATUS_ASK "?"
@@ -29,6 +30,8 @@ enum MODEM_ESTADO
 typedef enum 
 {
     MDM_AT_CMD_NAME_AT,
+    MDM_AT_CMD_NAME_ECHO_OFF,
+    MDM_AT_CMD_NAME_ECHO_ON,
             
     MDM_AT_CMD_NAME_GNS_PWR,
     MDM_AT_CMD_NAME_GNS_NMEA,
@@ -48,7 +51,10 @@ typedef enum
     MDM_AT_CMD_NAME_GSM_CALL_HANG,
             
             
-    MDM_COMMAND_SEQ_WAIT,        
+    MDM_COMMAND_SEQ_WAIT_4_TIMEOUT,        
+    MDM_COMMAND_SEQ_WAIT_4_RESPONSE,
+    MDM_COMMAND_SEQ_WRITE,
+    
 } MDM_AT_CMD_NAME_t;
 
 typedef enum
@@ -99,6 +105,7 @@ void MDM_read( uint8_t* p_string );
 uint8_t* MDM_readString();
 uint8_t MDM_write(uint8_t *p_string);
 uint8_t* MDM_whatsInReadBuffer();
+bool MDM_writeChar( uint8_t p_char );
 void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param );
 MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_param, uint32_t p_timeout );
 MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
@@ -107,5 +114,8 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
 
 bool MDM_sendInitialAT();
 MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr );
+
+MDM_AT_RESP_NAME_t MDM_GSM_init();
+MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string );
 
 #endif

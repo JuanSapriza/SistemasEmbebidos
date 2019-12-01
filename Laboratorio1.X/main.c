@@ -494,14 +494,17 @@ int main ()
 #endif
 //</editor-fold>
 
-//<editor-fold defaultstate="collapsed" desc="PROYECTO 1">
-#ifdef PROYECTO_1
+//<editor-fold defaultstate="collapsed" desc="PRUEBAS GSM">
+#ifdef PRUEBAS_GSM
 
 int main ()
 {
     uint8_t dummyBuffer[ 64 ];
+    uint8_t* ret;
     MAIN_init();
     APP_info.state = APP_STATE_INIT;
+    
+    USB_sniffSetType( USB_SNIFF_TYPE_BOTH );
     
     while(1)
     {
@@ -516,48 +519,46 @@ int main ()
                         if( MDM_sendInitialAT() )
                         {
                             RGB_setLed( 7, WHITE);
-                            APP_info.state = APP_STATE_GPS_GET;
+                            APP_info.state = APP_STATE_WAIT;
                         }
                     }
                     break;
-
-                case APP_STATE_GPS_GET:
-                    USB_send2Modem();
-//                    switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
-//                    {
-//                        case MDM_AT_RESP_NAME_GNS_GET_INF:
-//                            RGB_setLed( 2, GREEN );
-//                            APP_info.state = APP_STATE_WAIT;
-//                            break;
-//                            
-//                        case MDM_AT_RESP_NAME_ERROR:
-//                            RGB_setLed( 3, RED );
-//                            APP_info.state = APP_STATE_WAIT;
-//                            break;
-//                            
-//                            case MDM_AT_RESP_NAME_WORKING:
-//                            RGB_setLed( 2, BLUE );
-//                            break;
-//                            
-//                        default:
-//                            break;
-//                    }
-                    break;
                     
-               case APP_STATE_PARSE_FRAME:
-//                   GPS_parseFrame( MDM_whatsInReadBuffer(), APP_info.time, APP_info.state );
-                   //hacer algo con esta nueva información
-                   break; 
-                    
-              case APP_STATE_WAIT: 
-                  RGB_setLed( 2, BLUE );
-                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 2000, false ) )
+                case APP_STATE_WAIT: 
+                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 7000, false ) )
                   {
+                      RGB_setLed( 2, BLUE );
                       USB_write( MDM_whatsInReadBuffer() );
-                      APP_info.state = APP_STATE_GPS_GET;
+                      APP_info.state = APP_STATE_GSM_SMS_INIT;
                   }
                   break;
 
+                case APP_STATE_GSM_SMS_INIT:
+//                    USB_send2Modem();
+                    if( MDM_GSM_init() == MDM_AT_RESP_NAME_OK )
+                    {
+                        APP_info.state = APP_STATE_GSM_SMS_GET;
+                    }
+                    break;
+                    
+                case APP_STATE_GSM_SMS_GET:
+                    if( BTN_isButtonPressed( BTN_BUTTON_A ) )
+                    {
+                        ret = USB_read(0);
+                        if( ret[0] != 0 )
+                        {
+                            APP_info.state = APP_STATE_GSM_SMS_SEND;
+                        }
+                    }
+                    break;
+                    
+                case APP_STATE_GSM_SMS_SEND:
+                    if( MDM_sendSMS( NUMERO_VICKY, ret ) )
+                    {
+                        APP_info.state = APP_STATE_GSM_SMS_GET;
+                    }
+                    break;
+                    
             }
             RGB_tasks();
             USB_CDC_tasks();
