@@ -711,6 +711,9 @@ int main ()
                         USB_write(USB_dummyBuffer);
                         RGB_setLed( 4, VIOLET );
                     
+                        sprintf(USB_dummyBuffer,"https://www.google.com/maps/@%+02.6lf,%+02.6lf,17z \n",APP_info.position.latitude,APP_info.position.longitude);
+                        USB_write(USB_dummyBuffer);
+                        
                    }
                    
                    break;
