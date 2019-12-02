@@ -7,6 +7,8 @@
 
 #include "../framework/USB_fwk.h"
 
+#define SIM_PIN_JUAN "\"2222\""
+
 
 uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ]; //guarda que no puede ser mayor que el largo del buffer de la uart1!!!
 uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ]; 
@@ -120,6 +122,13 @@ uint8_t* MDM_whatsInReadBuffer()
     return MDM_rxBuffer;
 }
 
+bool MDM_writeChar( uint8_t p_char )
+{
+    if( p_char == 0 ) return false;  
+//    USB_sniff( p_string, USB_SNIFF_TYPE_TX);
+    UART1_Write( p_char );
+    return true;
+}
 
 //</editor-fold>
 
@@ -200,6 +209,8 @@ MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
     switch ( p_cmd )
     {
         case MDM_AT_CMD_NAME_AT:
+        case MDM_AT_CMD_NAME_ECHO_OFF:
+        case MDM_AT_CMD_NAME_ECHO_ON:
         case MDM_AT_CMD_NAME_GNS_NMEA:
         case MDM_AT_CMD_NAME_GNS_URC:
         case MDM_AT_CMD_NAME_GSM_FUNCTIONALITY:
@@ -287,6 +298,14 @@ uint8_t* MDM_commandString( MDM_AT_CMD_NAME_t p_cmd )
             strcpy (MDM_cmdBuffer,"AT" );
             return MDM_cmdBuffer;
         
+        case MDM_AT_CMD_NAME_ECHO_OFF:
+            strcpy (MDM_cmdBuffer,"ATE0" );
+            return MDM_cmdBuffer;
+        
+        case MDM_AT_CMD_NAME_ECHO_ON:
+            strcpy (MDM_cmdBuffer,"ATE1" );
+            return MDM_cmdBuffer;
+        
         case MDM_AT_CMD_NAME_GNS_PWR:
             strcpy (MDM_cmdBuffer,"AT+CGNSPWR=" );
             return MDM_cmdBuffer;
@@ -353,6 +372,8 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
     switch ( p_cmd )
     {
         case MDM_AT_CMD_NAME_AT:
+        case MDM_AT_CMD_NAME_ECHO_ON:
+        case MDM_AT_CMD_NAME_ECHO_OFF:
         case MDM_AT_CMD_NAME_GNS_NMEA:
         case MDM_AT_CMD_NAME_GNS_URC:
         case MDM_AT_CMD_NAME_GSM_FUNCTIONALITY:
@@ -404,6 +425,9 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                     strcpy (MDM_respBuffer,"+CPIN" );
                     return MDM_respBuffer;
                 case 2:
+                    strcpy (MDM_respBuffer,"ERROR" );
+                    return MDM_respBuffer;    
+                case 3:
                     strcpy (MDM_respBuffer,"OK" );
                     return MDM_respBuffer;
                 default: return NULL; 
@@ -416,6 +440,9 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                     strcpy (MDM_respBuffer,"+CMGS:" );
                     return MDM_respBuffer;
                 case 2:
+                    strcpy (MDM_respBuffer,"ERROR" );
+                    return MDM_respBuffer;    
+                case 3:
                     strcpy (MDM_respBuffer,"OK" );
                     return MDM_respBuffer;
                 default: return NULL; 
@@ -428,6 +455,9 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                     strcpy (MDM_respBuffer,"+CMGR:" );
                     return MDM_respBuffer;
                 case 2:
+                    strcpy (MDM_respBuffer,"ERROR" );
+                    return MDM_respBuffer;    
+                case 3:
                     strcpy (MDM_respBuffer,"OK" );
                     return MDM_respBuffer;
                 default: return NULL; 
@@ -440,6 +470,34 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
 
 }
 
+uint8_t* MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_t p_response )
+{
+    switch( p_response )
+    {
+        case MDM_AT_RESP_NAME_GSM_SIM_PIN_READY:
+            strcpy (MDM_respBuffer,"+CPIN: READY" );
+            return MDM_respBuffer;    
+            
+        case MDM_AT_RESP_NAME_GSM_SIM_CALL_READY:
+            strcpy (MDM_respBuffer,"Call Ready" );
+            return MDM_respBuffer;    
+            
+        case MDM_AT_RESP_NAME_GSM_SIM_SMS_READY:
+            strcpy (MDM_respBuffer,"SMS Ready" );
+            return MDM_respBuffer;    
+            
+        case MDM_AT_RESP_NAME_GSM_CALL_INCOMING:
+            strcpy (MDM_respBuffer,"RING" );
+            return MDM_respBuffer;    
+            
+        case MDM_AT_RESP_NAME_GSM_SMS_INCOMING:
+            strcpy (MDM_respBuffer,"+CMTI:" );
+            return MDM_respBuffer;    
+
+        default:
+            return NULL;
+    }
+}
 
 //</editor-fold>
 
@@ -595,16 +653,31 @@ uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea )
 
 //<editor-fold defaultstate="collapsed" desc="GSM">
 
-MDM_AT_RESP_NAME_t MDM_GSM_init(  )
+MDM_AT_RESP_NAME_t MDM_GSM_init()
 {
-    static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GNS_PWR;
+    static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
     MDM_AT_RESP_NAME_t ret;
-    
     
     switch( state )
     {
         case MDM_AT_CMD_NAME_GSM_FUNCTIONALITY:
             ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_FUNCTIONALITY, "1,1" , MDM_COMMAND_DEFAULT_TIMEOUT );
+            switch( ret )
+            {
+                case MDM_AT_RESP_NAME_OK:
+                    state = MDM_AT_CMD_NAME_ECHO_OFF;
+                    break;
+
+                case MDM_AT_RESP_NAME_ERROR:
+                    return ret;
+                    
+                default:
+                     break;
+            }
+            break;
+            
+        case MDM_AT_CMD_NAME_ECHO_OFF:
+            ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_ECHO_OFF, NULL , MDM_COMMAND_DEFAULT_TIMEOUT );
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_OK:
@@ -628,7 +701,7 @@ MDM_AT_RESP_NAME_t MDM_GSM_init(  )
                     break;
                 
                 case MDM_AT_RESP_NAME_OK:
-                    state = MDM_AT_CMD_NAME_GNS_GET_INFO;
+                    state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
                     break;
                     
                 case MDM_AT_RESP_NAME_ERROR:
@@ -640,11 +713,11 @@ MDM_AT_RESP_NAME_t MDM_GSM_init(  )
             break;
             
         case MDM_AT_CMD_NAME_GSM_SIM_PIN_SET:
-            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SIM_PIN_SET, "2222" , MDM_COMMAND_DEFAULT_TIMEOUT );
+            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SIM_PIN_SET, SIM_PIN_JUAN , MDM_COMMAND_DEFAULT_TIMEOUT );
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_OK:
-                    state = MDM_AT_CMD_NAME_GNS_GET_INFO;
+                    state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
                     break;
                     
                 case MDM_AT_RESP_NAME_ERROR:
@@ -655,19 +728,97 @@ MDM_AT_RESP_NAME_t MDM_GSM_init(  )
             }
             break;
             
-        case MDM_COMMAND_SEQ_WAIT:
-            if( UTS_delayms(UTS_DELAY_HANDLER_MDM_WAIT, MDM_SIM_GET_READY_TIMEOUT, false ) )
+        case MDM_COMMAND_SEQ_WAIT_4_TIMEOUT:
+            if( strstr( MDM_readString(), "SMS Ready" ) != 0 )
             {
-            //blablabla responder ok
+                state = MDM_AT_CMD_NAME_GSM_SMS_FORMAT;
+            }
+            //            if( UTS_delayms(UTS_DELAY_HANDLER_MDM_WAIT, MDM_SIM_GET_READY_TIMEOUT, false ) )
+//            {
+//                state = MDM_AT_CMD_NAME_GSM_SMS_FORMAT;
+//            }
+            break;
+            
+        case MDM_COMMAND_SEQ_WAIT_4_RESPONSE:
+            if( strstr( MDM_readString(), MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_GSM_SIM_SMS_READY )) != NULL)
+            {
+                state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
             }
             break;
+            
+        case MDM_AT_CMD_NAME_GSM_SMS_FORMAT:
+            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SMS_FORMAT, "1" , MDM_COMMAND_DEFAULT_TIMEOUT );
+            switch( ret )
+            {
+                case MDM_AT_RESP_NAME_OK:
+                    return MDM_AT_RESP_NAME_OK;
+                    break;
+                    
+                case MDM_AT_RESP_NAME_ERROR:
+                    return ret;
+                    
+                default:
+                     break;
+            }
+            break;            
+            
+        
     }
     return MDM_AT_RESP_NAME_WORKING;
 }
 
 
 
+MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string )
+{
+    static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GSM_SMS_SEND_HEADER;
+    MDM_AT_RESP_NAME_t ret;
+    
+    switch( state )
+    {
+        case MDM_AT_CMD_NAME_GSM_SMS_SEND_HEADER:
+            MDM_sendATCmd( MDM_commandString( MDM_AT_CMD_NAME_GSM_SMS_SEND_HEADER ), p_phoneNr );
+            state = MDM_COMMAND_SEQ_WRITE;
+            break;   
+            
+        case MDM_COMMAND_SEQ_WRITE:
+            MDM_write( p_string );
+            state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
+            break;
+            
+        case MDM_COMMAND_SEQ_WAIT_4_TIMEOUT:
+            if( UTS_delayms(UTS_DELAY_HANDLER_MDM_WAIT, MDM_SMS_WAIT_TIME, false ) )
+            {
+                state = MDM_AT_CMD_NAME_GSM_SMS_SEND_FOOTER;
+            }
+            break;
+            
+        case MDM_AT_CMD_NAME_GSM_SMS_SEND_FOOTER:
+//            USB_send2Modem();
+            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SMS_SEND_FOOTER, NULL , MDM_COMMAND_SUPERLONG_TIMEOUT );
+            switch( ret )
+            {
+                case MDM_AT_RESP_NAME_GSM_SMS_SENT:
+                case MDM_AT_RESP_NAME_ERROR:
+                    return ret;
+                    break;
+
+                default:
+                     break;
+            }
+            break;
+        
+        default: break;
+    }
+    return MDM_AT_RESP_NAME_WORKING;
+}
+
+
 //</editor-fold>
 
 
 //</editor-fold>
+
+
+
+

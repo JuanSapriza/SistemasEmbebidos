@@ -16,18 +16,25 @@
 //#define LABORATORIO_3_5
 //#define LABORATORIO_4
 //#define LABORATORIO_4_2
-#define PROYECTO_1
+#define PRUEBAS_GSM
+//#define PROYECTO_1
 
 
 //</editor-fold>
 
-#include "mcc_generated_files/rtcc.h"
+
 #include <stdint.h>
-#include "platform/GPS.h"
 #include <time.h>
 #include <stdbool.h>
 
-#define APP_LOG_BUFFER_SIZE 3
+#include "mcc_generated_files/pin_manager.h"
+#include "mcc_generated_files/adc1.h"
+#include "platform/GPS.h"
+#include "platform/RGB.h"
+
+
+
+#define APP_LOG_BUFFER_SIZE 60
 
 #ifdef LABORATORIO_3_5
 
@@ -218,6 +225,90 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad);
 void APP_LOG_data ( APP_var_t log_data );
 //Funcion para riego a demanda con botón A
 void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
+
+#endif
+
+
+#ifdef PRUEBAS_GSM
+
+#define NUMERO_VICKY "\"+59891972950\""
+
+enum APP_STATES
+{
+    APP_STATE_INIT,
+    APP_STATE_GPS_GET,
+    APP_STATE_GSM_SMS_INIT,
+    APP_STATE_GSM_SMS_SEND,
+    APP_STATE_GSM_SMS_GET,
+    APP_STATE_WAIT,
+    APP_STATE_PARSE_FRAME,
+    APP_STATE_MAIN_MENU_CREATE,
+    APP_STATE_MAIN_MENU_SHOW,
+    APP_STATE_FINISH,
+    APP_STATE_CHECK,
+    APP_STATE_TASKS,
+};
+
+enum APP_IRRIGATE
+{
+    APP_IRRIGATE_OFF,
+    APP_IRRIGATE_ON,
+};
+
+enum APP_LEDA
+{
+    APP_LEDA_OFF,
+    APP_LEDA_ON,
+};
+
+enum APP_LOG
+{
+    APP_LOG_PTR_INIT,
+    APP_LOG_PTR_OK,
+};
+
+enum APP_MANUAL_IRRIGATE
+{
+    APP_MANUAL_IRRIGATE_INIT,
+    APP_MANUAL_IRRIGATE_BTN_PRESSED,
+    APP_MANUAL_IRRIGATE_LEDA_OFF,
+    APP_MANUAL_IRRIGATE_LEDA_ON,
+};
+
+
+
+
+struct APP_info_t
+{
+    enum APP_STATES state;
+    struct tm* time;
+    GPSPosition_t position;
+}APP_info;
+
+typedef struct
+{
+    uint8_t humidity;
+    struct tm* time;
+    GPSPosition_t position;
+}APP_var_t;
+
+APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
+
+
+
+
+//Funcion para mostrar el nivel de humedad con los leds RGB:
+void APP_RGB_humidity ( uint8_t ADC_linearized );
+//Funcion para indicar riego con led A:
+void APP_LEDA_irrigate ( uint8_t ADC_humedad);
+//Funcion que actualiza el registro historico
+void APP_LOG_data ( APP_var_t log_data );
+//Funcion para riego a demanda con botón A
+void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
+//Funcion que se encarga de todas las operaciones relativas al Modem
+void APP_MDM_tasks();
+//Funcion que se encarga de todas las operaciones relativas a los LEDs RGB
+void APP_RGB_tasks()
 
 #endif
 

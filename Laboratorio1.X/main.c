@@ -1,27 +1,10 @@
 //<editor-fold defaultstate="collapsed" desc="Includes">
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
-#include "App.h"
-#include "framework/RGB_fwk.h"
-#include "framework/USB_fwk.h"
-#include "framework/RTCC_fwk.h"
-#include "platform/Buttons.h"
-#include "platform/RGB.h"
-#include "platform/GPS.h"
-#include "mcc_generated_files/system.h"
-#include "mcc_generated_files/pin_manager.h"
-#include "mcc_generated_files/usb/usb.h"
-#include "mcc_generated_files/uart1.h"
-#include "utils/Utils.h"
-#include "platform/Modem.h"
-#include "mcc_generated_files/adc1.h"
-#include "platform/Potenciometro.h"
 
-#include "platform/GPS.h"
+#include "App.h"
+#include "framework/USB_fwk.h"
+#include "platform/Buttons.h"
 //</editor-fold>
 
 
@@ -520,8 +503,8 @@ int main ()
 #endif
 //</editor-fold>
 
-//<editor-fold defaultstate="collapsed" desc="PROYECTO 1">
-#ifdef PROYECTO_1
+//<editor-fold defaultstate="collapsed" desc="PRUEBAS GSM">
+#ifdef PRUEBAS_GSM
 
 int main ()
 {
@@ -531,22 +514,22 @@ int main ()
     MAIN_init();
     APP_info.state = APP_STATE_INIT;
     
+    USB_sniffSetType( USB_SNIFF_TYPE_BOTH );
+    
     while(1)
     {
         if( !BTN_switch( BTN_BUTTON_B ) )
         {
+
+        // FUNCIONES ESPECÍFICAS DE LA APLICACIÓN
+            APP_MDM_tasks();
+            APP_RGB_tasks();
+            
+            
+        // MÁQUINA DE ESTADOS PRINCIPAL ( Solo testing )
             switch( APP_info.state )
             {
                 case APP_STATE_INIT:
-                    if( MDM_Init() )
-                    {
-                        UTS_ledBlink( 500, 500 );
-                        if( MDM_sendInitialAT() )
-                        {
-                            RGB_setLed( 7, WHITE);
-                            APP_info.state = APP_STATE_GPS_GET;
-                        }
-                    }
                     break;
 
                 case APP_STATE_GPS_GET:
@@ -627,6 +610,7 @@ int main ()
             
             RGB_tasks();
             USB_CDC_tasks();
+            
         }
     }
     return 0;
@@ -634,3 +618,5 @@ int main ()
 
 #endif
 //</editor-fold>
+
+
