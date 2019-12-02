@@ -191,11 +191,8 @@ void APP_MDM_tasks()
         case APP_STATE_INIT:
             if( MDM_Init() )
             {
-//                UTS_ledBlink( 500, 500 );
                 if( MDM_sendInitialAT() )
                 {
-//                    RGB_setLed( 7, WHITE);
-//                    USB_write( MDM_whatsInReadBuffer() );
                     state = APP_STATE_GSM_SMS_INIT;
                 }
             }
@@ -213,17 +210,14 @@ void APP_MDM_tasks()
             switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
             {
                 case MDM_AT_RESP_NAME_GNS_GET_INF:
-//                    RGB_setLed( 2, GREEN );
                     state = APP_STATE_PARSE_FRAME;
                     break;
 
                 case MDM_AT_RESP_NAME_ERROR:
-//                    RGB_setLed( 3, RED );
                     state = APP_STATE_WAIT;
                     break;
 
                     case MDM_AT_RESP_NAME_WORKING:
-//                    RGB_setLed( 2, BLUE );
                     break;
 
                 default:

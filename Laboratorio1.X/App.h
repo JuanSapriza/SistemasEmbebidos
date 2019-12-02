@@ -220,7 +220,6 @@ APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 
 
 
-
 //Funcion para mostrar el nivel de humedad con los leds RGB:
 void APP_RGB_humidity ( uint8_t ADC_linearized );
 //Funcion para indicar riego con led A:
@@ -229,6 +228,10 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad);
 void APP_LOG_data ( APP_var_t log_data );
 //Funcion para riego a demanda con botón A
 void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
+//Funcion que se encarga de todas las operaciones relativas al Modem
+void APP_MDM_tasks();
+//Funcion que se encarga de todas las operaciones relativas a los LEDs RGB
+void APP_RGB_tasks();
 
 #endif
 

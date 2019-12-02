@@ -678,51 +678,37 @@ int main ()
                     
                
                     
-               case APP_STATE_PARSE_FRAME:
+                case APP_STATE_PARSE_FRAME:
                    
-                   
-                   
-  
-                   index = strstr( MDM_whatsInReadBuffer(), MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );  
-                   //  voy hasta el final de +CGNSINF: 
-                   index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) +3);                 
-                   
-                   if( *index == 0x30 )
-                   {
-                       APP_info.position_validity = false;
-                   }
-                   
-                   else
-                   {
-                        GPS_parseFrame( MDM_whatsInReadBuffer(), &p_time_aux, &APP_info.position );
-                        APP_info.time = mktime( &p_time_aux );
-                        
-                        sprintf(USB_dummyBuffer,"tiempo time_t %d \n",APP_info.time);
-                        USB_write(USB_dummyBuffer);
-                        APP_info.state = APP_STATE_WAIT;
-                        sprintf(USB_dummyBuffer,"estado %d \n",APP_info.state);
-                        USB_write(USB_dummyBuffer);
-                        APP_info.position_validity = true;
-                        sprintf(USB_dummyBuffer,"validez %d \n",APP_info.position_validity);
-                        USB_write(USB_dummyBuffer);
-                        sprintf(USB_dummyBuffer,"latitud %f \n",APP_info.position.latitude);
-                        USB_write(USB_dummyBuffer);
-                        sprintf(USB_dummyBuffer,"longitud %f \n",APP_info.position.longitude);
-                        USB_write(USB_dummyBuffer);
-                        RGB_setLed( 4, VIOLET );
+                    GPS_parseFrame( MDM_whatsInReadBuffer(), &p_time_aux, &APP_info.position, APP_info.position_validity );
+                    APP_info.time = mktime( &p_time_aux );
+
+                    sprintf(USB_dummyBuffer,"tiempo time_t %d \n",APP_info.time);
+                    USB_write(USB_dummyBuffer);
+                    APP_info.state = APP_STATE_WAIT;
+                    sprintf(USB_dummyBuffer,"estado %d \n",APP_info.state);
+                    USB_write(USB_dummyBuffer);
+                    APP_info.position_validity = true;
+                    sprintf(USB_dummyBuffer,"validez %d \n",APP_info.position_validity);
+                    USB_write(USB_dummyBuffer);
+                    sprintf(USB_dummyBuffer,"latitud %f \n",APP_info.position.latitude);
+                    USB_write(USB_dummyBuffer);
+                    sprintf(USB_dummyBuffer,"longitud %f \n",APP_info.position.longitude);
+                    USB_write(USB_dummyBuffer);
+                    RGB_setLed( 4, VIOLET );
+
+                    break;
                     
-                   }
-                   
-                   break;
-                    
-              case APP_STATE_WAIT: 
-                  RGB_setLed( 2, BLUE );
-                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 5000, false ) )
-                  {
-//                      USB_write( MDM_whatsInReadBuffer() );
-                      APP_info.state = APP_STATE_GPS_GET;
-                  }
-                  break;
+                case APP_STATE_WAIT: 
+                    RGB_setLed( 2, BLUE );
+                    if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 5000, false ) )
+                    {
+  //                      USB_write( MDM_whatsInReadBuffer() );
+                        APP_info.state = APP_STATE_GPS_GET;
+                    }
+                    break;
+                  
+                default: break;
                     
             }
             
