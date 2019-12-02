@@ -19,7 +19,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-
+#include <stdlib.h>
 #include "Modem.h"
 
 /*******************************************************************************/    
@@ -46,6 +46,7 @@ void GPS_getPosition( GPSPosition_t *p_pos, uint8_t *p_sentence ){
     uint8_t *ptr;
 
     offset=GPS_RMC_RUN_LEN+GPS_RMC_COMMA_LEN+GPS_RMC_FIX_LEN+GPS_RMC_COMMA_LEN+GPS_RMC_UTC_LEN+GPS_RMC_COMMA_LEN;
+    uint8_t* kjfebe = p_sentence+offset;
     p_pos->latitude=strtod( (p_sentence+offset), &ptr );
     p_pos->longitude=strtod( (ptr+GPS_RMC_COMMA_LEN), &ptr );
 }
@@ -59,7 +60,7 @@ void GPS_getPosition( GPSPosition_t *p_pos, uint8_t *p_sentence ){
         Fills the time structure with TIME information from the GPS frame received.
 
     @Remarks
-        String must start after +CGNSINF: 
+        String must start after +CGNSINF: despuesa del espacxio la xcoxhOIHGA SDE TU Mserw 
  **/
 void GPS_getUTC( struct tm *p_newtime, uint8_t *p_sentence ){
     uint8_t offset;
@@ -74,7 +75,7 @@ void GPS_getUTC( struct tm *p_newtime, uint8_t *p_sentence ){
     // Copy Month MM
     memset( temp_str, 0, 5 );
     strncpy( temp_str, (p_sentence+offset), 2 );
-    p_newtime->tm_mon = atoi(temp_str);
+    p_newtime->tm_mon = atoi(temp_str)-1;  //a juan le parece que deberia IR UN MENOS UNO
     offset+=2;
     // Copy Day DD
     memset( temp_str, 0, 5 );
@@ -123,17 +124,22 @@ double GPS_getGroundDistance( GPSPosition_t *a, GPSPosition_t *b ){
 }
 
 
-void GPS_parseFrame( uint8_t* p_frame, struct tm p_time, GPSPosition_t* p_position )
+void GPS_parseFrame( uint8_t *p_frame, struct tm *p_time, GPSPosition_t *p_position )
 {
-//    uint8_t* index = 0;
-//   
-//    index = strstr( p_frame, MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );
-//    
-//    if( index == NULL ) return;
-//    
-//    //  voy hasta el final de +CGNSINF: 
-//    index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );
-//    
-//    GPS_getUTC( p_time, index );
-//    GPS_getPosition( p_position, index );
+    uint8_t* index = 0;
+   
+    index = strstr( p_frame, MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) ); 
+    
+    if( index == NULL ) return;
+    
+    //  voy hasta el final de +CGNSINF: 
+    index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) )+1;
+    
+    memset(p_time,0,36);   //POR QUE PORONGA EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
+    GPS_getUTC( p_time, index );
+    memset(p_position,0,sizeof(*p_position));
+    GPS_getPosition( p_position, index );
+    
+    while(0);
+        
 }

@@ -113,7 +113,7 @@ void GPS_getUTC(struct tm *p_newtime, uint8_t *p_sentence);
 double GPS_getGroundDistance( GPSPosition_t *a, GPSPosition_t *b );
 
 
-void GPS_parseFrame( uint8_t* p_frame, struct tm p_time, GPSPosition_t* p_position );
+void GPS_parseFrame( uint8_t* p_frame, struct tm *p_time, GPSPosition_t* p_position );
 
 
 

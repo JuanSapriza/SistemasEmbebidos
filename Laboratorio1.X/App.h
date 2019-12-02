@@ -25,9 +25,9 @@
 #include <stdint.h>
 #include "platform/GPS.h"
 #include <time.h>
+#include <stdbool.h>
 
-
-#define APP_LOG_BUFFER_SIZE 60
+#define APP_LOG_BUFFER_SIZE 3
 
 #ifdef LABORATORIO_3_5
 
@@ -88,9 +88,8 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad);
 typedef struct
 {
     uint8_t humidity;
-    struct tm* time;
-//    struct tm time;
-    GPSPosition_t position;
+//    time_t time;
+//    GPSPosition_t position;
 }APP_var_t;
 
 APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
@@ -193,15 +192,17 @@ enum APP_MANUAL_IRRIGATE
 struct APP_info_t
 {
     enum APP_STATES state;
-    struct tm* time;
+    time_t time;
     GPSPosition_t position;
+    bool position_validity;
 }APP_info;
 
 typedef struct
 {
     uint8_t humidity;
-    struct tm* time;
+    time_t time;
     GPSPosition_t position;
+    bool position_validity;
 }APP_var_t;
 
 APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];

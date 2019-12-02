@@ -89,14 +89,14 @@ void APP_LOG_data ( APP_var_t log_data )
             
             *p_buffer=log_data;
     
-                if (p_buffer=&APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
+                if (p_buffer==&APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
                 {
                     p_buffer=&APP_logBuffer[0];
                 }
     
                 else
                 {
-                    p_buffer++;
+                    p_buffer=p_buffer+1;
                 }
             
             break;
@@ -115,11 +115,10 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
         case APP_MANUAL_IRRIGATE_INIT:
             
             if(BTN_A_GetValue())
-            { //HACERLO POR INTERRUPCIONES?
+            {
         
                 APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_BTN_PRESSED;
-            }
-                 //DELAY??????????    
+            }  
             
         break;
             
