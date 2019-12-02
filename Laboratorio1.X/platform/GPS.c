@@ -47,8 +47,8 @@ void GPS_getPosition( GPSPosition_t *p_pos, uint8_t *p_sentence ){
 
     offset=GPS_RMC_RUN_LEN+GPS_RMC_COMMA_LEN+GPS_RMC_FIX_LEN+GPS_RMC_COMMA_LEN+GPS_RMC_UTC_LEN+GPS_RMC_COMMA_LEN;
     uint8_t* kjfebe = p_sentence+offset;
-    p_pos->latitude=strtod( (p_sentence+offset), &ptr );
-    p_pos->longitude=strtod( (ptr+GPS_RMC_COMMA_LEN), &ptr );
+    p_pos->latitude=strtod( (p_sentence+offset), (char**)&ptr );
+    p_pos->longitude=strtod( (ptr+GPS_RMC_COMMA_LEN), (char**)&ptr );
 }
 
 

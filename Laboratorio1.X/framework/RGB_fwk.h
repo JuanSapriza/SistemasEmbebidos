@@ -38,8 +38,8 @@ enum GO_ROUND_VARIANTS
     GO_ROUND_VARIANT_LOOP,
 };
 
-
-bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t p_variant );
+void RGB_goRoundSet( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t p_variant );
+bool RGB_goRound( RGB_GO_ROUND_CONFIG_t p_config );
 void RGB_setAll( RGB_color p_color);
 
 

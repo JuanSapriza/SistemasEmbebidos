@@ -16,8 +16,8 @@
 //#define LABORATORIO_3_5
 //#define LABORATORIO_4
 //#define LABORATORIO_4_2
-#define PRUEBAS_GSM
-//#define PROYECTO_1
+//#define PRUEBAS_GSM
+#define PROYECTO_1
 
 
 //</editor-fold>
@@ -35,6 +35,9 @@
 
 
 #define APP_LOG_BUFFER_SIZE 60
+
+#define NUMERO_VICKY "\"+59891972950\""
+
 
 #ifdef LABORATORIO_3_5
 
@@ -158,6 +161,9 @@ enum APP_STATES
 {
     APP_STATE_INIT,
     APP_STATE_GPS_GET,
+    APP_STATE_GSM_SMS_INIT,
+    APP_STATE_GSM_SMS_SEND,
+    APP_STATE_GSM_SMS_GET,
     APP_STATE_WAIT,
     APP_STATE_PARSE_FRAME,
     APP_STATE_MAIN_MENU_CREATE,
@@ -192,8 +198,6 @@ enum APP_MANUAL_IRRIGATE
     APP_MANUAL_IRRIGATE_LEDA_OFF,
     APP_MANUAL_IRRIGATE_LEDA_ON,
 };
-
-
 
 
 struct APP_info_t
@@ -231,7 +235,6 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
 
 #ifdef PRUEBAS_GSM
 
-#define NUMERO_VICKY "\"+59891972950\""
 
 enum APP_STATES
 {

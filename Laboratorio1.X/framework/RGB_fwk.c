@@ -18,13 +18,13 @@ void RGB_goRoundSet( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint
     RGB_displayType = RGB_DISPLAY_TYPE_GO_ROUND;
 }
 
-bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t p_variant )
+bool RGB_goRound( RGB_GO_ROUND_CONFIG_t p_config )
 {
     static uint8_t ledCount = 0;
     static uint8_t periodCount = 0;
     static enum GO_ROUND_STATES state = GO_ROUND_INIT;
     uint8_t i;
-    
+        
     switch(state)
     {
         case GO_ROUND_INIT:
@@ -41,16 +41,16 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
                 periodCount = 0;
                 return true;
             }
-            if( UTS_delayms( UTS_DELAY_HANDLER_GO_ROUND, p_period, false  ) )
+            if( UTS_delayms( UTS_DELAY_HANDLER_GO_ROUND, p_config.period, false  ) )
             {
                 state = GO_ROUND_CHANGE;
             }
             break;
             
         case GO_ROUND_CHANGE:
-            if( ledCount == RGB_LEDS_COUNT && p_variant == GO_ROUND_VARIANT_LOOP )
+            if( ledCount == RGB_LEDS_COUNT && p_config.variant == GO_ROUND_VARIANT_LOOP )
             {
-                if( ++periodCount == p_times && p_times != 0)
+                if( ++periodCount == p_config.times && p_config.times != 0)
                 {
                     state = GO_ROUND_INIT;
                     periodCount = 0;
@@ -66,7 +66,7 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
                 {
                     if( i == ledCount )
                     {
-                        RGB_setLed( i, p_color );
+                        RGB_setLed( i, p_config.color );
                     }
                     else
                     {
@@ -76,10 +76,10 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
             }
             else if( ledCount == RGB_LEDS_COUNT )
             {
-                switch( p_variant )
+                switch( p_config.variant  )
                 {
                     case GO_ROUND_VARIANT_LAST_ALL_ON:
-                        RGB_setAll(p_color);
+                        RGB_setAll(p_config.color);
                         break;
                     
                     default:    
@@ -91,7 +91,7 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
             state = GO_ROUND_WAIT;
             if( ++ledCount > RGB_LEDS_COUNT )
             {
-                if( ++periodCount == p_times )
+                if( ++periodCount == p_config.times )
                 {
                     state = GO_ROUND_INIT;
                     periodCount = 0;
