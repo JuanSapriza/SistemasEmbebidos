@@ -34,6 +34,8 @@
 #define RGB_LEDS_COUNT 8
 
 
+
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Data Types
@@ -72,6 +74,7 @@ typedef struct
 extern RGB_color WHITE;
 extern RGB_color RED;
 extern RGB_color GREEN;
+extern RGB_color WATER_GREEN;
 extern RGB_color BLUE;
 extern RGB_color VIOLET;
 extern RGB_color CYAN;

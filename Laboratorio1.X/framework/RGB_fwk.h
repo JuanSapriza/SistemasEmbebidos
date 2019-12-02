@@ -5,8 +5,24 @@
 #include "../platform/RGB.h"
 #include <stdbool.h>
 
+typedef enum 
+{
+    RGB_DISPLAY_TYPE_1_BY_1,
+    RGB_DISPLAY_TYPE_ALL,
+    RGB_DISPLAY_TYPE_GO_ROUND,
+    RGB_DISPLAY_TYPE_UNDEF,
+}RGB_DISPLAY_TYPES_t;
 
+typedef struct 
+{
+    RGB_color color;
+    uint32_t  period;
+    uint8_t   times;
+    uint8_t   variant;
+}RGB_GO_ROUND_CONFIG_t;
 
+extern RGB_DISPLAY_TYPES_t RGB_displayType;
+extern RGB_GO_ROUND_CONFIG_t RGB_goRoundConfig;
 
 enum GO_ROUND_STATES
 {

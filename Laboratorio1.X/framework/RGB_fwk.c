@@ -4,6 +4,20 @@
 #include "../utils/Utils.h"
 
 
+
+RGB_DISPLAY_TYPES_t RGB_displayType;
+RGB_GO_ROUND_CONFIG_t RGB_goRoundConfig;
+
+
+void RGB_goRoundSet( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t p_variant )
+{
+    RGB_goRoundConfig.color = p_color;
+    RGB_goRoundConfig.period = p_period;
+    RGB_goRoundConfig.times = p_times;
+    RGB_goRoundConfig.variant = p_variant;
+    RGB_displayType = RGB_DISPLAY_TYPE_GO_ROUND;
+}
+
 bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t p_variant )
 {
     static uint8_t ledCount = 0;
@@ -16,10 +30,17 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
         case GO_ROUND_INIT:
             RGB_setAll(OFF);
             ledCount = 0;
+            RGB_displayType = RGB_DISPLAY_TYPE_GO_ROUND;
             state = GO_ROUND_WAIT;
             break;
             
         case GO_ROUND_WAIT:
+            if( RGB_displayType != RGB_DISPLAY_TYPE_GO_ROUND )
+            {
+                state = GO_ROUND_INIT;
+                periodCount = 0;
+                return true;
+            }
             if( UTS_delayms( UTS_DELAY_HANDLER_GO_ROUND, p_period, false  ) )
             {
                 state = GO_ROUND_CHANGE;
@@ -29,11 +50,12 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
         case GO_ROUND_CHANGE:
             if( ledCount == RGB_LEDS_COUNT && p_variant == GO_ROUND_VARIANT_LOOP )
             {
-                if( ++periodCount == p_times )
+                if( ++periodCount == p_times && p_times != 0)
                 {
                     state = GO_ROUND_INIT;
                     periodCount = 0;
                     RGB_setAll(OFF);
+                    RGB_displayType = RGB_DISPLAY_TYPE_UNDEF;
                     return true;
                 }
                 ledCount = 0;
@@ -74,6 +96,7 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
                     state = GO_ROUND_INIT;
                     periodCount = 0;
                     RGB_setAll(OFF);
+                    RGB_displayType = RGB_DISPLAY_TYPE_UNDEF;
                     return true;
                 }
                 ledCount = 0;
@@ -86,7 +109,6 @@ bool RGB_goRound( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t
     return false;
 }
 
-
 void RGB_setAll( RGB_color p_color)
 {
     RGB_setLed( 0, p_color );
@@ -97,4 +119,13 @@ void RGB_setAll( RGB_color p_color)
     RGB_setLed( 5, p_color );
     RGB_setLed( 6, p_color );
     RGB_setLed( 7, p_color );
+    RGB_displayType = RGB_DISPLAY_TYPE_ALL;
+    
 }
+
+void RGB_setSingleLed( uint8_t p_led, RGB_color p_color  )
+{
+    RGB_setLed( p_led, p_color );
+    RGB_displayType = RGB_DISPLAY_TYPE_1_BY_1;
+}
+

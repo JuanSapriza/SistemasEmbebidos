@@ -22,10 +22,15 @@
 
 //</editor-fold>
 
-#include "mcc_generated_files/rtcc.h"
+
 #include <stdint.h>
-#include "platform/GPS.h"
 #include <time.h>
+
+#include "mcc_generated_files/pin_manager.h"
+#include "mcc_generated_files/adc1.h"
+#include "platform/GPS.h"
+#include "platform/RGB.h"
+
 
 
 #define APP_LOG_BUFFER_SIZE 60
@@ -298,6 +303,10 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad);
 void APP_LOG_data ( APP_var_t log_data );
 //Funcion para riego a demanda con botón A
 void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
+//Funcion que se encarga de todas las operaciones relativas al Modem
+void APP_MDM_tasks();
+//Funcion que se encarga de todas las operaciones relativas a los LEDs RGB
+void APP_RGB_tasks()
 
 #endif
 

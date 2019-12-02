@@ -1,21 +1,32 @@
 #include "App.h"
-#include <string.h>
-#include "platform/RGB.h"
-#include "framework/RGB_fwk.h"
-#include "platform/Potenciometro.h"
+
+#include <stdbool.h>
 #include <stdint.h>
-#include "mcc_generated_files/pin_manager.h"
+#include <string.h>
+#include <stdio.h>
+
+#include "mcc_generated_files/system.h"
+#include "mcc_generated_files/rtcc.h"
+#include "mcc_generated_files/usb/usb.h"
+#include "mcc_generated_files/uart1.h"
+#include "platform/Buttons.h"
+#include "platform/GPS.h"
+#include "platform/Modem.h"
+#include "platform/Potenciometro.h"
+#include "framework/RGB_fwk.h"
+#include "framework/USB_fwk.h"
+#include "framework/RTCC_fwk.h"
+#include "utils/Utils.h"
 
 void APP_RGB_humidity ( uint8_t ADC_humedad )
 {
     
-    if( ( (ADC_humedad>=0) && (ADC_humedad<=5) ) || ( (ADC_humedad>=41) && (ADC_humedad<=60) ) ) 
+    if( ( (ADC_humedad>=0) && (ADC_humedad<=5) )  )
     {
-        //RGB_goRound( RED, 2000, 1, GO_ROUND_VARIANT_LAST_ALL_ON );
         RGB_setAll( RED );
     }            
      
-    if( ( (ADC_humedad>=6) && (ADC_humedad<=9) ) || ( (ADC_humedad>=21) && (ADC_humedad<=40) ) )
+    if( ( (ADC_humedad>=6) && (ADC_humedad<=9) )  ) 
     {
         RGB_setAll( YELLOW );
     }
@@ -23,6 +34,16 @@ void APP_RGB_humidity ( uint8_t ADC_humedad )
     if( (ADC_humedad>=10) && (ADC_humedad<=20) ) 
     {
         RGB_setAll( GREEN );
+    }
+    
+    if( ( (ADC_humedad>=21) && (ADC_humedad<=40) )) 
+    {
+        RGB_setAll( WATER_GREEN );
+    }
+    
+    if( (ADC_humedad>=41) && (ADC_humedad<=60)  )
+    {
+        RGB_setAll( BLUE );
     }
         
 }
@@ -158,4 +179,101 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
                    
     }
  
+}
+
+void APP_MDM_tasks()
+{
+    static uint8_t state = APP_STATE_INIT;
+    uint8_t* ret;
+    
+    
+    switch( state )
+    {
+        case APP_STATE_INIT:
+            if( MDM_Init() )
+            {
+//                UTS_ledBlink( 500, 500 );
+                if( MDM_sendInitialAT() )
+                {
+//                    RGB_setLed( 7, WHITE);
+//                    USB_write( MDM_whatsInReadBuffer() );
+                    state = APP_STATE_GSM_SMS_INIT;
+                }
+            }
+            break;
+
+        case APP_STATE_GSM_SMS_INIT:
+            if( MDM_GSM_init() == MDM_AT_RESP_NAME_OK )
+            {
+                state = APP_STATE_GPS_GET;
+//                state = APP_STATE_GSM_SMS_GET;
+            }
+            break;
+
+        case APP_STATE_GPS_GET:
+            switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
+            {
+                case MDM_AT_RESP_NAME_GNS_GET_INF:
+//                    RGB_setLed( 2, GREEN );
+                    state = APP_STATE_PARSE_FRAME;
+                    break;
+
+                case MDM_AT_RESP_NAME_ERROR:
+//                    RGB_setLed( 3, RED );
+                    state = APP_STATE_WAIT;
+                    break;
+
+                    case MDM_AT_RESP_NAME_WORKING:
+//                    RGB_setLed( 2, BLUE );
+                    break;
+
+                default:
+                    break;
+            }
+            break;    
+
+        case APP_STATE_PARSE_FRAME:
+
+
+            break;
+            
+        case APP_STATE_GSM_SMS_GET:
+            if( BTN_isButtonPressed( BTN_BUTTON_A ) )
+            {
+                ret = USB_read(0);
+                if( ret[0] != 0 )
+                {
+                    state = APP_STATE_GSM_SMS_SEND;
+                }
+            }
+            break;
+
+        case APP_STATE_GSM_SMS_SEND:
+            if( MDM_sendSMS( NUMERO_VICKY, ret ) )
+            {
+                state = APP_STATE_GSM_SMS_GET;
+            }
+            break;    
+            
+        default: break;
+    
+    }
+}
+
+void APP_RGB_tasks()
+{
+    switch( RGB_displayType )
+    {
+        case RGB_DISPLAY_TYPE_UNDEF:
+        case RGB_DISPLAY_TYPE_ALL:
+        case RGB_DISPLAY_TYPE_1_BY_1:
+            break;
+            
+        case RGB_DISPLAY_TYPE_GO_ROUND:
+            RGB_goRound( RGB_goRoundConfig );
+            break;
+            
+        default: break;
+    }
+    RGB_tasks();
 }

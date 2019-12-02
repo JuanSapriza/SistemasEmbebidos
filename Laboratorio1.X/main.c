@@ -1,27 +1,10 @@
 //<editor-fold defaultstate="collapsed" desc="Includes">
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
-#include "App.h"
-#include "framework/RGB_fwk.h"
-#include "framework/USB_fwk.h"
-#include "framework/RTCC_fwk.h"
-#include "platform/Buttons.h"
-#include "platform/RGB.h"
-#include "platform/GPS.h"
-#include "mcc_generated_files/system.h"
-#include "mcc_generated_files/pin_manager.h"
-#include "mcc_generated_files/usb/usb.h"
-#include "mcc_generated_files/uart1.h"
-#include "utils/Utils.h"
-#include "platform/Modem.h"
-#include "mcc_generated_files/adc1.h"
-#include "platform/Potenciometro.h"
 
-#include "platform/GPS.h"
+#include "App.h"
+#include "framework/USB_fwk.h"
+#include "platform/Buttons.h"
 //</editor-fold>
 
 
@@ -499,8 +482,8 @@ int main ()
 
 int main ()
 {
-    uint8_t dummyBuffer[ 64 ];
-    uint8_t* ret;
+    
+    
     MAIN_init();
     APP_info.state = APP_STATE_INIT;
     
@@ -510,61 +493,28 @@ int main ()
     {
         if( !BTN_switch( BTN_BUTTON_B ) )
         {
+
+        // FUNCIONES ESPECÍFICAS DE LA APLICACIÓN
+            APP_MDM_tasks();
+            APP_RGB_tasks();
+            
+            
+        // MÁQUINA DE ESTADOS PRINCIPAL ( Solo testing )
             switch( APP_info.state )
             {
                 case APP_STATE_INIT:
-                    if( MDM_Init() )
-                    {
-                        UTS_ledBlink( 500, 500 );
-                        if( MDM_sendInitialAT() )
-                        {
-                            RGB_setLed( 7, WHITE);
-                            APP_info.state = APP_STATE_WAIT;
-                        }
-                    }
                     break;
-                    
-                case APP_STATE_WAIT: 
-                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 7000, false ) )
-                  {
-                      RGB_setLed( 2, BLUE );
-                      USB_write( MDM_whatsInReadBuffer() );
-                      APP_info.state = APP_STATE_GSM_SMS_INIT;
-                  }
-                  break;
-
-                case APP_STATE_GSM_SMS_INIT:
-//                    USB_send2Modem();
-                    if( MDM_GSM_init() == MDM_AT_RESP_NAME_OK )
-                    {
-                        APP_info.state = APP_STATE_GSM_SMS_GET;
-                    }
-                    break;
-                    
-                case APP_STATE_GSM_SMS_GET:
-                    if( BTN_isButtonPressed( BTN_BUTTON_A ) )
-                    {
-                        ret = USB_read(0);
-                        if( ret[0] != 0 )
-                        {
-                            APP_info.state = APP_STATE_GSM_SMS_SEND;
-                        }
-                    }
-                    break;
-                    
-                case APP_STATE_GSM_SMS_SEND:
-                    if( MDM_sendSMS( NUMERO_VICKY, ret ) )
-                    {
-                        APP_info.state = APP_STATE_GSM_SMS_GET;
-                    }
-                    break;
-                    
             }
-            RGB_tasks();
+            
+        // FUNCIONES DE FUNCIONALIDADES GENERALES    
+            
             USB_CDC_tasks();
+            
         }
     }
     return 0;
 }
 #endif
 //</editor-fold>
+
+
