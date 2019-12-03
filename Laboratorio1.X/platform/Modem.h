@@ -16,6 +16,13 @@
 #define MDM_COMMAND_SYNTAX_PARAM_ASK "=?"
 #define MDM_COMMAND_SYNTAX_STATUS_ASK "?"
 
+typedef enum
+{
+    MODEM_GET_GPS_FRAME,
+    MODEM_SEND_SMS,
+    MODEM_READ_SMS,
+    MODEM_READ_UNDEF,
+} MDM_TASK_t;
 
 enum MODEM_ESTADO
 {
@@ -99,6 +106,8 @@ struct MDM_GNS_INFO
     struct tm time;
 } gMDM_gnsInfo;
 
+
+void MDM_tasks();
 
 bool MDM_Init(void);
 void MDM_read( uint8_t* p_string );

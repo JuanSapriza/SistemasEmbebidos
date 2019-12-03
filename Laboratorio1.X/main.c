@@ -9,6 +9,7 @@
 #include "platform/Buttons.h"
 #include "platform/Modem.h"
 #include "utils/Utils.h"
+#include "framework/RGB_fwk.h"
 
 //</editor-fold>
 
@@ -696,6 +697,9 @@ int main ()
                     sprintf(USB_dummyBuffer,"longitud %f \n",APP_info.position.longitude);
                     USB_write(USB_dummyBuffer);
                     RGB_setLed( 4, VIOLET );
+                    
+                    sprintf(USB_dummyBuffer,"https://www.google.com/maps/@%+02.6lf,%+02.6lf,17z \n",APP_info.position.latitude,APP_info.position.longitude);
+                    USB_write(USB_dummyBuffer);
 
                     break;
                     
@@ -717,6 +721,53 @@ int main ()
             
             RGB_tasks();
             USB_CDC_tasks();
+        }
+    }
+    return 0;
+}
+
+#endif
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="PROYECTO 2">
+#ifdef PROYECTO_2
+
+int main ()
+{
+    struct tm p_time_aux;
+    uint8_t* index = 0;
+    uint8_t dummyBuffer[ 64 ];
+    
+    MAIN_init();
+    APP_info.state = APP_STATE_APP_INIT;
+    
+    while(1)
+    {
+        if( !BTN_switch( BTN_BUTTON_B ) )
+        {
+            switch( APP_info.state )
+            {
+                case APP_STATE_APP_INIT:
+                    if( APP_init() )
+                    {
+                        UTS_ledBlink( 500, 500 );
+                        RGB_setAll( OFF );
+                        APP_info.state = APP_STATE_TASKS;
+                    }
+                    break;
+
+                case APP_STATE_TASKS:
+                    APP_tasks();
+                    APP_UI();
+                    MDM_tasks();
+                    RGB_tasks(); //APP_RGB_tasks();
+                    USB_CDC_tasks();
+                    break;
+                
+                default: break;
+            }
+            
+            
         }
     }
     return 0;

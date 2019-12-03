@@ -16,6 +16,43 @@ uint8_t MDM_cmdBuffer[20];  //solo para guardar los string con los comandos
 uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de respuesta
 
 
+MDM_TASK_t MDM_task = MODEM_READ_UNDEF;
+
+void MDM_tasks()
+{
+    static uint8_t MODEM_ESTADO = MODEM_ESTADOS_INIT;
+    
+    switch( MODEM_ESTADO )
+    {
+        case MODEM_ESTADOS_INIT:
+            if( MDM_Init() )
+            {
+                MODEM_ESTADO = MODEM_ESTADOS_WAIT;
+            }
+            break;
+            
+        case MODEM_ESTADOS_WAIT:
+            switch( MDM_task )
+            {
+                case MODEM_READ_UNDEF:
+                    break;
+                    
+                case MODEM_READ_SMS:
+                    // lectura de sms
+                    break;
+                    
+                case MODEM_SEND_SMS:
+                    // envio de sms
+                    break;
+                    
+                case MODEM_GET_GPS_FRAME:
+                    // gps
+                    break;
+                    
+                default: break;
+            }
+    }
+}
 
 
 //<editor-fold defaultstate="collapsed" desc="Init">

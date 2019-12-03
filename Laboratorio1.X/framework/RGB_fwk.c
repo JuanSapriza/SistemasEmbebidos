@@ -9,13 +9,14 @@ RGB_DISPLAY_TYPES_t RGB_displayType;
 RGB_GO_ROUND_CONFIG_t RGB_goRoundConfig;
 
 
-void RGB_goRoundSet( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t p_variant )
+RGB_GO_ROUND_CONFIG_t RGB_goRoundSet( RGB_color p_color, uint32_t p_period, uint8_t p_times, uint8_t p_variant )
 {
     RGB_goRoundConfig.color = p_color;
     RGB_goRoundConfig.period = p_period;
     RGB_goRoundConfig.times = p_times;
     RGB_goRoundConfig.variant = p_variant;
     RGB_displayType = RGB_DISPLAY_TYPE_GO_ROUND;
+    return RGB_goRoundConfig;
 }
 
 bool RGB_goRound( RGB_GO_ROUND_CONFIG_t p_config )
