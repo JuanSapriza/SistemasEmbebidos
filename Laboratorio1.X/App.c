@@ -18,6 +18,11 @@
 #include "framework/RTCC_fwk.h"
 #include "utils/Utils.h"
 
+APP_var_t APP_info;
+
+APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
+uint32_t APP_logBufferHead;
+
 void APP_RGB_humidity ( uint8_t ADC_humedad )
 {
     
@@ -94,30 +99,33 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad )
     
 }
 
-void APP_LOG_data ( APP_var_t log_data )
+void APP_LOG_data ( APP_var_t* log_data )
 {
-    static APP_var_t *p_buffer;
+    static APP_var_t* p_buffer;
     
     static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
     
     switch ( APP_LOG_STATE )
     {
         case APP_LOG_PTR_INIT:
-            p_buffer = &APP_logBuffer[0];
+            APP_logBufferHead = 0;
+            p_buffer = &APP_logBuffer[APP_logBufferHead];
             APP_LOG_STATE = APP_LOG_PTR_OK;
-            
+            //intentional breakthrough
         case APP_LOG_PTR_OK:
             
-            *p_buffer=log_data;
+//            *p_buffer = log_data;
+            memcpy( p_buffer, log_data, sizeof( *log_data ) );
     
-                if (p_buffer==&APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
+                if (p_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
                 {
                     p_buffer=&APP_logBuffer[0];
+                    APP_logBufferHead = 0;
                 }
-    
                 else
                 {
-                    p_buffer=p_buffer+1;
+                    p_buffer++;
+                    APP_logBufferHead++;
                 }
             
             break;
@@ -276,3 +284,23 @@ void APP_RGB_tasks()
     }
     RGB_tasks();
 }
+
+
+uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
+{
+    return APP_logBufferHead; //APP_logBufferHead da un entero que indica el indice dentro del buffer, no da la direccion de memoria del ultimo registro sino la posicion dentro del buffer
+}
+
+//void APP_LOG_Buffer_displayUSB ( uint32_t APP_logBufferHead )
+//{
+//    uint32_t index_aux;
+//    for (index_aux = 0; index_aux <= APP_LOG_BUFFER_SIZE-1; index_aux++)
+//    
+//    {   
+//        //Definir USB_dummyBuffer e incluir USB framework
+//        sprintf(USB_dummyBuffer,"La humedad del %d° registro es: %d \n",1+index_aux,(APP_logBufferHead*sizeof()+APP_logBuffer[0]).humidity),;
+//        USB_write(USB_dummyBuffer);
+//        sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[0].position.latitude);
+//        USB_write(USB_dummyBuffer);
+//    }
+//}

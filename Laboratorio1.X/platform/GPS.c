@@ -124,22 +124,28 @@ double GPS_getGroundDistance( GPSPosition_t *a, GPSPosition_t *b ){
 }
 
 
-void GPS_parseFrame( uint8_t *p_frame, struct tm *p_time, GPSPosition_t *p_position )
+void GPS_parseFrame( uint8_t *p_frame, struct tm *p_time, GPSPosition_t *p_position, bool *p_validity )
 {
     uint8_t* index = 0;
    
     index = strstr( p_frame, MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) ); 
     
+    
     if( index == NULL ) return;
     
     //  voy hasta el final de +CGNSINF: 
     index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) )+1;
+//    index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );
+//    if( *(index + 3) == 0x30 )
+    if( *(index + 2) == 0x30 )
+    {
+        *p_validity = false;
+        return;
+    }
     
-    memset(p_time,0,36);   //POR QUE PORONGA EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
+    memset(p_time,0,36);   //POR QUE EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
     GPS_getUTC( p_time, index );
     memset(p_position,0,sizeof(*p_position));
     GPS_getPosition( p_position, index );
-    
-    while(0);
-        
+    *p_validity = true;
 }

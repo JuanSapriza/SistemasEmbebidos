@@ -5,10 +5,14 @@
 #include "App.h"
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 #include "framework/USB_fwk.h"
 #include "platform/Buttons.h"
 #include "platform/Modem.h"
 #include "utils/Utils.h"
+
+#define UYT -3 //zona horaria de Uruguay
+
 
 //</editor-fold>
 
@@ -629,16 +633,29 @@ int main ()
 
 int main ()
 {
+    struct tm * time_to_display;
+    
     struct tm p_time_aux;
     uint8_t* index = 0;
     uint8_t dummyBuffer[ 64 ];
+    
+    //    uint8_t dummyBuffer[ 64 ];
+    uint16_t datos_potenciometro;
+    //uint16_t aux3=0;
+    
+    uint8_t aux3=0;
+    //APP_var_t data_to_log;
+    
+    
     MAIN_init();
+    APP_info.position_validity = false;
     APP_info.state = APP_STATE_INIT;
     
     while(1)
     {
         if( !BTN_switch( BTN_BUTTON_B ) )
         {
+            
             switch( APP_info.state )
             {
                 case APP_STATE_INIT:
@@ -648,6 +665,7 @@ int main ()
                         if( MDM_sendInitialAT() )
                         {
                             RGB_setLed( 7, WHITE);
+                            APP_info.position_validity = false;
                             APP_info.state = APP_STATE_GPS_GET;
                         }
                     }
@@ -679,62 +697,105 @@ int main ()
                
                     
                case APP_STATE_PARSE_FRAME:
+              
+                    GPS_parseFrame( MDM_whatsInReadBuffer(), &p_time_aux, &APP_info.position, &APP_info.position_validity );
+                    APP_info.time = mktime( &p_time_aux );                    
                    
-                   
-                   
-  
-                   index = strstr( MDM_whatsInReadBuffer(), MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );  
-                   //  voy hasta el final de +CGNSINF: 
-                   index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) +3);                 
-                   
-                   if( *index == 0x30 )
-                   {
-                       APP_info.position_validity = false;
-                   }
-                   
-                   else
-                   {
-                        GPS_parseFrame( MDM_whatsInReadBuffer(), &p_time_aux, &APP_info.position );
-                        APP_info.time = mktime( &p_time_aux );
-                        
-                        sprintf(USB_dummyBuffer,"tiempo time_t %d \n",APP_info.time);
-                        USB_write(USB_dummyBuffer);
-                        APP_info.state = APP_STATE_WAIT;
-                        sprintf(USB_dummyBuffer,"estado %d \n",APP_info.state);
-                        USB_write(USB_dummyBuffer);
-                        APP_info.position_validity = true;
-                        sprintf(USB_dummyBuffer,"validez %d \n",APP_info.position_validity);
-                        USB_write(USB_dummyBuffer);
-                        sprintf(USB_dummyBuffer,"latitud %f \n",APP_info.position.latitude);
-                        USB_write(USB_dummyBuffer);
-                        sprintf(USB_dummyBuffer,"longitud %f \n",APP_info.position.longitude);
-                        USB_write(USB_dummyBuffer);
-                        RGB_setLed( 4, VIOLET );
+//                    sprintf(USB_dummyBuffer,"tiempo time_t %d \n",APP_info.time);
+//                    USB_write(USB_dummyBuffer);
+//                    APP_info.state = APP_STATE_WAIT;
+//                    sprintf(USB_dummyBuffer,"estado %d \n",APP_info.state);
+//                    USB_write(USB_dummyBuffer);
+//                    
+                    sprintf(USB_dummyBuffer,"validez %d \n",APP_info.position_validity);
+                    USB_write(USB_dummyBuffer);
+                    sprintf(USB_dummyBuffer,"latitud %f \n",APP_info.position.latitude);
+                    USB_write(USB_dummyBuffer);
+                    sprintf(USB_dummyBuffer,"longitud %f \n",APP_info.position.longitude);
+                    USB_write(USB_dummyBuffer);
                     
-                        sprintf(USB_dummyBuffer,"https://www.google.com/maps/@%+02.6lf,%+02.6lf,17z \n",APP_info.position.latitude,APP_info.position.longitude);
-                        USB_write(USB_dummyBuffer);
+                    
+                    
+                    time_to_display = gmtime(&APP_info.time);	
+                    
+                    sprintf(USB_dummyBuffer,"La hora es %2d:%02d:%02d \n",(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+                    USB_write(USB_dummyBuffer);
+                    
+                    
+                    
+                    RGB_setLed( 4, VIOLET );
+                    
+                    //sprintf(USB_dummyBuffer,"https://www.google.com/maps/@%+02.6lf,%+02.6lf,17z \n",APP_info.position.latitude,APP_info.position.longitude);
+                    //USB_write(USB_dummyBuffer);
                         
-                   }
+                   
+                    //                if( UTS_DELAY_HANDLER_SENSE_HUMIDITY, 500, false )
+//        {
+            if(POT_Convert( &datos_potenciometro ))
+            {
+                Nop();
+                aux3 = POT_Linearized ( datos_potenciometro );
+                APP_RGB_humidity ( aux3 );
+                Nop();
+                APP_LEDA_irrigate ( aux3 );
+                APP_BTNA_manual_irrigate ( aux3 );
+            
+//        }
+        
+//        if( UTS_delayms( UTS_DELAY_HANDLER_LOG_DATA, 5000, false ) )
+//        {
+                APP_info.humidity=aux3;
+
+
+
+                APP_LOG_data ( &APP_info );
+
+                sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[0].humidity);
+                USB_write(USB_dummyBuffer);
+                sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[0].position.latitude);
+                USB_write(USB_dummyBuffer);
+
+                sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[1].humidity);
+                USB_write(USB_dummyBuffer);
+                sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[1].position.latitude);
+                USB_write(USB_dummyBuffer);
+
+                sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[2].humidity);
+                USB_write(USB_dummyBuffer);
+                sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[2].position.latitude);
+                USB_write(USB_dummyBuffer);
+
+                sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[3].humidity);
+                USB_write(USB_dummyBuffer);
+                sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[3].position.latitude);
+                USB_write(USB_dummyBuffer);
+
+                sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[4].humidity);
+                USB_write(USB_dummyBuffer);
+                sprintf(USB_dummyBuffer,"Latitud: %f \n\n\n",APP_logBuffer[4].position.latitude);
+                USB_write(USB_dummyBuffer);
+//        }    
+            }
+            APP_info.state = APP_STATE_WAIT;
+                    
                    
                    break;
                     
               case APP_STATE_WAIT: 
                   RGB_setLed( 2, BLUE );
-                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 5000, false ) )
+                  if( UTS_delayms(UTS_DELAY_HANDLER_DUMMY_1, 2000, false ) )
                   {
 //                      USB_write( MDM_whatsInReadBuffer() );
                       APP_info.state = APP_STATE_GPS_GET;
                   }
                   break;
-                    
+                   
             }
-            
-            
-            
-            
+        
+        }        
+        
             RGB_tasks();
             USB_CDC_tasks();
-        }
     }
     return 0;
 }

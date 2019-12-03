@@ -34,7 +34,7 @@
 
 
 
-#define APP_LOG_BUFFER_SIZE 60
+#define APP_LOG_BUFFER_SIZE 5
 
 #define NUMERO_VICKY "\"+59891972950\""
 
@@ -200,23 +200,28 @@ enum APP_MANUAL_IRRIGATE
 };
 
 
-struct APP_info_t
-{
-    enum APP_STATES state;
-    time_t time;
-    GPSPosition_t position;
-    bool position_validity;
-}APP_info;
+//struct APP_info_t
+//{
+//    enum APP_STATES state;
+//    uint8_t humidity;
+//    time_t time;
+//    GPSPosition_t position;
+//    bool position_validity;
+//}
+
 
 typedef struct
 {
+    enum APP_STATES state;
     uint8_t humidity;
     time_t time;
     GPSPosition_t position;
     bool position_validity;
 }APP_var_t;
 
-APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
+extern APP_var_t APP_info;
+
+extern APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 
 
 
@@ -226,9 +231,11 @@ void APP_RGB_humidity ( uint8_t ADC_linearized );
 //Funcion para indicar riego con led A:
 void APP_LEDA_irrigate ( uint8_t ADC_humedad);
 //Funcion que actualiza el registro historico
-void APP_LOG_data ( APP_var_t log_data );
+void APP_LOG_data ( APP_var_t* log_data );
 //Funcion para riego a demanda con botón A
 void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
+//Funcion para obtener el valor del indice que indica el head del buffer
+uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void );
 
 #endif
 
