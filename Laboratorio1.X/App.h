@@ -47,6 +47,9 @@
 #define APP_THRESHOLD_HIGH_AUTOMATIC_DEFAULT 30
 #define APP_THRESHOLD_MANUAL_DEFAULT 15
 
+#define APP_PLANT_ID_MAX_NUM 9999
+
+
 
 #ifdef LABORATORIO_3_5
 
@@ -354,6 +357,8 @@ enum APP_UI_STATES
     APP_UI_STATE_WAIT_4_KEY,
     APP_UI_STATE_MENU_CREATE,
     APP_UI_STATE_MENU_SHOW,
+    APP_UI_STATE_PRINT_HEADER,
+    APP_UI_STATE_MENU_FUNCTIONS,
     
 
 };
@@ -403,6 +408,23 @@ enum APP_MANUAL_IRRIGATE
     APP_MANUAL_IRRIGATE_LEDA_ON,
 };
 
+enum APP_GET_NEW_ID
+{
+    APP_GET_NEW_ID_SHOW,
+    APP_GET_NEW_ID_WAIT,
+    APP_GET_NEW_ID_VALIDATE,
+    APP_GET_NEW_ID_RESPONSE_OK,
+    APP_GET_NEW_ID_RESPONSE_ERROR,
+};
+
+typedef enum
+{
+    APP_FUNC_WORKING = 0,
+    APP_FUNC_DONE,
+    APP_FUNC_ERROR,
+    APP_FUNC_RETURN,
+} APP_FUNC_STATUS_t;
+
 typedef struct 
 {
     uint8_t saturated;
@@ -415,8 +437,6 @@ typedef struct
    
 }APP_THRESHOLD_t;
 
-extern APP_THRESHOLD_t APP_threshold;
-
 
 typedef struct
 {
@@ -425,6 +445,11 @@ typedef struct
     time_t time;
     GPSPosition_t position;
     bool position_validity;
+    uint16_t plantID;
+    uint32_t humidity_sampling_time;
+    uint32_t log_sampling_time;
+    APP_THRESHOLD_t thresholds;
+    
 }APP_var_t;
 
 extern APP_var_t APP_info;

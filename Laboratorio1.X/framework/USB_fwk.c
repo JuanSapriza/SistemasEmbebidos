@@ -34,6 +34,11 @@ bool USB_CDC_tasks()
     return true;
 }
 
+bool USB_sth2Read()
+{
+    return (*USB_read(0) != 0);
+}
+
 void USB_write( uint8_t *p_text )
 {
     if( strlen(p_text) == 0 ) return;
@@ -69,6 +74,10 @@ uint8_t *USB_read( uint8_t p_length )
     return ( USB_rxBuffer );
 }
 
+uint8_t* USB_whatsInReadBuffer()
+{
+    return USB_rxBuffer;
+}
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Menu">
@@ -96,7 +105,7 @@ int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
                     USB_write( USB_dummyBuffer );
                 }
             }
-            USB_write("Presione '-' para volver ");
+            USB_write("Presione '-' para volver \n >");
             memset( USB_dummyBuffer, 0, sizeof( USB_dummyBuffer ) );
             state[p_menu] = USB_SHOW_MENU_STATES_WAIT;
             break;
@@ -109,17 +118,17 @@ int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
                 state[p_menu] = USB_SHOW_MENU_STATES_INIT;
                 return (int8_t)selectedOption; 
             }
-            else if( strstr(USB_dummyBuffer,"-") != NULL )
+            else if( strstr(USB_dummyBuffer, USB_FWK_RETURN_CHAR) != NULL )
             {
                 state[p_menu] = USB_SHOW_MENU_STATES_INIT;
-                return (int8_t)-1; 
+                return (int8_t)-1; //return 
             }
             break;
             
         default: break;
     }
     
-    return 0;
+    return 0; //working
 }
 
 

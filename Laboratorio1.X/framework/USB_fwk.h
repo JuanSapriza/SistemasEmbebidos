@@ -7,12 +7,16 @@
 
 #define USB_BUFFER_SIZE 255
 
+#define USB_FWK_RETURN_CHAR "*"
+
 uint8_t USB_dummyBuffer[USB_BUFFER_SIZE];
 
 //<editor-fold defaultstate="collapsed" desc="USB Gral">
 uint8_t *USB_read( uint8_t p_length );
 void USB_write( uint8_t *p_text );
 bool USB_CDC_tasks();
+bool USB_sth2Read();
+uint8_t* USB_whatsInReadBuffer();
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Menu">

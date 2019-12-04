@@ -29,7 +29,7 @@
 
 //<editor-fold defaultstate="collapsed" desc="Local Functions">
 
-static void MAIN_init()
+static void MAIN_init() //inicializaciones que son instantaneas (ACA NO VA NINGUNA M[AQUINA DE ESTADOS!)
 {
     SYSTEM_Initialize();
     RGB_setLed(0,OFF);
@@ -818,7 +818,7 @@ int main ()
     
     while(1)
     {
-        if( !BTN_switch( BTN_BUTTON_B ) )
+        if( !BTN_switch( BTN_BUTTON_B ) ) //pausa el programa
         {
             switch( APP_info.state )
             {
@@ -826,7 +826,7 @@ int main ()
                     if( APP_init() )
                     {
                         UTS_ledBlink( 500, 500 );
-                        RGB_setAll( OFF );
+                        RGB_setAll( OFF );                  //es necesario?
                         APP_info.state = APP_STATE_TASKS;
                     }
                     break;
@@ -835,7 +835,7 @@ int main ()
                     APP_tasks();
                     APP_UI();
                     MDM_tasks();
-                    RGB_tasks(); //APP_RGB_tasks();
+                    RGB_tasks();    //APP_RGB_tasks();
                     USB_CDC_tasks();
                     break;
                 

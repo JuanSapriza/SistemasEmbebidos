@@ -23,58 +23,61 @@ APP_var_t APP_info;
 APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 uint32_t APP_logBufferHead;
 bool APP_convertPot2RGB;
+
+
 bool APP_pot2RGBIsEnabled();
 void APP_pot2RGBEnable( bool p_enable );
-APP_THRESHOLD_t APP_threshold; 
+void APP_changePlantID( uint16_t p_newID );
+APP_FUNC_STATUS_t APP_getNewPlantID();
 
 void APP_THRESHOLD_initialize()
 {
-    APP_threshold.saturated=APP_THRESHOLD_SATURATED_DEFAULT;
-    APP_threshold.slightly_saturated=AAPP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT;
-    APP_threshold.slightly_dry=APP_THRESHOLD_SLIGHTLY_DRY_DEFAULT;
-    APP_threshold.dry=APP_THRESHOLD_DRY_DEFAULT;
-    APP_threshold.low_automatic=APP_THRESHOLD_LOW_AUTOMATIC_DEFAULT;
-    APP_threshold.high_automatic=APP_THRESHOLD_HIGH_AUTOMATIC_DEFAULT;
-    APP_threshold.manual=APP_THRESHOLD_MANUAL_DEFAULT;
+    APP_info.thresholds.saturated=APP_THRESHOLD_SATURATED_DEFAULT;
+    APP_info.thresholds.slightly_saturated=AAPP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT;
+    APP_info.thresholds.slightly_dry=APP_THRESHOLD_SLIGHTLY_DRY_DEFAULT;
+    APP_info.thresholds.dry=APP_THRESHOLD_DRY_DEFAULT;
+    APP_info.thresholds.low_automatic=APP_THRESHOLD_LOW_AUTOMATIC_DEFAULT;
+    APP_info.thresholds.high_automatic=APP_THRESHOLD_HIGH_AUTOMATIC_DEFAULT;
+    APP_info.thresholds.manual=APP_THRESHOLD_MANUAL_DEFAULT;
 }
 
 void APP_THRESHOLD_set (APP_THRESHOLD_t p_threshold  )
 {
-    APP_threshold.saturated=p_threshold.saturated;
-    APP_threshold.slightly_saturated= p_threshold.slightly_saturated;
-    APP_threshold.slightly_dry=p_threshold.slightly_dry;
-    APP_threshold.dry=p_threshold.dry;
-    APP_threshold.low_automatic=p_threshold.low_automatic;
-    APP_threshold.high_automatic=p_threshold.high_automatic;
-    APP_threshold.manual=p_threshold.manual;
+    APP_info.thresholds.saturated=p_threshold.saturated;
+    APP_info.thresholds.slightly_saturated= p_threshold.slightly_saturated;
+    APP_info.thresholds.slightly_dry=p_threshold.slightly_dry;
+    APP_info.thresholds.dry=p_threshold.dry;
+    APP_info.thresholds.low_automatic=p_threshold.low_automatic;
+    APP_info.thresholds.high_automatic=p_threshold.high_automatic;
+    APP_info.thresholds.manual=p_threshold.manual;
 }
 
 void APP_RGB_humidity ( uint8_t ADC_humedad )
 {
     
-    if( ( (ADC_humedad>=0) && (ADC_humedad<=APP_threshold.saturated) )  )
+    if( ( (ADC_humedad>=0) && (ADC_humedad<=APP_info.thresholds.saturated) )  )
     {
-        RGB_setAll( RED );
+        RGB_setAll( BLUE );
     }            
      
-    if( ( (ADC_humedad>APP_threshold.saturated) && (ADC_humedad<=APP_threshold.slightly_saturated) )  ) 
-    {
-        RGB_setAll( YELLOW );
-    }
-    
-    if( (ADC_humedad>APP_threshold.slightly_saturated) && (ADC_humedad<=APP_threshold.slightly_dry) ) 
-    {
-        RGB_setAll( GREEN );
-    }
-    
-    if( ( (ADC_humedad>APP_threshold.slightly_dry) && (ADC_humedad<=APP_threshold.dry) )) 
+    if( ( (ADC_humedad>APP_info.thresholds.saturated) && (ADC_humedad<=APP_info.thresholds.slightly_saturated) )  ) 
     {
         RGB_setAll( WATER_GREEN );
     }
     
-    if( (ADC_humedad>APP_threshold.dry) && (ADC_humedad<=60)  )
+    if( (ADC_humedad>APP_info.thresholds.slightly_saturated) && (ADC_humedad<=APP_info.thresholds.slightly_dry) ) 
     {
-        RGB_setAll( BLUE );
+        RGB_setAll( GREEN );
+    }
+    
+    if( ( (ADC_humedad>APP_info.thresholds.slightly_dry) && (ADC_humedad<=APP_info.thresholds.dry) )) 
+    {
+        RGB_setAll( YELLOW );
+    }
+    
+    if( (ADC_humedad>APP_info.thresholds.dry) && (ADC_humedad<=60)  )
+    {
+        RGB_setAll( RED );
     }
         
 }
@@ -89,7 +92,7 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad )
     switch ( APP_IRRIGATE )
     {
         case APP_IRRIGATE_OFF:        
-            if( (ADC_humedad)>APP_threshold.high_automatic )
+            if( (ADC_humedad)>APP_info.thresholds.high_automatic )
             {
                 APP_LEDA=APP_LEDA_ON;
                 APP_IRRIGATE = APP_IRRIGATE_ON;
@@ -97,7 +100,7 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad )
             break;
             
         case APP_IRRIGATE_ON:   
-            if( (ADC_humedad)<APP_threshold.low_automatic )
+            if( (ADC_humedad)<APP_info.thresholds.low_automatic )
             {
                 APP_LEDA=APP_LEDA_OFF;
                 APP_IRRIGATE = APP_IRRIGATE_OFF;
@@ -125,8 +128,70 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad )
     
 }    
     
-    
+void APP_changePlantID( uint16_t p_newID )
+{
+    APP_info.plantID = p_newID;
+}
    
+
+APP_FUNC_STATUS_t APP_getNewPlantID()
+{
+    static uint8_t state = APP_GET_NEW_ID_SHOW;
+    int32_t aux; 
+    
+    switch( state )
+    {
+        case APP_GET_NEW_ID_SHOW:
+            USB_write("\n\n Ingrese el Identificador de la Planta \n");
+            USB_write(    "         - máximo 4 dígitos -  \n        ");
+            state = APP_GET_NEW_ID_WAIT;
+            //intentional breakthrough
+            
+        case APP_GET_NEW_ID_WAIT:
+            if( USB_sth2Read() )
+            {
+                state = APP_GET_NEW_ID_VALIDATE;
+            }
+            else
+            {
+                break;
+            }
+            //intentional breakthrough
+            
+        case APP_GET_NEW_ID_VALIDATE:
+            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
+            {
+                return APP_FUNC_RETURN;
+            }
+            aux = (int32_t) atoi( USB_whatsInReadBuffer() );
+            if( aux >= 0 && aux <= APP_PLANT_ID_MAX_NUM )
+            {
+                state = APP_GET_NEW_ID_RESPONSE_OK;
+            }
+            else
+            {
+                state = APP_GET_NEW_ID_RESPONSE_ERROR;
+            }
+            break;
+            
+        case APP_GET_NEW_ID_RESPONSE_OK:
+            USB_write("\n\n ID configurado correctamente! \n");
+            APP_changePlantID( (uint16_t) aux);
+            state = APP_GET_NEW_ID_SHOW;
+            return APP_FUNC_DONE;
+            
+        case APP_GET_NEW_ID_RESPONSE_ERROR:
+            USB_write("\n\n ERROR \n");
+            sprintf( USB_dummyBuffer, "\n\n ingrese un número entre 0 y %d \n",APP_PLANT_ID_MAX_NUM );
+            USB_write(USB_dummyBuffer);
+            state = APP_GET_NEW_ID_WAIT;
+            break;
+    
+        default: break;
+    }
+    
+    return APP_FUNC_WORKING;
+}
 
 void APP_LOG_data ( APP_var_t* log_data )
 {
@@ -183,7 +248,7 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
         case APP_MANUAL_IRRIGATE_BTN_PRESSED:
            
             
-            if ( ADC_humedad > APP_threshold.manual )
+            if ( ADC_humedad > APP_info.thresholds.manual )
             {
                 APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_ON;
             }
@@ -199,7 +264,7 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
             
             LED_A_SetHigh();
             
-            if ( ADC_humedad <= APP_threshold.manual )
+            if ( ADC_humedad <= APP_info.thresholds.manual )
             {
                 APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_OFF;
             }
@@ -340,12 +405,10 @@ bool APP_pot2RGBIsEnabled()
 bool APP_getHumidity()
 {
     uint16_t datos_potenciometro;
-    uint8_t aux = 0;
     
     if(POT_Convert( &datos_potenciometro ) )
     {
-        aux = POT_Linearized ( datos_potenciometro ); 
-        APP_info.humidity = aux;
+        APP_info.humidity  = POT_Linearized ( datos_potenciometro ); 
         return true;
     }
     return false;
@@ -359,7 +422,7 @@ void APP_pot2RGB( uint8_t p_humidity )
 }
 
 
-bool APP_init()
+bool APP_init()  //inicializaxion de cosas propias de nuestra aplicacion 
 {
     static uint8_t APP_INIT_STATE = APP_INIT_VARS;
     
@@ -368,9 +431,10 @@ bool APP_init()
         case APP_INIT_VARS:
             APP_pot2RGBEnable( false );
             APP_info.humidity = 0;
+            APP_info.plantID = 1234;
             APP_THRESHOLD_initialize();
             APP_INIT_STATE = APP_INIT_MDM;
-            //intentionall breakthrough
+            //intentional breakthrough
             
         case APP_INIT_MDM:
             if( MDM_Init() )
@@ -407,14 +471,23 @@ APP_tasks()
             APP_TASK_STATE = APP_TASK_POT;
             break;
             
+            // obtener trama gps
+            
+            // armar un registro 
+            
+            // control ( SI ME VOY DE MAMBO ENVIAR UN SMS!! )
+            
+            // esperar un comando por sms
+            
         default: break;
     }
 }
 
-void APP_UI()
+void APP_UI() //interfaz de usuario
 {
     static uint8_t UI_STATE = APP_UI_STATE_INIT;
-
+    static int8_t retMenu;
+    
     switch( UI_STATE )
     {
         case APP_UI_STATE_INIT:
@@ -442,35 +515,46 @@ void APP_UI()
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Teléfono" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" );
-            UI_STATE = APP_UI_STATE_MENU_SHOW;
+            // configurar paramateros 
+            UI_STATE = APP_UI_STATE_PRINT_HEADER;
             break;   
             
+        case APP_UI_STATE_PRINT_HEADER:
+            sprintf( USB_dummyBuffer, "\n    Nro ID: %04d \n",APP_info.plantID );
+            USB_write( USB_dummyBuffer );
+            UI_STATE = APP_UI_STATE_MENU_SHOW;
+            //inteniotkngs jbewwrehtrjsydt
+            
         case APP_UI_STATE_MENU_SHOW:
-            switch( USB_showMenuAndGetAnswer(UTS_MENU_HANDLER_MENU_PRINCIPAL ) )
+            retMenu = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PRINCIPAL );
+            UI_STATE = APP_UI_STATE_MENU_FUNCTIONS;
+            //intentional breakthrough
+            
+        case APP_UI_STATE_MENU_FUNCTIONS:
+            switch( retMenu )
             {
+                case 0: //working
+                case -1: //return
+                   UI_STATE = APP_UI_STATE_MENU_SHOW;
+                   break;
+                   
                 case 1: //SETEAR ID DE PLANTA
-                    RGB_setAll(OFF);
-                    RGB_setLed(1,RED);
+                    if( APP_getNewPlantID() )
+                    {
+                        UI_STATE = APP_UI_STATE_PRINT_HEADER;
+                    }
                     break;
                     
                 case 2: // CONFIGURAR UMBRALES
-                    RGB_setAll(OFF);
-                    RGB_setLed(2,GREEN);
                     break;
                     
                 case 3: //CONFIGURAR TELÉFONO
-                    RGB_setAll(OFF);
-                    RGB_setLed(3,BLUE);
                     break;
                     
                 case 4: //ACCESO AL REGISTRO
-                    RGB_setAll(OFF);
-                    RGB_setLed(4,VIOLET);
                     break;
                     
-                case -1:
-                    RGB_setAll(OFF);
-                    break;
+                
                     
                 default: break;
             
