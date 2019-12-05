@@ -40,7 +40,7 @@
 #define NUMERO_VICKY "\"+59891972950\""
 
 #define APP_THRESHOLD_SATURATED_DEFAULT 5
-#define AAPP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT 9
+#define APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT 9
 #define APP_THRESHOLD_SLIGHTLY_DRY_DEFAULT 20
 #define APP_THRESHOLD_DRY_DEFAULT 40
 #define APP_THRESHOLD_LOW_AUTOMATIC_DEFAULT 15
@@ -348,7 +348,10 @@ enum APP_TASKS
 {
     APP_TASK_POT,
     APP_TASK_POT_2_RGB,
-//    APP_TASK_POT,
+    APP_TASK_GPS_GET,
+    APP_TASK_SMS_SEND,
+    APP_TASK_SMS_READ,
+    APP_TASK_REGISTER_SAVE,
 };
 
 enum APP_UI_STATES
@@ -440,15 +443,30 @@ typedef struct
 
 typedef struct
 {
+    uint32_t humiditySensePeriod;
+    uint32_t logRegisterPeriod;
+    uint32_t gpsGetPeriod;
+    uint32_t SMSalertPeriod;
+    uint32_t SMSalertCoolDown;
+} APP_PARAMS_t;
+
+typedef struct
+{
+    uint8_t level;
+    bool alert;
+    bool coolDown;
+} APP_HUMIDITY_t;
+
+typedef struct
+{
     enum APP_STATES state;
-    uint8_t humidity;
     time_t time;
     GPSPosition_t position;
     bool position_validity;
     uint16_t plantID;
-    uint32_t humidity_sampling_time;
-    uint32_t log_sampling_time;
-    APP_THRESHOLD_t thresholds;
+    APP_HUMIDITY_t humidity;
+    APP_PARAMS_t param;
+    APP_THRESHOLD_t threshold;
     
 }APP_var_t;
 

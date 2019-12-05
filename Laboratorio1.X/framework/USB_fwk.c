@@ -105,7 +105,8 @@ int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
                     USB_write( USB_dummyBuffer );
                 }
             }
-            USB_write("Presione '-' para volver \n >");
+            sprintf( USB_dummyBuffer,"Presione '%c' para volver \n >", USB_FWK_RETURN_CHAR );
+            USB_write(USB_dummyBuffer);
             memset( USB_dummyBuffer, 0, sizeof( USB_dummyBuffer ) );
             state[p_menu] = USB_SHOW_MENU_STATES_WAIT;
             break;
