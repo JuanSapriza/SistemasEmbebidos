@@ -51,8 +51,9 @@
 
 
 #define APP_HUMIDITY_MAX_NUM 60
-#define APP_HUMIDITY_MIN_NUM 0
+#define APP_HUMIDITY_MIN_NUM 1
 
+#define APP_SHORT_STRING_SIZE 30
 
 #ifdef LABORATORIO_3_5
 
@@ -445,7 +446,17 @@ enum APP_SET_NEW_THRESHOLD
     APP_SET_NEW_THRESHOLD_RESPONSE_ERROR,
 };            
             
-
+typedef enum 
+{
+    APP_THRESHOLD_UNDEF,
+    APP_THRESHOLD_SATURATED,
+    APP_THRESHOLD_SLIGHTLY_SATURATED,
+    APP_THRESHOLD_SLIGHTLY_DRY,
+    APP_THRESHOLD_DRY,
+    APP_THRESHOLD_AUTO_LOW,
+    APP_THRESHOLD_AUTO_HIGH,
+    APP_THRESHOLD_MANUAL,
+}APP_THRESHOLD_NAMES_t;
 
 //---------------------------
 
@@ -487,9 +498,6 @@ typedef struct
 extern APP_var_t APP_info;
 
 extern APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
-
-
-APP_FUNC_STATUS_t APP_getNewThreshold( int8_t *p_users_new_threshold );
 
 
 //Funcion para mostrar el nivel de humedad con los leds RGB:

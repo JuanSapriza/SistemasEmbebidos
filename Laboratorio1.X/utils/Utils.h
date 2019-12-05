@@ -69,10 +69,10 @@ void UTS_ledBlink( uint32_t p_ON, uint32_t p_OFF );
 
 //<editor-fold defaultstate="collapsed" desc="MENÚ">
 
-#define UTS_MENU_ITEM_TITLE_LENGTH 35
+#define UTS_MENU_ITEM_TITLE_LENGTH 60
 
 #define UTS_MENU_MAX_OPTIONS 15
-#define UTS_MENU_MAX_OPTION_NAME_LENGTH 50
+#define UTS_MENU_MAX_OPTION_NAME_LENGTH 60
 
 typedef enum 
 {

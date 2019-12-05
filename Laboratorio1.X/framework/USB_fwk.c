@@ -125,7 +125,7 @@ int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
     {
         case USB_SHOW_MENU_STATES_INIT:
             USB_read(0); //para limpiar el buffer de lectura
-            sprintf( USB_dummyBuffer,"%s \n", UTS_getMenuTitle( p_menu ) );
+            sprintf( USB_dummyBuffer,"\n%s \n", UTS_getMenuTitle( p_menu ) );
             USB_write( USB_dummyBuffer );
             for( i=0; i < UTS_getmenuOptionsNumber(p_menu) ; i++ )
             {

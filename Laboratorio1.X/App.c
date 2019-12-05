@@ -23,13 +23,15 @@ APP_var_t APP_info;
 APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 uint32_t APP_logBufferHead;
 bool APP_convertPot2RGB;
-
+uint8_t APP_stringBuffer[APP_SHORT_STRING_SIZE];
 
 bool APP_pot2RGBIsEnabled();
 void APP_pot2RGBEnable( bool p_enable );
 void APP_changePlantID( uint16_t p_newID );
 APP_FUNC_STATUS_t APP_getNewPlantID();
 APP_FUNC_STATUS_t APP_setThresholds();
+uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
+APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold );
 
 void APP_THRESHOLD_initialize()
 {
@@ -435,6 +437,7 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
     static int8_t aux_threshold_automatic_low;
     static int8_t aux_threshold_automatic_high;    
     static int8_t aux_threshold_manual;        
+    static APP_THRESHOLD_NAMES_t selectedThreshold; 
     
     int8_t aux_user_threshold;
     
@@ -452,18 +455,33 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
         
             state_thresholds = APP_SET_THRESHOLDS_MENU;
             
-            break;    
+//            break;  intentiugify breajgkgyft   
     
         case APP_SET_THRESHOLDS_MENU:
+            memset(USB_dummyBuffer,0,sizeof(USB_dummyBuffer));
             
             UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Configuración de umbrales. ¿Qué umbral desea modificar?" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Umbral de saturación" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Umbral de riesgo de saturación" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Umbral de riesgo de sequedad" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Umbral de sequedad" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Punto óptimo para riego automático" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Umbral de sequedad para riego automático" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Punto óptimo para riego manual" );
+            
+            sprintf( USB_dummyBuffer, "Umbral de saturación: %d",aux_threshold_saturated);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Umbral de riesgo de saturación: %d",aux_threshold_slightly_saturated);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Umbral de riesgo de sequía: %d",aux_threshold_slightly_dry);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Umbral de sequía: %d",aux_threshold_dry);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Punto óptimo para riego automático: %d",aux_threshold_automatic_low);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Umbral de sequía para riego automático: %d",aux_threshold_automatic_high);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Punto óptimo para riego manual: %d",aux_threshold_manual);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
             
             // configurar parametros 
             state_thresholds = APP_SET_THRESHOLDS_HEADERS;
@@ -471,7 +489,7 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
             
         case APP_SET_THRESHOLDS_HEADERS:
             
-            USB_write("\n Los valores de los umbrales actuales son: \n");
+//            USB_write("\n Los valores de los umbrales actuales son: \n");
 //            sprintf( USB_dummyBuffer, "\n    Umbral de saturación: %d \n",aux_threshold_saturated);
 //            USB_write( USB_dummyBuffer );
 //            sprintf( USB_dummyBuffer, "\n    Umbral de riesgo de saturación: %d \n",aux_threshold_slightly_saturated);
@@ -503,133 +521,196 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
             {
                 case 0: //working
                     state_thresholds = APP_SET_THRESHOLDS_SHOW;
+                    selectedThreshold = APP_THRESHOLD_UNDEF;
                     break;
                     
                 case -1: //return                
                            
-                if ( ( aux_threshold_saturated < aux_threshold_slightly_saturated  ) && ( aux_threshold_slightly_saturated < aux_threshold_slightly_dry ) && ( aux_threshold_slightly_dry < aux_threshold_dry ) && ( aux_threshold_automatic_low < aux_threshold_automatic_high ) )
-                {
-                    APP_info.thresholds.saturated=aux_threshold_saturated;
-                    APP_info.thresholds.slightly_saturated=aux_threshold_slightly_saturated;
-                    APP_info.thresholds.dry=aux_threshold_dry;
-                    APP_info.thresholds.slightly_dry=aux_threshold_slightly_dry;
-                    APP_info.thresholds.low_automatic=aux_threshold_automatic_low;
-                    APP_info.thresholds.high_automatic=aux_threshold_automatic_high;
-                    APP_info.thresholds.manual=aux_threshold_manual; 
-                    
-                    state_thresholds = APP_SET_THRESHOLDS_INIT;   
-                    return APP_FUNC_RETURN;
-                }  
-                
-                else
-                {
-                    USB_write("\n\n ERROR \n");
-                    USB_write("\n\n Valores inconsistentes. Reingresar umbrales. \n");
-                    state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-                }
-                           
-                break;
+                    if ( ( aux_threshold_saturated < aux_threshold_slightly_saturated  ) && ( aux_threshold_slightly_saturated < aux_threshold_slightly_dry ) && ( aux_threshold_slightly_dry < aux_threshold_dry ) && ( aux_threshold_automatic_low < aux_threshold_automatic_high ) )
+                    {
+                        APP_info.thresholds.saturated=aux_threshold_saturated;
+                        APP_info.thresholds.slightly_saturated=aux_threshold_slightly_saturated;
+                        APP_info.thresholds.dry=aux_threshold_dry;
+                        APP_info.thresholds.slightly_dry=aux_threshold_slightly_dry;
+                        APP_info.thresholds.low_automatic=aux_threshold_automatic_low;
+                        APP_info.thresholds.high_automatic=aux_threshold_automatic_high;
+                        APP_info.thresholds.manual=aux_threshold_manual; 
+
+                        state_thresholds = APP_SET_THRESHOLDS_INIT;   
+                        return APP_FUNC_RETURN;
+                    }  
+
+                    else
+                    {
+                        USB_write("\n\n ERROR \n");
+                        USB_write("\n\n Valores inconsistentes. Reingresar umbrales. \n");
+                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+                    }
+                    selectedThreshold = APP_THRESHOLD_UNDEF;           
+                    break;
                    
-                case 1: //SETEAR UMBRAL 1
-                    if( APP_getNewThreshold( &aux_user_threshold ) )
-                    {              
-                        aux_threshold_saturated=aux_user_threshold;
-                        state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-                    }
-                                       
-                    if ( APP_getNewThreshold( &aux_user_threshold )==APP_FUNC_RETURN )
-                    {
-                        state_thresholds = APP_SET_THRESHOLDS_SHOW;
-                    }
-                    
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                    selectedThreshold = (APP_THRESHOLD_NAMES_t) retMenu_thresholds;
                     break;
-                    
-                case 2: //SETEAR UMBRAL 2
-                    if( APP_getNewThreshold( &aux_user_threshold ) )
-                    {              
-                        aux_threshold_slightly_saturated=aux_user_threshold;
-                        state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-                    }
-                                       
-                    if ( APP_getNewThreshold( &aux_user_threshold )==APP_FUNC_RETURN )
-                    {
-                        state_thresholds = APP_SET_THRESHOLDS_SHOW;
-                    }
-                   
-                    break;
-                
-                case 3: //SETEAR UMBRAL 3
-                    if( APP_getNewThreshold( &aux_user_threshold ) )
-                    {              
-                        aux_threshold_dry=aux_user_threshold;
-                        state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-                    }
-                                       
-                    if ( APP_getNewThreshold( &aux_user_threshold )==APP_FUNC_RETURN )
-                    {
-                        state_thresholds = APP_SET_THRESHOLDS_SHOW;
-                    }
-                    
-                    break;
-                    
-                case 4: //SETEAR UMBRAL 4
-                    if( APP_getNewThreshold( &aux_user_threshold ) )
-                    {              
-                        aux_threshold_slightly_dry=aux_user_threshold;
-                        state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-                    }
-                                       
-                    if ( APP_getNewThreshold( &aux_user_threshold )==APP_FUNC_RETURN )
-                    {
-                        state_thresholds = APP_SET_THRESHOLDS_SHOW;
-                    }
-                    
-                    break;
-                    
-                case 5: //SETEAR UMBRAL 5
-                    if( APP_getNewThreshold( &aux_user_threshold ) )
-                    {              
-                        aux_threshold_automatic_low=aux_user_threshold;
-                        state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-                    }
-                                       
-                    if ( APP_getNewThreshold( &aux_user_threshold )==APP_FUNC_RETURN )
-                    {
-                        state_thresholds = APP_SET_THRESHOLDS_SHOW;
-                    }
-                    
-                    break;
-                
-                case 6: //SETEAR UMBRAL 6
-                    if( APP_getNewThreshold( &aux_user_threshold ) )
-                    {              
-                        aux_threshold_automatic_high=aux_user_threshold;
-                        state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-                    }
-                                       
-                    if ( APP_getNewThreshold( &aux_user_threshold )==APP_FUNC_RETURN )
-                    {
-                        state_thresholds = APP_SET_THRESHOLDS_SHOW;
-                    }
-                    
-                    break;    
-                
-                case 7: //SETEAR UMBRAL 7
-                    if( APP_getNewThreshold( &aux_user_threshold ) )
-                    {              
-                        aux_threshold_manual=aux_user_threshold;
-                        state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-                    }
-                                       
-                    if ( APP_getNewThreshold( &aux_user_threshold )==APP_FUNC_RETURN )
-                    {
-                        state_thresholds = APP_SET_THRESHOLDS_SHOW;
-                    }
-                    
-                    break;                    
-                                      
+//                
+//                case 1: //SETEAR UMBRAL 1
+//                    if( APP_getNewThreshold( APP_THRESHOLD_SATURATED, &aux_user_threshold ) )
+//                    {              
+//                        aux_threshold_saturated=aux_user_threshold;
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                                       
+//                    if ( APP_getNewThreshold( APP_THRESHOLD_SATURATED,&aux_user_threshold )==APP_FUNC_RETURN )
+//                    {
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                    
+//                    break;
+//                    
+//                case 2: //SETEAR UMBRAL 2
+//                    if( APP_getNewThreshold( APP_THRESHOLD_SLIGHTLY_SATURATED, &aux_user_threshold ) )
+//                    {              
+//                        aux_threshold_slightly_saturated=aux_user_threshold;
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                                       
+//                    if ( APP_getNewThreshold( APP_THRESHOLD_SLIGHTLY_SATURATED,&aux_user_threshold )==APP_FUNC_RETURN )
+//                    {
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                   
+//                    break;
+//                
+//                    
+//                case 3: //SETEAR UMBRAL 3
+//                    if( APP_getNewThreshold( APP_THRESHOLD_SLIGHTLY_DRY, &aux_user_threshold ) )
+//                    {              
+//                        aux_threshold_slightly_dry=aux_user_threshold;
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                                       
+//                    if ( APP_getNewThreshold( APP_THRESHOLD_SLIGHTLY_DRY, &aux_user_threshold )==APP_FUNC_RETURN )
+//                    {
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                    
+//                    break;
+//                    
+//                case 4: //SETEAR UMBRAL 4
+//                    if( APP_getNewThreshold( APP_THRESHOLD_DRY,&aux_user_threshold ) )
+//                    {              
+//                        aux_threshold_dry=aux_user_threshold;
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                                       
+//                    if ( APP_getNewThreshold( APP_THRESHOLD_DRY, &aux_user_threshold )==APP_FUNC_RETURN )
+//                    {
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                    
+//                    break;
+//                    
+//                case 5: //SETEAR UMBRAL 5
+//                    if( APP_getNewThreshold( APP_THRESHOLD_AUTO_LOW, &aux_user_threshold ) )
+//                    {              
+//                        aux_threshold_automatic_low=aux_user_threshold;
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                                       
+//                    if ( APP_getNewThreshold( APP_THRESHOLD_AUTO_LOW, &aux_user_threshold )==APP_FUNC_RETURN )
+//                    {
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                    
+//                    break;
+//                
+//                case 6: //SETEAR UMBRAL 6
+//                    if( APP_getNewThreshold( APP_THRESHOLD_AUTO_HIGH, &aux_user_threshold ) )
+//                    {              
+//                        aux_threshold_automatic_high=aux_user_threshold;
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                                       
+//                    if ( APP_getNewThreshold( APP_THRESHOLD_AUTO_HIGH, &aux_user_threshold )==APP_FUNC_RETURN )
+//                    {
+//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                    }
+//                    
+//                    break;    
+//                
+//                case 7: //SETEAR UMBRAL 7
+//                    switch( APP_getNewThreshold( APP_THRESHOLD_MANUAL, &aux_user_threshold ) )
+//                    {
+//                        case APP_FUNC_RETURN:
+//                            state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                            break;
+//                            
+//                            
+//                        case APP_FUNC_DONE:
+//                            aux_threshold_manual=aux_user_threshold;
+//                            state_thresholds = APP_SET_THRESHOLDS_MENU;
+//                            break;
+//                            
+//                        default: break;
+//                    }
+//                    break;                    
                 default: break;
+            }
             
+            if( selectedThreshold != APP_THRESHOLD_UNDEF )
+            {
+                switch( APP_getNewThreshold( selectedThreshold, &aux_user_threshold ) )
+                    {
+                        case APP_FUNC_RETURN:
+                            state_thresholds = APP_SET_THRESHOLDS_MENU;
+                            break;
+                            
+                        case APP_FUNC_DONE:
+                            switch( selectedThreshold )
+                            {
+                                case APP_THRESHOLD_SATURATED:
+                                    aux_threshold_saturated = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_SLIGHTLY_SATURATED:
+                                    aux_threshold_slightly_saturated = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_SLIGHTLY_DRY:
+                                    aux_threshold_slightly_dry = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_DRY:
+                                    aux_threshold_dry = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_AUTO_LOW:
+                                    aux_threshold_automatic_low = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_AUTO_HIGH:
+                                    aux_threshold_automatic_high = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_MANUAL:
+                                    aux_threshold_manual = aux_user_threshold;
+                                    break;
+                                    
+                                default: break;
+                                    
+                            }
+                            selectedThreshold = APP_THRESHOLD_UNDEF;
+                            state_thresholds = APP_SET_THRESHOLDS_MENU;
+                            break;
+                            
+                        default: break;
+                    }
             }
             break;
             
@@ -637,10 +718,52 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
     
     }
 
+    return APP_FUNC_WORKING;
 
 }
-            
-APP_FUNC_STATUS_t APP_getNewThreshold( int8_t *p_users_new_threshold )
+     
+uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold )
+{
+    switch( p_threshold )
+    {
+        case APP_THRESHOLD_SATURATED:
+            strcpy( APP_stringBuffer, "saturación" );
+            break;
+    
+        case APP_THRESHOLD_SLIGHTLY_SATURATED:
+            strcpy( APP_stringBuffer, "riesgo de saturación" );
+            break;
+    
+        case APP_THRESHOLD_SLIGHTLY_DRY:
+            strcpy( APP_stringBuffer, "riesgo de sequía" );
+            break;
+    
+        case APP_THRESHOLD_DRY:
+            strcpy( APP_stringBuffer, "sequía" );
+            break;
+    
+    
+        case APP_THRESHOLD_AUTO_LOW:
+            strcpy( APP_stringBuffer, "punto óptimo para riego automático" );
+            break;
+    
+    
+        case APP_THRESHOLD_AUTO_HIGH:
+            strcpy( APP_stringBuffer, "sequía para riego automático" );
+            break;
+    
+    
+        case APP_THRESHOLD_MANUAL:
+            strcpy( APP_stringBuffer, "riego manual" );
+            break;
+    
+        default: return NULL;
+    
+    }
+    return APP_stringBuffer;
+}
+
+APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold )
 {
     static uint8_t state = APP_SET_NEW_THRESHOLD_SHOW;
     static int8_t aux; 
@@ -649,12 +772,10 @@ APP_FUNC_STATUS_t APP_getNewThreshold( int8_t *p_users_new_threshold )
     {
         case APP_SET_NEW_THRESHOLD_SHOW:
             
-            
-            USB_write("\n\n Ingrese el nuevo valor para el umbral \n");
+            sprintf(USB_dummyBuffer, "\nIngrese el nuevo valor para el umbral de %s \n", APP_threshold2String( p_threshold ) );
+            USB_write(USB_dummyBuffer);
             sprintf( USB_dummyBuffer,"         - entre %d y %d cB -  \n",APP_HUMIDITY_MIN_NUM,APP_HUMIDITY_MAX_NUM);
             USB_write(USB_dummyBuffer);
-            
-            
             state = APP_SET_NEW_THRESHOLD_WAIT;
             //intentional breakthrough
             
@@ -702,6 +823,7 @@ APP_FUNC_STATUS_t APP_getNewThreshold( int8_t *p_users_new_threshold )
     
         default: break;
     }
+    return APP_FUNC_WORKING;
 
 }
 
@@ -799,20 +921,12 @@ void APP_UI() //interfaz de usuario
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Teléfono" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro2" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro3" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro4" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro5" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro6" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro7" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro8" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro9" );
             // configurar parametros 
             UI_STATE = APP_UI_STATE_PRINT_HEADER;
             break;   
             
         case APP_UI_STATE_PRINT_HEADER:
-            sprintf( USB_dummyBuffer, "\n    Nro ID: %04d \n",APP_info.plantID );
+            sprintf( USB_dummyBuffer, "\n    Nro ID: %04d ",APP_info.plantID );
             USB_write( USB_dummyBuffer );
             UI_STATE = APP_UI_STATE_MENU_SHOW;
             //intentional breakthrough
