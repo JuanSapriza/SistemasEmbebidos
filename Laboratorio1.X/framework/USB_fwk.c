@@ -6,32 +6,63 @@
 
 static uint8_t USB_rxBuffer[USB_BUFFER_SIZE];
 static uint8_t USB_txBuffer[USB_BUFFER_SIZE];
+static uint8_t USB_txAuxBuffer[USB_AUX_BUFFER_SIZE];
+
 static bool sth2write;
 //static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_BOTH;
 static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_NONE;
 
 //<editor-fold defaultstate="collapsed" desc="USB Gral">
 
-bool USB_CDC_tasks()
+void USB_CDC_tasks()
 {
+    static bool sending = false;
+    
+    //<editor-fold defaultstate="collapsed" desc="Chequeo Inicial">
     if( USBGetDeviceState() < CONFIGURED_STATE )
     {
-        return false;
+//        return false;
     }
 
     if( USBIsDeviceSuspended()== true )
     {
-        return false;
+//        return false;
     }
+    //</editor-fold>
     
-    if( sth2write && USBUSARTIsTxTrfReady() ) //hay algo para escribir
+//    if( sth2write && USBUSARTIsTxTrfReady() ) //hay algo para escribir
+    if( sending )
     {
-       putUSBUSART(USB_txBuffer,strlen(USB_txBuffer)); 
-       sth2write = false;
+        if(  USBUSARTIsTxTrfReady() ) 
+        {
+           memset( USB_txBuffer, 0, sizeof(USB_txBuffer));
+           if( USB_txAuxBuffer[0] != 0 ) //no es lo mismo que sth2write?? para que esta styh2write?? 
+           {
+                memcpy(USB_txBuffer,USB_txAuxBuffer,sizeof(USB_txBuffer)-1);
+    
+                memcpy(USB_txAuxBuffer,USB_txAuxBuffer+sizeof(USB_txBuffer)-1, sizeof(USB_txAuxBuffer)-sizeof(USB_txBuffer)+1);
+                memset(USB_txAuxBuffer+sizeof(USB_txAuxBuffer)-sizeof(USB_txBuffer)+1, 0, sizeof(USB_txBuffer)-1 );
+//                memcpy( USB_txBuffer, USB_txAuxBuffer, sizeof(USB_txBuffer) );
+//                memset( USB_txAuxBuffer, 0, sizeof( USB_txAuxBuffer ) );                  //si son del mismo tamanio!!!!
+               putUSBUSART(USB_txBuffer,strlen(USB_txBuffer)); 
+           }
+           else
+           {
+               sth2write = false;
+               sending = false;
+           }
+        }
+        
+    }
+    else
+    {
+       if( sth2write )
+       {
+           sending = true;
+       }
     }
     
     CDCTxService();
-    return true;
 }
 
 bool USB_sth2Read()
@@ -43,18 +74,18 @@ void USB_write( uint8_t *p_text )
 {
     if( strlen(p_text) == 0 ) return;
     
-    if( !sth2write )
-    {
-        memset(USB_txBuffer, 0, sizeof(USB_txBuffer));
-    }
+//    if( !sth2write )
+//    {
+//        memset(USB_txBuffer, 0, sizeof(USB_txBuffer));
+//    }
     
-    if( strlen( p_text ) < USB_BUFFER_SIZE -strlen(USB_txBuffer)  )
+    if( strlen( p_text ) < sizeof(USB_txAuxBuffer) -strlen(USB_txAuxBuffer)  )
     {
-        strcat(USB_txBuffer, p_text);
+        strcat(USB_txAuxBuffer, p_text);
     }
     else
     {
-        strncat(USB_txBuffer, p_text, USB_BUFFER_SIZE - strlen(USB_txBuffer) );
+        strncat(USB_txAuxBuffer, p_text, sizeof(USB_txAuxBuffer) - strlen(USB_txAuxBuffer) );
     }
     sth2write = true;
 }
@@ -104,8 +135,9 @@ int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
                     sprintf( USB_dummyBuffer,"%d. %s \n",i+1, UTS_getMenuOption( p_menu, i ) );
                     USB_write( USB_dummyBuffer );
                 }
-            }
-            USB_write("Presione '-' para volver \n >");
+            }        
+            sprintf( USB_dummyBuffer,"Presione %s para volver \n >", USB_FWK_RETURN_CHAR );
+            USB_write(USB_dummyBuffer);
             memset( USB_dummyBuffer, 0, sizeof( USB_dummyBuffer ) );
             state[p_menu] = USB_SHOW_MENU_STATES_WAIT;
             break;

@@ -142,10 +142,9 @@ void GPS_parseFrame( uint8_t *p_frame, struct tm *p_time, GPSPosition_t *p_posit
         *p_validity = false;
         return;
     }
-    
     memset(p_time,0,36);   //POR QUE EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
     GPS_getUTC( p_time, index );
-    memset(p_position,0,sizeof(*p_position));
+    memset(p_position,0,sizeof(GPSPosition_t));
     GPS_getPosition( p_position, index );
     *p_validity = true;
 }
