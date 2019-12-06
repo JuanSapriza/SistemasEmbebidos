@@ -5,10 +5,13 @@
         <group>
             <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/main.c</file>
             <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/framework/USB_fwk.c</file>
-            <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/utils/Utils.h</file>
-            <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/utils/Utils.c</file>
+            <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/mcc_generated_files/rtcc.c</file>
             <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/App.c</file>
             <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/framework/USB_fwk.h</file>
+            <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/platform/GPS.h</file>
+            <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/platform/RGB.c</file>
+            <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/framework/RGB_fwk.c</file>
+            <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/mcc_generated_files/rtcc.h</file>
             <file>file:/C:/Users/natal/Sistemas%20Embebidos/SistemasEmbebidos/Laboratorio1.X/App.h</file>
         </group>
     </open-files>
