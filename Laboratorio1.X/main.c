@@ -812,22 +812,23 @@ int main ()
     struct tm p_time_aux;
     uint8_t* index = 0;
     uint8_t dummyBuffer[ 64 ];
-    
+    uint8_t mainState = APP_STATE_APP_INIT;
+
+
     MAIN_init();
-    APP_info.state = APP_STATE_APP_INIT;
     
     while(1)
     {
         if( !BTN_switch( BTN_BUTTON_B ) ) //pausa el programa
         {
-            switch( APP_info.state )
+            switch( mainState )
             {
                 case APP_STATE_APP_INIT:
                     if( APP_init() )
                     {
                         UTS_ledBlink( 500, 500 );
                         RGB_setAll( OFF );                  //es necesario?
-                        APP_info.state = APP_STATE_TASKS;
+                        mainState = APP_STATE_TASKS;
                     }
                     break;
 
@@ -835,13 +836,13 @@ int main ()
                     APP_UI();
                     APP_tasks();
                     MDM_tasks();
-                    RGB_tasks();    //APP_RGB_tasks();
-                    USB_CDC_tasks();
                     break;
                 
                 default: break;
             }
             
+            RGB_tasks();    //APP_RGB_tasks();
+            USB_CDC_tasks();
             
         }
     }

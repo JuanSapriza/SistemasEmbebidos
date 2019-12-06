@@ -58,6 +58,27 @@ void APP_THRESHOLD_set (APP_THRESHOLD_t p_threshold  )
     APP_info.threshold.manual=p_threshold.manual;
 }
 
+
+
+void APP_PARAM_initialize()
+{
+    APP_info.param.humiditySensePeriod=APP_HUMIDITY_SENSE_PERIOD_DEFAULT;
+    APP_info.param.logRegisterPeriod=APP_LOG_REGISTRER_PERIOD_DEFAULT;
+    APP_info.param.gpsGetPeriod=APP_GPS_GET_PERIOD_DEFAULT;
+    APP_info.param.SMSalertPeriod=APP_SMS_ALERT_PERIOD_DEFAULT;
+    APP_info.param.SMSalertCoolDown=APP_SMS_ALERT_COOL_DOWN_DEFAULT;
+    
+}
+
+void APP_PARAM_set ( APP_PARAMS_t p_param )
+{
+    APP_info.param.humiditySensePeriod=p_param.humiditySensePeriod;
+    APP_info.param.logRegisterPeriod=p_param.logRegisterPeriod;
+    APP_info.param.gpsGetPeriod=p_param.gpsGetPeriod;
+    APP_info.param.SMSalertPeriod=p_param.SMSalertPeriod;
+    APP_info.param.SMSalertCoolDown=p_param.SMSalertCoolDown;
+}
+
 void APP_RGB_humidity ( uint8_t ADC_humedad )
 {
     
@@ -441,6 +462,7 @@ void APP_clearHumidityAlert()
 {
     APP_info.humidity.alert = false;
 }
+
 APP_FUNC_STATUS_t APP_setThresholds( void )
 {
     static uint8_t state_thresholds = APP_SET_THRESHOLDS_INIT;
@@ -721,6 +743,53 @@ APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t
 }
 
 
+APP_FUNC_STATUS_t APP_celularConfig()
+{
+    static uint8_t state_celConfig = APP_STATE_INIT;
+    static int8_t retMenu_celConfig;
+    
+    switch( state_celConfig )
+    {
+        case APP_STATE_INIT:
+            UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_CEL_CONFIG, "Configuración Celular" );
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_CEL_CONFIG, "Configurar GSM" );
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_CEL_CONFIG, "Setear Nro de Emergencia" );
+            state_celConfig = APP_STATE_MENU_SHOW;
+            //break; intentional breakthrough
+    
+        case APP_STATE_MENU_SHOW:
+            retMenu_celConfig = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PRINCIPAL );
+            state_celConfig = APP_STATE_MENU_OPTIONS;
+            //break; intentional breakthrough
+            
+        case APP_STATE_MENU_OPTIONS:
+            switch( retMenu_celConfig )
+            {
+                    
+                case -1: //return 
+                    return APP_FUNC_RETURN;
+                    
+                case 1:
+                    //configurar GSM
+                    break;
+                    
+                case 2:
+                    //setear nuevo numero
+                    break;
+                    
+                default: 
+                case 0: //working
+                    state_celConfig = APP_STATE_INIT;
+                    break;
+            }
+            break;
+    
+    }
+
+    return APP_FUNC_WORKING;
+}
+
+
 bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion 
 {
     static uint8_t APP_INIT_STATE = APP_INIT_VARS;
@@ -729,24 +798,29 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
     {
         case APP_INIT_VARS:
             APP_pot2RGBEnable( false );
-            APP_info.humidity.level = 0;
+            APP_info.humidity.level = APP_HUMIDITY_DEFAULT_LEVEL;
             APP_info.plantID = APP_DEFAULT_PLANT_ID;
             APP_info.humidity.alert = false;
-            APP_info.humidity.coolDown = true;
+            APP_info.humidity.coolDown = false;
             APP_THRESHOLD_initialize();
+            APP_PARAM_initialize();
             APP_INIT_STATE = APP_INIT_MDM;
             //intentional breakthrough
             
         case APP_INIT_MDM:
             if( MDM_Init() )
             {
+                USB_write("+ Modem Encendido\n");
                 if( MDM_sendInitialAT() )
                 {
+                    USB_write("+ Modem Configurado\n");
                     APP_INIT_STATE = APP_INIT_VARS;
                     return true;
                 }
             }
             break;
+            
+        default: break;
     }
     return false;    
 }
@@ -834,13 +908,14 @@ void APP_tasks()
     
     
     // SENSADO DE HUMEDAD
-//    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
-    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, 500, false ) )
+    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
     {
         if( APP_getHumidity() )
         {
             if( APP_pot2RGBIsEnabled() )
             {
+                sprintf(USB_dummyBuffer,"humedad: %d - %d - %d \n",APP_info.humidity.level, APP_info.humidity.coolDown, MDM_taskGetStatus( MDM_TASK_SEND_SMS ) );
+                USB_write(USB_dummyBuffer);
                 APP_pot2RGB( APP_info.humidity.level );
             }
         }
@@ -851,8 +926,7 @@ void APP_tasks()
     switch( MDM_taskGetStatus( MDM_TASK_GET_GPS_FRAME ) )
     {
         case MDM_TASK_STATUS_UNDEF:
-//            if( UTS_delayms( UTS_DELAY_HANDLER_GPS_GET, APP_info.param.gpsGetPeriod, false ) )
-            if( UTS_delayms( UTS_DELAY_HANDLER_GPS_GET, 5000, false ) )
+            if( UTS_delayms( UTS_DELAY_HANDLER_GPS_GET, APP_info.param.gpsGetPeriod, false ) )
             {
                 MDM_taskSchedule( MDM_TASK_GET_GPS_FRAME, NULL );
             }
@@ -871,7 +945,7 @@ void APP_tasks()
     // ENVIO DE ALERTA POR SMS 
     if( !APP_info.humidity.coolDown && APP_checkHumidityAlert() )
     {
-                                //TENER ARMADO EL SMS!!
+                                                                    //TENER ARMADO EL SMS!!
         switch( MDM_taskGetStatus( MDM_TASK_SEND_SMS ) )
         {
             case MDM_TASK_STATUS_UNDEF:
@@ -879,7 +953,8 @@ void APP_tasks()
                 break;
 
             case MDM_TASK_STATUS_DONE:
-                APP_clearHumidityAlert();   //cuando se resetea el estado DONE 
+                MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_UNDEF );
+                APP_clearHumidityAlert();   
                 APP_info.humidity.coolDown = true;
                 break;
 
@@ -890,18 +965,17 @@ void APP_tasks()
     }
     else if( APP_info.humidity.coolDown )
     {
-//        if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_COOLDOWN, APP_info.param.SMSalertCoolDown, false ) )
-        if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_COOLDOWN, 60000, false ) )
+        if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_COOLDOWN, APP_info.param.SMSalertCoolDown, false ) )
         {
             APP_info.humidity.coolDown = false;
         }
     }
      
-    if( UTS_delayms( UTS_DELAY_HANDLER_REGISTRY_LOG, APP_info.param.logRegisterPeriod, false ) && APP_info.position_validity )
-    {
-        //GUARDAR EN EL BUFFER
-        //ID PLANTA - FECHA - HORA - HUMEDAD - POSICION
-    }
+//    if( UTS_delayms( UTS_DELAY_HANDLER_REGISTRY_LOG, APP_info.param.logRegisterPeriod, false ) && APP_info.position_validity )
+//    {
+//        //GUARDAR EN EL BUFFER
+//        //ID PLANTA - FECHA - HORA - HUMEDAD - POSICION
+//    }
             
 
         // esperar un comando por sms
@@ -939,6 +1013,7 @@ void APP_UI() //interfaz de usuario
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Teléfono" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" );
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configuración Celular" );
             // configurar parametros 
             UI_STATE = APP_UI_STATE_PRINT_HEADER;
             break;   
@@ -981,6 +1056,10 @@ void APP_UI() //interfaz de usuario
                     break;
                     
                 case 4: //ACCESO AL REGISTRO
+                    break;
+                    
+                case 5:
+                    // configuraion celular 
                     break;
                     
                 

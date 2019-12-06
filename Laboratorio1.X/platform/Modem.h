@@ -27,11 +27,11 @@ typedef enum
 
 typedef enum
 {
+    MDM_TASK_STATUS_UNDEF,
     MDM_TASK_STATUS_DONE,
     MDM_TASK_STATUS_WORKING,
     MDM_TASK_STATUS_NEW,
     MDM_TASK_STATUS_ERROR,
-    MDM_TASK_STATUS_UNDEF,
 }MDM_TASK_STATUS_t;
 
 typedef struct
