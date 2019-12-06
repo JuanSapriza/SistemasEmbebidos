@@ -23,7 +23,7 @@ APP_var_t APP_info;
 APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 uint32_t APP_logBufferHead;
 bool APP_convertPot2RGB;
-
+uint8_t APP_stringBuffer[APP_SHORT_STRING_SIZE];
 
 bool APP_pot2RGBIsEnabled();
 void APP_pot2RGBEnable( bool p_enable );
@@ -31,6 +31,10 @@ void APP_changePlantID( uint16_t p_newID );
 APP_FUNC_STATUS_t APP_getNewPlantID();
 bool APP_checkHumidityAlert();
 void APP_clearHumidityAlert();
+APP_FUNC_STATUS_t APP_setThresholds();
+uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
+APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold );
+
 
 void APP_THRESHOLD_initialize()
 {
@@ -139,7 +143,7 @@ void APP_changePlantID( uint16_t p_newID )
 APP_FUNC_STATUS_t APP_getNewPlantID()
 {
     static uint8_t state = APP_GET_NEW_ID_SHOW;
-    int32_t aux; 
+    static int32_t aux; 
     
     switch( state )
     {
@@ -163,10 +167,11 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
         case APP_GET_NEW_ID_VALIDATE:
             if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
             {
+                state = APP_GET_NEW_ID_SHOW;
                 return APP_FUNC_RETURN;
             }
             aux = (int32_t) atoi( USB_whatsInReadBuffer() );
-            if( aux >= 0 && aux <= APP_PLANT_ID_MAX_NUM )
+            if( aux > 0 && aux <= APP_PLANT_ID_MAX_NUM )
             {
                 state = APP_GET_NEW_ID_RESPONSE_OK;
             }
@@ -436,8 +441,287 @@ void APP_clearHumidityAlert()
 {
     APP_info.humidity.alert = false;
 }
+APP_FUNC_STATUS_t APP_setThresholds( void )
+{
+    static uint8_t state_thresholds = APP_SET_THRESHOLDS_INIT;
+    static int8_t retMenu_thresholds; 
+    
+    static int8_t aux_threshold_saturated;
+    static int8_t aux_threshold_slightly_saturated;
+    static int8_t aux_threshold_dry;
+    static int8_t aux_threshold_slightly_dry;
+    static int8_t aux_threshold_automatic_low;
+    static int8_t aux_threshold_automatic_high;    
+    static int8_t aux_threshold_manual;        
+    static APP_THRESHOLD_NAMES_t selectedThreshold; 
+    
+    int8_t aux_user_threshold;
+    
+    switch( state_thresholds )
+    {
+        case APP_SET_THRESHOLDS_INIT:
+            
+            aux_threshold_saturated=APP_info.threshold.saturated;
+            aux_threshold_slightly_saturated=APP_info.threshold.slightly_saturated;
+            aux_threshold_dry=APP_info.threshold.dry;
+            aux_threshold_slightly_dry=APP_info.threshold.slightly_dry;
+            aux_threshold_automatic_low=APP_info.threshold.low_automatic;
+            aux_threshold_automatic_high=APP_info.threshold.high_automatic;    
+            aux_threshold_manual=APP_info.threshold.manual; 
+        
+            state_thresholds = APP_SET_THRESHOLDS_MENU;
+            
+//            break;  intentiugify breajgkgyft   
+    
+        case APP_SET_THRESHOLDS_MENU:
+            memset(USB_dummyBuffer,0,sizeof(USB_dummyBuffer));
+            
+            UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, "Configuración de umbrales. ¿Qué umbral desea modificar?" );
+            
+            sprintf( USB_dummyBuffer, "Umbral de saturación: %d",aux_threshold_saturated);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Umbral de riesgo de saturación: %d",aux_threshold_slightly_saturated);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Umbral de riesgo de sequía: %d",aux_threshold_slightly_dry);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Umbral de sequía: %d",aux_threshold_dry);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Punto óptimo para riego automático: %d",aux_threshold_automatic_low);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Umbral de sequía para riego automático: %d",aux_threshold_automatic_high);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Punto óptimo para riego manual: %d",aux_threshold_manual);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
+            
+            // configurar parametros 
+            state_thresholds = APP_SET_THRESHOLDS_SHOW;
+            //intentional breakthrough
+            
 
-bool APP_init()  //inicializaxion de cosas propias de nuestra aplicacion 
+            case APP_SET_THRESHOLDS_SHOW:
+            retMenu_thresholds = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_THRESHOLDS );
+            state_thresholds = APP_SET_THRESHOLDS_FUNCTIONS;
+            //intentional breakthrough
+            
+            
+            case APP_SET_THRESHOLDS_FUNCTIONS:
+            switch( retMenu_thresholds )
+            {
+                case 0: //working
+                    state_thresholds = APP_SET_THRESHOLDS_SHOW;
+                    selectedThreshold = APP_THRESHOLD_UNDEF;
+                    break;
+                    
+                case -1: //return                
+                           
+                    if ( ( aux_threshold_saturated < aux_threshold_slightly_saturated  ) && ( aux_threshold_slightly_saturated < aux_threshold_slightly_dry ) && ( aux_threshold_slightly_dry < aux_threshold_dry ) && ( aux_threshold_automatic_low < aux_threshold_automatic_high ) )
+                    {
+                        APP_info.threshold.saturated=aux_threshold_saturated;
+                        APP_info.threshold.slightly_saturated=aux_threshold_slightly_saturated;
+                        APP_info.threshold.dry=aux_threshold_dry;
+                        APP_info.threshold.slightly_dry=aux_threshold_slightly_dry;
+                        APP_info.threshold.low_automatic=aux_threshold_automatic_low;
+                        APP_info.threshold.high_automatic=aux_threshold_automatic_high;
+                        APP_info.threshold.manual=aux_threshold_manual; 
+
+                        state_thresholds = APP_SET_THRESHOLDS_INIT;   
+                        return APP_FUNC_RETURN;
+                    }  
+
+                    else
+                    {
+                        USB_write("\n\n ERROR \n");
+                        USB_write("\n\n Valores inconsistentes. Reingresar umbrales. \n");
+                        state_thresholds = APP_SET_THRESHOLDS_MENU;
+                    }
+                    selectedThreshold = APP_THRESHOLD_UNDEF;           
+                    break;
+                   
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                    selectedThreshold = (APP_THRESHOLD_NAMES_t) retMenu_thresholds;
+                    break;
+                    
+                default: break;
+            }
+            
+            if( selectedThreshold != APP_THRESHOLD_UNDEF )
+            {
+                switch( APP_getNewThreshold( selectedThreshold, &aux_user_threshold ) )
+                    {
+                        case APP_FUNC_RETURN:
+                            state_thresholds = APP_SET_THRESHOLDS_MENU;
+                            break;
+                            
+                        case APP_FUNC_DONE:
+                            switch( selectedThreshold )
+                            {
+                                case APP_THRESHOLD_SATURATED:
+                                    aux_threshold_saturated = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_SLIGHTLY_SATURATED:
+                                    aux_threshold_slightly_saturated = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_SLIGHTLY_DRY:
+                                    aux_threshold_slightly_dry = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_DRY:
+                                    aux_threshold_dry = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_AUTO_LOW:
+                                    aux_threshold_automatic_low = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_AUTO_HIGH:
+                                    aux_threshold_automatic_high = aux_user_threshold;
+                                    break;
+                                    
+                                case APP_THRESHOLD_MANUAL:
+                                    aux_threshold_manual = aux_user_threshold;
+                                    break;
+                                    
+                                default: break;
+                                    
+                            }
+                            selectedThreshold = APP_THRESHOLD_UNDEF;
+                            state_thresholds = APP_SET_THRESHOLDS_MENU;
+                            break;
+                            
+                        default: break;
+                    }
+            }
+            break;
+            
+        default: break;
+    
+    }
+
+    return APP_FUNC_WORKING;
+
+}
+     
+uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold )
+{
+    switch( p_threshold )
+    {
+        case APP_THRESHOLD_SATURATED:
+            strcpy( APP_stringBuffer, "saturación" );
+            break;
+    
+        case APP_THRESHOLD_SLIGHTLY_SATURATED:
+            strcpy( APP_stringBuffer, "riesgo de saturación" );
+            break;
+    
+        case APP_THRESHOLD_SLIGHTLY_DRY:
+            strcpy( APP_stringBuffer, "riesgo de sequía" );
+            break;
+    
+        case APP_THRESHOLD_DRY:
+            strcpy( APP_stringBuffer, "sequía" );
+            break;
+    
+    
+        case APP_THRESHOLD_AUTO_LOW:
+            strcpy( APP_stringBuffer, "punto óptimo para riego automático" );
+            break;
+    
+    
+        case APP_THRESHOLD_AUTO_HIGH:
+            strcpy( APP_stringBuffer, "sequía para riego automático" );
+            break;
+    
+    
+        case APP_THRESHOLD_MANUAL:
+            strcpy( APP_stringBuffer, "riego manual" );
+            break;
+    
+        default: return NULL;
+    
+    }
+    return APP_stringBuffer;
+}
+
+APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold )
+{
+    static uint8_t state = APP_SET_NEW_THRESHOLD_SHOW;
+    static int8_t aux; 
+    
+    switch( state )
+    {
+        case APP_SET_NEW_THRESHOLD_SHOW:
+            
+            sprintf(USB_dummyBuffer, "\nIngrese el nuevo valor para el umbral de %s \n", APP_threshold2String( p_threshold ) );
+            USB_write(USB_dummyBuffer);
+            sprintf( USB_dummyBuffer,"         - entre %d y %d cB -  \n",APP_HUMIDITY_MIN_NUM,APP_HUMIDITY_MAX_NUM);
+            USB_write(USB_dummyBuffer);
+            state = APP_SET_NEW_THRESHOLD_WAIT;
+            //intentional breakthrough
+            
+        case APP_SET_NEW_THRESHOLD_WAIT:
+            if( USB_sth2Read() )
+            {
+                state = APP_SET_NEW_THRESHOLD_VALIDATE;
+            }
+            else
+            {
+                break;
+            }
+            //intentional breakthrough
+            
+        case APP_SET_NEW_THRESHOLD_VALIDATE:
+            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
+            {                          
+                state = APP_SET_NEW_THRESHOLD_SHOW;
+                return APP_FUNC_RETURN;
+            }
+            
+            aux = (int8_t) atoi( USB_whatsInReadBuffer() );
+            if( aux >= APP_HUMIDITY_MIN_NUM && aux <= APP_HUMIDITY_MAX_NUM )
+            {
+                state = APP_SET_NEW_THRESHOLD_RESPONSE_OK;
+            }
+            else
+            {
+                state = APP_SET_NEW_THRESHOLD_RESPONSE_ERROR;
+            }
+            break;
+            
+        case APP_SET_NEW_THRESHOLD_RESPONSE_OK:
+            USB_write("\n\n El valor ha sido ingresado \n");
+            *p_users_new_threshold= aux;
+            state = APP_SET_NEW_THRESHOLD_SHOW;
+            return APP_FUNC_DONE;
+            
+        case APP_SET_NEW_THRESHOLD_RESPONSE_ERROR:
+            USB_write("\n\n ERROR \n");
+            sprintf( USB_dummyBuffer, "\n\n Ingrese un número entre %d y %d \n",APP_HUMIDITY_MIN_NUM,APP_HUMIDITY_MAX_NUM);
+            USB_write(USB_dummyBuffer);
+            state = APP_SET_NEW_THRESHOLD_WAIT;
+            break;
+    
+        default: break;
+    }
+    return APP_FUNC_WORKING;
+
+}
+
+
+bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion 
 {
     static uint8_t APP_INIT_STATE = APP_INIT_VARS;
     
@@ -446,7 +730,9 @@ bool APP_init()  //inicializaxion de cosas propias de nuestra aplicacion
         case APP_INIT_VARS:
             APP_pot2RGBEnable( false );
             APP_info.humidity.level = 0;
-            APP_info.plantID = 1234;
+            APP_info.plantID = APP_DEFAULT_PLANT_ID;
+            APP_info.humidity.alert = false;
+            APP_info.humidity.coolDown = true;
             APP_THRESHOLD_initialize();
             APP_INIT_STATE = APP_INIT_MDM;
             //intentional breakthrough
@@ -544,11 +830,12 @@ bool APP_init()  //inicializaxion de cosas propias de nuestra aplicacion
 void APP_tasks()
 {
     struct tm aux_tm;
-    static uint8_t APP_smsBuffer[100]; //larog maximo de un sms
+    static uint8_t APP_smsBuffer[APP_SMS_LENGTH]; //larog maximo de un sms
     
     
     // SENSADO DE HUMEDAD
-    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
+//    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
+    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, 500, false ) )
     {
         if( APP_getHumidity() )
         {
@@ -564,7 +851,8 @@ void APP_tasks()
     switch( MDM_taskGetStatus( MDM_TASK_GET_GPS_FRAME ) )
     {
         case MDM_TASK_STATUS_UNDEF:
-            if( UTS_delayms( UTS_DELAY_HANDLER_GPS_GET, APP_info.param.gpsGetPeriod, false ) )
+//            if( UTS_delayms( UTS_DELAY_HANDLER_GPS_GET, APP_info.param.gpsGetPeriod, false ) )
+            if( UTS_delayms( UTS_DELAY_HANDLER_GPS_GET, 5000, false ) )
             {
                 MDM_taskSchedule( MDM_TASK_GET_GPS_FRAME, NULL );
             }
@@ -572,7 +860,7 @@ void APP_tasks()
 
         case MDM_TASK_STATUS_DONE:
             GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
-//            MDM_tasks.gpscoso.state = undef; // @ToDo
+            MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
             break;
 
         default: 
@@ -584,7 +872,6 @@ void APP_tasks()
     if( !APP_info.humidity.coolDown && APP_checkHumidityAlert() )
     {
                                 //TENER ARMADO EL SMS!!
-        
         switch( MDM_taskGetStatus( MDM_TASK_SEND_SMS ) )
         {
             case MDM_TASK_STATUS_UNDEF:
@@ -603,7 +890,8 @@ void APP_tasks()
     }
     else if( APP_info.humidity.coolDown )
     {
-        if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_COOLDOWN, APP_info.param.SMSalertCoolDown, false ) )
+//        if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_COOLDOWN, APP_info.param.SMSalertCoolDown, false ) )
+        if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_COOLDOWN, 60000, false ) )
         {
             APP_info.humidity.coolDown = false;
         }
@@ -651,12 +939,12 @@ void APP_UI() //interfaz de usuario
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Teléfono" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" );
-            // configurar paramateros 
+            // configurar parametros 
             UI_STATE = APP_UI_STATE_PRINT_HEADER;
             break;   
             
         case APP_UI_STATE_PRINT_HEADER:
-            sprintf( USB_dummyBuffer, "\n    Nro ID: %04d \n",APP_info.plantID );
+            sprintf( USB_dummyBuffer, "\n    Nro ID: %04d ",APP_info.plantID );
             USB_write( USB_dummyBuffer );
             UI_STATE = APP_UI_STATE_MENU_SHOW;
             //intentional breakthrough
@@ -665,6 +953,7 @@ void APP_UI() //interfaz de usuario
             retMenu = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PRINCIPAL );
             UI_STATE = APP_UI_STATE_MENU_FUNCTIONS;
             //intentional breakthrough
+            
             
         case APP_UI_STATE_MENU_FUNCTIONS:
             switch( retMenu )
@@ -675,14 +964,17 @@ void APP_UI() //interfaz de usuario
                    break;
                    
                 case 1: //SETEAR ID DE PLANTA
-                    if( APP_getNewPlantID() )
+                    if( APP_getNewPlantID() ) //Se utiliza un if porque se distingue entre working (0) y done
                     {
                         UI_STATE = APP_UI_STATE_PRINT_HEADER;
                     }
                     break;
                     
                 case 2: // CONFIGURAR UMBRALES
-                    
+                    if( APP_setThresholds() ) //Se utiliza un if porque se distingue entre working (0) y return
+                    {
+                        UI_STATE = APP_UI_STATE_PRINT_HEADER;
+                    }
                     break;
                     
                 case 3: //CONFIGURAR TELÉFONO

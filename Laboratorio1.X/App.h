@@ -35,7 +35,6 @@
 
 
 
-#define APP_LOG_BUFFER_SIZE 5
 
 #define NUMERO_VICKY "\"+59891972950\""
 
@@ -48,8 +47,14 @@
 #define APP_THRESHOLD_MANUAL_DEFAULT 15
 
 #define APP_PLANT_ID_MAX_NUM 9999
+#define APP_DEFAULT_PLANT_ID 1234
 
+#define APP_HUMIDITY_MAX_NUM 60
+#define APP_HUMIDITY_MIN_NUM 1
 
+#define APP_LOG_BUFFER_SIZE 5
+#define APP_SHORT_STRING_SIZE 30
+#define APP_SMS_LENGTH 100
 
 #ifdef LABORATORIO_3_5
 
@@ -420,6 +425,40 @@ enum APP_GET_NEW_ID
     APP_GET_NEW_ID_RESPONSE_ERROR,
 };
 
+//---------------------------
+//Para setear umbrales:
+
+enum APP_SET_THRESHOLDS
+{
+    APP_SET_THRESHOLDS_INIT,
+    APP_SET_THRESHOLDS_MENU,
+    APP_SET_THRESHOLDS_SHOW,
+    APP_SET_THRESHOLDS_FUNCTIONS,
+};
+
+enum APP_SET_NEW_THRESHOLD
+{
+    APP_SET_NEW_THRESHOLD_SHOW,
+    APP_SET_NEW_THRESHOLD_WAIT,
+    APP_SET_NEW_THRESHOLD_VALIDATE,
+    APP_SET_NEW_THRESHOLD_RESPONSE_OK,
+    APP_SET_NEW_THRESHOLD_RESPONSE_ERROR,
+};            
+            
+typedef enum 
+{
+    APP_THRESHOLD_UNDEF,
+    APP_THRESHOLD_SATURATED,
+    APP_THRESHOLD_SLIGHTLY_SATURATED,
+    APP_THRESHOLD_SLIGHTLY_DRY,
+    APP_THRESHOLD_DRY,
+    APP_THRESHOLD_AUTO_LOW,
+    APP_THRESHOLD_AUTO_HIGH,
+    APP_THRESHOLD_MANUAL,
+}APP_THRESHOLD_NAMES_t;
+
+//---------------------------
+
 typedef enum
 {
     APP_FUNC_WORKING = 0,
@@ -473,7 +512,6 @@ typedef struct
 extern APP_var_t APP_info;
 
 extern APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
-
 
 
 //Funcion para mostrar el nivel de humedad con los leds RGB:

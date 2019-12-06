@@ -132,6 +132,7 @@ struct MDM_GNS_INFO
 
 
 void MDM_tasks();
+void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status );
 bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr );
 MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task );
 bool MDM_Init(void);

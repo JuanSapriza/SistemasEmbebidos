@@ -120,6 +120,8 @@ bool UTS_addTitle2Menu( UTS_MENU_HANDLER_t p_menu, uint8_t* p_title )
     if( strlen(p_title) >= UTS_MENU_ITEM_TITLE_LENGTH ) return false;  
     
     strcpy( UTS_menusVector[p_menu].title, p_title);
+    memset( UTS_menusVector[p_menu].optionNames, 0, sizeof(UTS_menusVector[p_menu].optionNames) );
+    UTS_menusVector[p_menu].optionsNumber = 0; 
     return true;
 }
 

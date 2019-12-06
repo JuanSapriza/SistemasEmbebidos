@@ -85,11 +85,11 @@ void MDM_tasks()
                     
                         
                 case MDM_TASK_READ_SMS:
-                    // lectura de sms
                     break;
                     
                 case MDM_TASK_SEND_SMS:
-                    // envio de sms
+                    MDM_task.SMS_send.status = MDM_TASK_STATUS_DONE;
+                    mdm_task = MDM_TASK_UNDEF;
                     break;
                     
                     
@@ -101,6 +101,28 @@ void MDM_tasks()
     }
     
 }
+
+
+void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status )
+{
+    switch( p_task )
+    {
+        case MDM_TASK_GET_GPS_FRAME:
+            MDM_task.GPS_get.status = MDM_TASK_STATUS_UNDEF;
+            break;
+    
+        case MDM_TASK_READ_SMS:
+            MDM_task.GPS_get.status = MDM_TASK_STATUS_UNDEF;
+            break;
+    
+        case MDM_TASK_SEND_SMS:
+            MDM_task.GPS_get.status = MDM_TASK_STATUS_UNDEF;
+            break;
+            
+        default: break;
+    }
+}
+
 
 bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
 {
