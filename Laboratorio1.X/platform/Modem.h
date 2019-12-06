@@ -16,22 +16,46 @@
 #define MDM_COMMAND_SYNTAX_PARAM_ASK "=?"
 #define MDM_COMMAND_SYNTAX_STATUS_ASK "?"
 
+
 typedef enum
 {
-    MODEM_GET_GPS_FRAME,
-    MODEM_SEND_SMS,
-    MODEM_READ_SMS,
-    MODEM_READ_UNDEF,
-} MDM_TASK_t;
+    MDM_TASK_GET_GPS_FRAME,
+    MDM_TASK_SEND_SMS,
+    MDM_TASK_READ_SMS,
+    MDM_TASK_UNDEF,
+} MDM_TASK_TASK_t;
 
-enum MODEM_ESTADO
+typedef enum
 {
-    MODEM_ESTADOS_INIT,
-    MODEM_ESTADOS_WAIT,
-    MODEM_ESTADOS_CHECK,
-    MODEM_ESTADOS_STATUS,
-    MODEM_ESTADOS_SEND,
-    MODEM_ESTADOS_TIMEOUT_CHECK,
+    MDM_TASK_STATUS_DONE,
+    MDM_TASK_STATUS_WORKING,
+    MDM_TASK_STATUS_NEW,
+    MDM_TASK_STATUS_ERROR,
+    MDM_TASK_STATUS_UNDEF,
+}MDM_TASK_STATUS_t;
+
+typedef struct
+{
+    MDM_TASK_STATUS_t status;
+    void* ptr;
+} MDM_TASK_ELEMENT_t;
+
+typedef struct
+{
+    MDM_TASK_ELEMENT_t GPS_get;
+    MDM_TASK_ELEMENT_t SMS_read;
+    MDM_TASK_ELEMENT_t SMS_send;
+}MDM_TASKS_t;
+
+enum MDM_ESTADO
+{
+    MDM_ESTADOS_INIT,
+    MDM_ESTADOS_WAIT,
+    MDM_ESTADOS_CHECK,
+    MDM_ESTADOS_STATUS,
+    MDM_ESTADOS_SEND,
+    MDM_ESTADOS_TIMEOUT_CHECK,
+    MDM_ESTADOS_EXECUTE,
 };
 
 typedef enum 
@@ -108,7 +132,9 @@ struct MDM_GNS_INFO
 
 
 void MDM_tasks();
-
+void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status );
+bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr );
+MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task );
 bool MDM_Init(void);
 void MDM_read( uint8_t* p_string );
 uint8_t* MDM_readString();

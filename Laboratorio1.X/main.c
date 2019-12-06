@@ -893,10 +893,9 @@ int main ()
                     }
                     break;
 
-                case APP_STATE_TASKS:                    
-                    
-                    APP_tasks();
+                case APP_STATE_TASKS:
                     APP_UI();
+                    APP_tasks();
                     MDM_tasks();
                     RGB_tasks();    //APP_RGB_tasks();
                     USB_CDC_tasks();

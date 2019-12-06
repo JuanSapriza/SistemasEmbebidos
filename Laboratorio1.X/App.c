@@ -32,6 +32,8 @@ bool APP_pot2RGBIsEnabled();
 void APP_pot2RGBEnable( bool p_enable );
 void APP_changePlantID( uint16_t p_newID );
 APP_FUNC_STATUS_t APP_getNewPlantID();
+bool APP_checkHumidityAlert();
+void APP_clearHumidityAlert();
 APP_FUNC_STATUS_t APP_setThresholds();
 uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
 APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold );
@@ -42,50 +44,50 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ( void );
 
 void APP_THRESHOLD_initialize()
 {
-    APP_info.thresholds.saturated=APP_THRESHOLD_SATURATED_DEFAULT;
-    APP_info.thresholds.slightly_saturated=APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT;
-    APP_info.thresholds.slightly_dry=APP_THRESHOLD_SLIGHTLY_DRY_DEFAULT;
-    APP_info.thresholds.dry=APP_THRESHOLD_DRY_DEFAULT;
-    APP_info.thresholds.low_automatic=APP_THRESHOLD_LOW_AUTOMATIC_DEFAULT;
-    APP_info.thresholds.high_automatic=APP_THRESHOLD_HIGH_AUTOMATIC_DEFAULT;
-    APP_info.thresholds.manual=APP_THRESHOLD_MANUAL_DEFAULT;
+    APP_info.threshold.saturated=APP_THRESHOLD_SATURATED_DEFAULT;
+    APP_info.threshold.slightly_saturated=APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT;
+    APP_info.threshold.slightly_dry=APP_THRESHOLD_SLIGHTLY_DRY_DEFAULT;
+    APP_info.threshold.dry=APP_THRESHOLD_DRY_DEFAULT;
+    APP_info.threshold.low_automatic=APP_THRESHOLD_LOW_AUTOMATIC_DEFAULT;
+    APP_info.threshold.high_automatic=APP_THRESHOLD_HIGH_AUTOMATIC_DEFAULT;
+    APP_info.threshold.manual=APP_THRESHOLD_MANUAL_DEFAULT;
 }
 
 void APP_THRESHOLD_set (APP_THRESHOLD_t p_threshold  )
 {
-    APP_info.thresholds.saturated=p_threshold.saturated;
-    APP_info.thresholds.slightly_saturated= p_threshold.slightly_saturated;
-    APP_info.thresholds.slightly_dry=p_threshold.slightly_dry;
-    APP_info.thresholds.dry=p_threshold.dry;
-    APP_info.thresholds.low_automatic=p_threshold.low_automatic;
-    APP_info.thresholds.high_automatic=p_threshold.high_automatic;
-    APP_info.thresholds.manual=p_threshold.manual;
+    APP_info.threshold.saturated=p_threshold.saturated;
+    APP_info.threshold.slightly_saturated= p_threshold.slightly_saturated;
+    APP_info.threshold.slightly_dry=p_threshold.slightly_dry;
+    APP_info.threshold.dry=p_threshold.dry;
+    APP_info.threshold.low_automatic=p_threshold.low_automatic;
+    APP_info.threshold.high_automatic=p_threshold.high_automatic;
+    APP_info.threshold.manual=p_threshold.manual;
 }
 
 void APP_RGB_humidity ( uint8_t ADC_humedad )
 {
     
-    if( ( (ADC_humedad>=0) && (ADC_humedad<=APP_info.thresholds.saturated) )  )
+    if( ( (ADC_humedad>=0) && (ADC_humedad<=APP_info.threshold.saturated) )  )
     {
         RGB_setAll( BLUE );
     }            
      
-    if( ( (ADC_humedad>APP_info.thresholds.saturated) && (ADC_humedad<=APP_info.thresholds.slightly_saturated) )  ) 
+    if( ( (ADC_humedad>APP_info.threshold.saturated) && (ADC_humedad<=APP_info.threshold.slightly_saturated) )  ) 
     {
         RGB_setAll( WATER_GREEN );
     }
     
-    if( (ADC_humedad>APP_info.thresholds.slightly_saturated) && (ADC_humedad<=APP_info.thresholds.slightly_dry) ) 
+    if( (ADC_humedad>APP_info.threshold.slightly_saturated) && (ADC_humedad<=APP_info.threshold.slightly_dry) ) 
     {
         RGB_setAll( GREEN );
     }
     
-    if( ( (ADC_humedad>APP_info.thresholds.slightly_dry) && (ADC_humedad<=APP_info.thresholds.dry) )) 
+    if( ( (ADC_humedad>APP_info.threshold.slightly_dry) && (ADC_humedad<=APP_info.threshold.dry) )) 
     {
         RGB_setAll( YELLOW );
     }
     
-    if( (ADC_humedad>APP_info.thresholds.dry) && (ADC_humedad<=60)  )
+    if( (ADC_humedad>APP_info.threshold.dry) && (ADC_humedad<=60)  )
     {
         RGB_setAll( RED );
     }
@@ -102,7 +104,7 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad )
     switch ( APP_IRRIGATE )
     {
         case APP_IRRIGATE_OFF:        
-            if( (ADC_humedad)>APP_info.thresholds.high_automatic )
+            if( (ADC_humedad)>APP_info.threshold.high_automatic )
             {
                 APP_LEDA=APP_LEDA_ON;
                 APP_IRRIGATE = APP_IRRIGATE_ON;
@@ -110,7 +112,7 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad )
             break;
             
         case APP_IRRIGATE_ON:   
-            if( (ADC_humedad)<APP_info.thresholds.low_automatic )
+            if( (ADC_humedad)<APP_info.threshold.low_automatic )
             {
                 APP_LEDA=APP_LEDA_OFF;
                 APP_IRRIGATE = APP_IRRIGATE_OFF;
@@ -222,7 +224,7 @@ void APP_LOG_data ( APP_var_t* log_data )
             
         case APP_LOG_PTR_OK:
             
-            ptr_buffer->humidity = log_data->humidity;
+            ptr_buffer->humidity = log_data->humidity.level;
             ptr_buffer->plantID = log_data->plantID;
             ptr_buffer->position.latitude = log_data->position.latitude;
             ptr_buffer->position.longitude = log_data->position.longitude;
@@ -281,7 +283,7 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
         case APP_MANUAL_IRRIGATE_BTN_PRESSED:
            
             
-            if ( ADC_humedad > APP_info.thresholds.manual )
+            if ( ADC_humedad > APP_info.threshold.manual )
             {
                 APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_ON;
             }
@@ -297,7 +299,7 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
             
             LED_A_SetHigh();
             
-            if ( ADC_humedad <= APP_info.thresholds.manual )
+            if ( ADC_humedad <= APP_info.threshold.manual )
             {
                 APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_OFF;
             }
@@ -315,96 +317,96 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
  
 }
 
-void APP_MDM_tasks()
-{
-    static uint8_t state = APP_STATE_INIT;
-    uint8_t* ret;
-    
-    
-    switch( state )
-    {
-        case APP_STATE_INIT:
-            if( MDM_Init() )
-            {
-                if( MDM_sendInitialAT() )
-                {
-                    state = APP_STATE_GSM_SMS_INIT;
-                }
-            }
-            break;
-
-        case APP_STATE_GSM_SMS_INIT:
-            if( MDM_GSM_init() == MDM_AT_RESP_NAME_OK )
-            {
-                state = APP_STATE_GPS_GET;
+//void APP_MDM_tasks()
+//{
+//    static uint8_t state = APP_STATE_INIT;
+//    uint8_t* ret;
+//    
+//    
+//    switch( state )
+//    {
+//        case APP_STATE_INIT:
+//            if( MDM_Init() )
+//            {
+//                if( MDM_sendInitialAT() )
+//                {
+//                    state = APP_STATE_GSM_SMS_INIT;
+//                }
+//            }
+//            break;
+//
+//        case APP_STATE_GSM_SMS_INIT:
+//            if( MDM_GSM_init() == MDM_AT_RESP_NAME_OK )
+//            {
+//                state = APP_STATE_GPS_GET;
+////                state = APP_STATE_GSM_SMS_GET;
+//            }
+//            break;
+//
+//        case APP_STATE_GPS_GET:
+//            switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
+//            {
+//                case MDM_AT_RESP_NAME_GNS_GET_INF:
+//                    state = APP_STATE_PARSE_FRAME;
+//                    break;
+//
+//                case MDM_AT_RESP_NAME_ERROR:
+//                    state = APP_STATE_WAIT;
+//                    break;
+//
+//                    case MDM_AT_RESP_NAME_WORKING:
+//                    break;
+//
+//                default:
+//                    break;
+//            }
+//            break;    
+//
+//        case APP_STATE_PARSE_FRAME:
+//
+//
+//            break;
+//            
+//        case APP_STATE_GSM_SMS_GET:
+//            if( BTN_isButtonPressed( BTN_BUTTON_A ) )
+//            {
+//                ret = USB_read(0);
+//                if( ret[0] != 0 )
+//                {
+//                    state = APP_STATE_GSM_SMS_SEND;
+//                }
+//            }
+//            break;
+//
+//        case APP_STATE_GSM_SMS_SEND:
+//            if( MDM_sendSMS( NUMERO_VICKY, ret ) )
+//            {
 //                state = APP_STATE_GSM_SMS_GET;
-            }
-            break;
+//            }
+//            break;    
+//            
+//        default: break;
+//    
+//    }
+//}
 
-        case APP_STATE_GPS_GET:
-            switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
-            {
-                case MDM_AT_RESP_NAME_GNS_GET_INF:
-                    state = APP_STATE_PARSE_FRAME;
-                    break;
-
-                case MDM_AT_RESP_NAME_ERROR:
-                    state = APP_STATE_WAIT;
-                    break;
-
-                    case MDM_AT_RESP_NAME_WORKING:
-                    break;
-
-                default:
-                    break;
-            }
-            break;    
-
-        case APP_STATE_PARSE_FRAME:
-
-
-            break;
-            
-        case APP_STATE_GSM_SMS_GET:
-            if( BTN_isButtonPressed( BTN_BUTTON_A ) )
-            {
-                ret = USB_read(0);
-                if( ret[0] != 0 )
-                {
-                    state = APP_STATE_GSM_SMS_SEND;
-                }
-            }
-            break;
-
-        case APP_STATE_GSM_SMS_SEND:
-            if( MDM_sendSMS( NUMERO_VICKY, ret ) )
-            {
-                state = APP_STATE_GSM_SMS_GET;
-            }
-            break;    
-            
-        default: break;
-    
-    }
-}
-
-void APP_RGB_tasks()
-{
-    switch( RGB_displayType )
-    {
-        case RGB_DISPLAY_TYPE_UNDEF:
-        case RGB_DISPLAY_TYPE_ALL:
-        case RGB_DISPLAY_TYPE_1_BY_1:
-            break;
-            
-        case RGB_DISPLAY_TYPE_GO_ROUND:
-            RGB_goRound( RGB_goRoundConfig );
-            break;
-            
-        default: break;
-    }
-    RGB_tasks();
-}
+//void APP_RGB_tasks()
+//{
+//    switch( RGB_displayType )
+//    {
+//        case RGB_DISPLAY_TYPE_UNDEF:
+//        case RGB_DISPLAY_TYPE_ALL:
+//        case RGB_DISPLAY_TYPE_1_BY_1:
+//            break;
+//            
+//        case RGB_DISPLAY_TYPE_GO_ROUND:
+//            RGB_goRound( RGB_goRoundConfig );
+//            break;
+//            
+//        default: break;
+//    }
+//    RGB_tasks();
+//}
 
 
 uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
@@ -428,7 +430,7 @@ bool APP_getHumidity()
     
     if(POT_Convert( &datos_potenciometro ) )
     {
-        APP_info.humidity  = POT_Linearized ( datos_potenciometro ); 
+        APP_info.humidity.level  = POT_Linearized ( datos_potenciometro ); 
         return true;
     }
     return false;
@@ -441,6 +443,19 @@ void APP_pot2RGB( uint8_t p_humidity )
     APP_BTNA_manual_irrigate ( p_humidity );
 }
 
+bool APP_checkHumidityAlert()
+{
+    if( APP_info.humidity.level < APP_info.threshold.saturated || APP_info.humidity.level > APP_info.threshold.dry )
+    {
+        APP_info.humidity.alert = true;
+    }
+    return APP_info.humidity.alert;
+}
+
+void APP_clearHumidityAlert()
+{
+    APP_info.humidity.alert = false;
+}
 APP_FUNC_STATUS_t APP_setThresholds( void )
 {
     static uint8_t state_thresholds = APP_SET_THRESHOLDS_INIT;
@@ -461,13 +476,13 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
     {
         case APP_SET_THRESHOLDS_INIT:
             
-            aux_threshold_saturated=APP_info.thresholds.saturated;
-            aux_threshold_slightly_saturated=APP_info.thresholds.slightly_saturated;
-            aux_threshold_dry=APP_info.thresholds.dry;
-            aux_threshold_slightly_dry=APP_info.thresholds.slightly_dry;
-            aux_threshold_automatic_low=APP_info.thresholds.low_automatic;
-            aux_threshold_automatic_high=APP_info.thresholds.high_automatic;    
-            aux_threshold_manual=APP_info.thresholds.manual; 
+            aux_threshold_saturated=APP_info.threshold.saturated;
+            aux_threshold_slightly_saturated=APP_info.threshold.slightly_saturated;
+            aux_threshold_dry=APP_info.threshold.dry;
+            aux_threshold_slightly_dry=APP_info.threshold.slightly_dry;
+            aux_threshold_automatic_low=APP_info.threshold.low_automatic;
+            aux_threshold_automatic_high=APP_info.threshold.high_automatic;    
+            aux_threshold_manual=APP_info.threshold.manual; 
         
             state_thresholds = APP_SET_THRESHOLDS_MENU;
             
@@ -500,28 +515,6 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_THRESHOLDS, USB_dummyBuffer );
             
             // configurar parametros 
-            state_thresholds = APP_SET_THRESHOLDS_HEADERS;
-            break;
-            
-        case APP_SET_THRESHOLDS_HEADERS:
-            
-//            USB_write("\n Los valores de los umbrales actuales son: \n");
-//            sprintf( USB_dummyBuffer, "\n    Umbral de saturación: %d \n",aux_threshold_saturated);
-//            USB_write( USB_dummyBuffer );
-//            sprintf( USB_dummyBuffer, "\n    Umbral de riesgo de saturación: %d \n",aux_threshold_slightly_saturated);
-//            USB_write( USB_dummyBuffer );
-//            sprintf( USB_dummyBuffer, "\n    Umbral de riesgo de sequedad: %d \n",aux_threshold_slightly_dry);
-//            USB_write( USB_dummyBuffer );
-//            sprintf( USB_dummyBuffer, "\n    Umbral de sequedad: %02d \n",aux_threshold_dry);
-//            USB_write( USB_dummyBuffer );
-//            sprintf( USB_dummyBuffer, "\n    Punto óptimo para riego automático: %d \n",aux_threshold_automatic_high);
-//            USB_write( USB_dummyBuffer );
-//            sprintf( USB_dummyBuffer, "\n    Umbral de sequedad para riego automático: %d \n",aux_threshold_automatic_low);
-//            USB_write( USB_dummyBuffer );
-//            sprintf( USB_dummyBuffer, "\n    Punto óptimo para riego manual: %d \n",aux_threshold_manual);
-//            USB_write( USB_dummyBuffer );
-            
-            
             state_thresholds = APP_SET_THRESHOLDS_SHOW;
             //intentional breakthrough
             
@@ -544,13 +537,13 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
                            
                     if ( ( aux_threshold_saturated < aux_threshold_slightly_saturated  ) && ( aux_threshold_slightly_saturated < aux_threshold_slightly_dry ) && ( aux_threshold_slightly_dry < aux_threshold_dry ) && ( aux_threshold_automatic_low < aux_threshold_automatic_high ) )
                     {
-                        APP_info.thresholds.saturated=aux_threshold_saturated;
-                        APP_info.thresholds.slightly_saturated=aux_threshold_slightly_saturated;
-                        APP_info.thresholds.dry=aux_threshold_dry;
-                        APP_info.thresholds.slightly_dry=aux_threshold_slightly_dry;
-                        APP_info.thresholds.low_automatic=aux_threshold_automatic_low;
-                        APP_info.thresholds.high_automatic=aux_threshold_automatic_high;
-                        APP_info.thresholds.manual=aux_threshold_manual; 
+                        APP_info.threshold.saturated=aux_threshold_saturated;
+                        APP_info.threshold.slightly_saturated=aux_threshold_slightly_saturated;
+                        APP_info.threshold.dry=aux_threshold_dry;
+                        APP_info.threshold.slightly_dry=aux_threshold_slightly_dry;
+                        APP_info.threshold.low_automatic=aux_threshold_automatic_low;
+                        APP_info.threshold.high_automatic=aux_threshold_automatic_high;
+                        APP_info.threshold.manual=aux_threshold_manual; 
 
                         state_thresholds = APP_SET_THRESHOLDS_INIT;   
                         return APP_FUNC_RETURN;
@@ -574,108 +567,7 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
                 case 7:
                     selectedThreshold = (APP_THRESHOLD_NAMES_t) retMenu_thresholds;
                     break;
-//                
-//                case 1: //SETEAR UMBRAL 1
-//                    if( APP_getNewThreshold( APP_THRESHOLD_SATURATED, &aux_user_threshold ) )
-//                    {              
-//                        aux_threshold_saturated=aux_user_threshold;
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                                       
-//                    if ( APP_getNewThreshold( APP_THRESHOLD_SATURATED,&aux_user_threshold )==APP_FUNC_RETURN )
-//                    {
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                    
-//                    break;
-//                    
-//                case 2: //SETEAR UMBRAL 2
-//                    if( APP_getNewThreshold( APP_THRESHOLD_SLIGHTLY_SATURATED, &aux_user_threshold ) )
-//                    {              
-//                        aux_threshold_slightly_saturated=aux_user_threshold;
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                                       
-//                    if ( APP_getNewThreshold( APP_THRESHOLD_SLIGHTLY_SATURATED,&aux_user_threshold )==APP_FUNC_RETURN )
-//                    {
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                   
-//                    break;
-//                
-//                    
-//                case 3: //SETEAR UMBRAL 3
-//                    if( APP_getNewThreshold( APP_THRESHOLD_SLIGHTLY_DRY, &aux_user_threshold ) )
-//                    {              
-//                        aux_threshold_slightly_dry=aux_user_threshold;
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                                       
-//                    if ( APP_getNewThreshold( APP_THRESHOLD_SLIGHTLY_DRY, &aux_user_threshold )==APP_FUNC_RETURN )
-//                    {
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                    
-//                    break;
-//                    
-//                case 4: //SETEAR UMBRAL 4
-//                    if( APP_getNewThreshold( APP_THRESHOLD_DRY,&aux_user_threshold ) )
-//                    {              
-//                        aux_threshold_dry=aux_user_threshold;
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                                       
-//                    if ( APP_getNewThreshold( APP_THRESHOLD_DRY, &aux_user_threshold )==APP_FUNC_RETURN )
-//                    {
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                    
-//                    break;
-//                    
-//                case 5: //SETEAR UMBRAL 5
-//                    if( APP_getNewThreshold( APP_THRESHOLD_AUTO_LOW, &aux_user_threshold ) )
-//                    {              
-//                        aux_threshold_automatic_low=aux_user_threshold;
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                                       
-//                    if ( APP_getNewThreshold( APP_THRESHOLD_AUTO_LOW, &aux_user_threshold )==APP_FUNC_RETURN )
-//                    {
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                    
-//                    break;
-//                
-//                case 6: //SETEAR UMBRAL 6
-//                    if( APP_getNewThreshold( APP_THRESHOLD_AUTO_HIGH, &aux_user_threshold ) )
-//                    {              
-//                        aux_threshold_automatic_high=aux_user_threshold;
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                                       
-//                    if ( APP_getNewThreshold( APP_THRESHOLD_AUTO_HIGH, &aux_user_threshold )==APP_FUNC_RETURN )
-//                    {
-//                        state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                    }
-//                    
-//                    break;    
-//                
-//                case 7: //SETEAR UMBRAL 7
-//                    switch( APP_getNewThreshold( APP_THRESHOLD_MANUAL, &aux_user_threshold ) )
-//                    {
-//                        case APP_FUNC_RETURN:
-//                            state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                            break;
-//                            
-//                            
-//                        case APP_FUNC_DONE:
-//                            aux_threshold_manual=aux_user_threshold;
-//                            state_thresholds = APP_SET_THRESHOLDS_MENU;
-//                            break;
-//                            
-//                        default: break;
-//                    }
-//                    break;                    
+                    
                 default: break;
             }
             
@@ -926,8 +818,10 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
     {
         case APP_INIT_VARS:
             APP_pot2RGBEnable( false );
-            APP_info.humidity = 0;
-            APP_info.plantID = 1234;
+            APP_info.humidity.level = 0;
+            APP_info.plantID = APP_DEFAULT_PLANT_ID;
+            APP_info.humidity.alert = false;
+            APP_info.humidity.coolDown = true;
             APP_THRESHOLD_initialize();
             APP_INIT_STATE = APP_INIT_MDM;
             //intentional breakthrough
@@ -946,37 +840,160 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
     return false;    
 }
 
-APP_tasks()
+//APP_tasks()
+//{
+//    static uint8_t APP_TASK_STATE = APP_TASK_POT;
+//    struct tm aux_tm;
+//    
+//    switch( APP_TASK_STATE )
+//    {
+//        case APP_TASK_POT:
+//            if( APP_getHumidity() )
+//            {
+//                APP_TASK_STATE = APP_TASK_POT_2_RGB;
+//            }
+//            break;
+//            
+//        case APP_TASK_POT_2_RGB:
+//            if( APP_pot2RGBIsEnabled() )
+//            {
+//                APP_pot2RGB( APP_info.humidity );
+//            }
+//            APP_TASK_STATE = APP_TASK_POT;
+//            break;
+//            
+//        case APP_TASK_GPS_GET:
+//            switch( MDM_taskGetStatus( MDM_TASK_GET_GPS_FRAME ) )
+//            {
+//                case MDM_TASK_STATUS_UNDEF:
+//                    //condicion para obtener una trama gps
+//                        MDM_taskSchedule( MDM_TASK_GET_GPS_FRAME, NULL );
+//                    break;
+//                    
+//                case MDM_TASK_STATUS_DONE:
+//                    GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
+//                    APP_TASK_STATE = APP_TASK_SMS_SEND;
+//                    break;
+//                    
+//                default: 
+//                    //que hago?
+//                    break;
+//            
+//            }
+//            break;
+//            
+//        case APP_TASK_SMS_SEND:
+//            switch( MDM_taskGetStatus( MDM_TASK_GET_GPS_FRAME ) )
+//            {
+//                case MDM_TASK_STATUS_UNDEF:
+//                    //condicion para mandar un sms...
+//                        MDM_taskSchedule( MDM_TASK_GET_GPS_FRAME, NULL );
+//                        
+//                    break;
+//                    
+//                case MDM_TASK_STATUS_DONE:
+//                    //que hago?
+//                    break;
+//                    
+//                default: 
+//                    //que hago?
+//                    break;
+//            }
+//            break;
+//            
+//            
+//        case APP_TASK_REGISTER_SAVE:
+//            //si llego la condicion para guardar un registro, lo guard
+//            // y si la trama gps no es valida no guardarlo.  
+//
+//            
+//            // control ( SI ME VOY DE MAMBO ENVIAR UN SMS!! )
+//            
+//            // esperar un comando por sms
+//            
+//        default: break;
+//    }
+//}
+
+
+void APP_tasks()
 {
-    static uint8_t APP_TASK_STATE = APP_TASK_POT;
+    struct tm aux_tm;
+    static uint8_t APP_smsBuffer[APP_SMS_LENGTH]; //larog maximo de un sms
     
-    switch( APP_TASK_STATE )
+    
+    // SENSADO DE HUMEDAD
+//    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
+    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, 500, false ) )
     {
-        case APP_TASK_POT:
-            if( APP_getHumidity() )
-            {
-                APP_TASK_STATE = APP_TASK_POT_2_RGB;
-            }
-            break;
-            
-        case APP_TASK_POT_2_RGB:
+        if( APP_getHumidity() )
+        {
             if( APP_pot2RGBIsEnabled() )
             {
-                APP_pot2RGB( APP_info.humidity );
+                APP_pot2RGB( APP_info.humidity.level );
             }
-            APP_TASK_STATE = APP_TASK_POT;
-            break;
-            
-            // obtener trama gps
-            
-            // armar un registro 
-            
-            // control ( SI ME VOY DE MAMBO ENVIAR UN SMS!! )
-            
-            // esperar un comando por sms
-            
-        default: break;
+        }
     }
+    
+    
+    // OBTENCION DE TRAMA GPS 
+    switch( MDM_taskGetStatus( MDM_TASK_GET_GPS_FRAME ) )
+    {
+        case MDM_TASK_STATUS_UNDEF:
+//            if( UTS_delayms( UTS_DELAY_HANDLER_GPS_GET, APP_info.param.gpsGetPeriod, false ) )
+            if( UTS_delayms( UTS_DELAY_HANDLER_GPS_GET, 5000, false ) )
+            {
+                MDM_taskSchedule( MDM_TASK_GET_GPS_FRAME, NULL );
+            }
+            break;
+
+        case MDM_TASK_STATUS_DONE:
+            GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
+            MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
+            break;
+
+        default: 
+            //que hago?
+            break;
+    } 
+    
+    // ENVIO DE ALERTA POR SMS 
+    if( !APP_info.humidity.coolDown && APP_checkHumidityAlert() )
+    {
+                                //TENER ARMADO EL SMS!!
+        switch( MDM_taskGetStatus( MDM_TASK_SEND_SMS ) )
+        {
+            case MDM_TASK_STATUS_UNDEF:
+                MDM_taskSchedule( MDM_TASK_SEND_SMS, (uint8_t*) APP_smsBuffer );
+                break;
+
+            case MDM_TASK_STATUS_DONE:
+                APP_clearHumidityAlert();   //cuando se resetea el estado DONE 
+                APP_info.humidity.coolDown = true;
+                break;
+
+            default: 
+                //que hago?
+                break;
+        } 
+    }
+    else if( APP_info.humidity.coolDown )
+    {
+//        if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_COOLDOWN, APP_info.param.SMSalertCoolDown, false ) )
+        if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_COOLDOWN, 60000, false ) )
+        {
+            APP_info.humidity.coolDown = false;
+        }
+    }
+     
+    if( UTS_delayms( UTS_DELAY_HANDLER_REGISTRY_LOG, APP_info.param.logRegisterPeriod, false ) && APP_info.position_validity )
+    {
+        //GUARDAR EN EL BUFFER
+        //ID PLANTA - FECHA - HORA - HUMEDAD - POSICION
+    }
+            
+
+        // esperar un comando por sms
 }
 
 void APP_UI() //interfaz de usuario

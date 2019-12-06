@@ -35,7 +35,6 @@
 
 
 
-#define APP_LOG_BUFFER_SIZE 3
 
 #define NUMERO_VICKY "\"+59891972950\""
 
@@ -48,12 +47,14 @@
 #define APP_THRESHOLD_MANUAL_DEFAULT 15
 
 #define APP_PLANT_ID_MAX_NUM 9999
-
+#define APP_DEFAULT_PLANT_ID 1234
 
 #define APP_HUMIDITY_MAX_NUM 60
 #define APP_HUMIDITY_MIN_NUM 1
 
+#define APP_LOG_BUFFER_SIZE 5
 #define APP_SHORT_STRING_SIZE 30
+#define APP_SMS_LENGTH 100
 
 #ifdef LABORATORIO_3_5
 
@@ -352,7 +353,10 @@ enum APP_TASKS
 {
     APP_TASK_POT,
     APP_TASK_POT_2_RGB,
-//    APP_TASK_POT,
+    APP_TASK_GPS_GET,
+    APP_TASK_SMS_SEND,
+    APP_TASK_SMS_READ,
+    APP_TASK_REGISTER_SAVE,
 };
 
 enum APP_UI_STATES
@@ -428,13 +432,8 @@ enum APP_SET_THRESHOLDS
 {
     APP_SET_THRESHOLDS_INIT,
     APP_SET_THRESHOLDS_MENU,
-    APP_SET_THRESHOLDS_HEADERS,
     APP_SET_THRESHOLDS_SHOW,
     APP_SET_THRESHOLDS_FUNCTIONS,
-//    APP_SET_THRESHOLDS_WAIT,
-//    APP_SET_THRESHOLDS_VALIDATE,
-//    APP_SET_THRESHOLDS_RESPONSE_OK,
-//    APP_SET_THRESHOLDS_RESPONSE_ERROR,
 };
 
 enum APP_SET_NEW_THRESHOLD
@@ -483,15 +482,30 @@ typedef struct
 
 typedef struct
 {
+    uint32_t humiditySensePeriod;
+    uint32_t logRegisterPeriod;
+    uint32_t gpsGetPeriod;
+    uint32_t SMSalertPeriod;
+    uint32_t SMSalertCoolDown;
+} APP_PARAMS_t;
+
+typedef struct
+{
+    uint8_t level;
+    bool alert;
+    bool coolDown;
+} APP_HUMIDITY_t;
+
+typedef struct
+{
     enum APP_STATES state;
-    uint8_t humidity;
     time_t time;
     GPSPosition_t position;
     bool position_validity;
     uint16_t plantID;
-    uint32_t humidity_sampling_time;
-    uint32_t log_sampling_time;
-    APP_THRESHOLD_t thresholds;
+    APP_HUMIDITY_t humidity;
+    APP_PARAMS_t param;
+    APP_THRESHOLD_t threshold;
     
 }APP_var_t;
 

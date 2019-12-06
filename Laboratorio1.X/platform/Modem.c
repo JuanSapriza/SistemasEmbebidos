@@ -16,82 +16,206 @@ uint8_t MDM_cmdBuffer[20];  //solo para guardar los string con los comandos
 uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de respuesta
 
 
-MDM_TASK_t MDM_task = MODEM_READ_UNDEF;
+static MDM_TASKS_t MDM_task;
 
 void MDM_tasks()
 {
-    static uint8_t MODEM_ESTADO = MODEM_ESTADOS_INIT;
+    static uint8_t MDM_ESTADO = MDM_ESTADOS_INIT;
+    static MDM_TASK_TASK_t mdm_task = MDM_TASK_UNDEF;
     
-    switch( MODEM_ESTADO )
+    switch( MDM_ESTADO )
     {
-        case MODEM_ESTADOS_INIT:
+        case MDM_ESTADOS_INIT:
             if( MDM_Init() )
             {
-                MODEM_ESTADO = MODEM_ESTADOS_WAIT;
+                //inicializar las estructuras de tasks
+                MDM_ESTADO = MDM_ESTADOS_WAIT;
             }
             break;
             
-        case MODEM_ESTADOS_WAIT:
-            switch( MDM_task )
+        case MDM_ESTADOS_WAIT:
+            if( mdm_task == MDM_TASK_UNDEF )
             {
-                case MODEM_READ_UNDEF:
+                if( MDM_task.GPS_get.status == MDM_TASK_STATUS_NEW )
+                {
+                    mdm_task = MDM_TASK_GET_GPS_FRAME;
+                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
+                    break;
+                }
+                if( MDM_task.SMS_send.status == MDM_TASK_STATUS_NEW )
+                {
+                    mdm_task = MDM_TASK_SEND_SMS;
+                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
+                    break;
+                }
+                if( MDM_task.SMS_read.status == MDM_TASK_STATUS_NEW )
+                {
+                    mdm_task = MDM_TASK_READ_SMS;
+                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
+                    break;
+                }
+            }
+            break;
+         
+        case MDM_ESTADOS_EXECUTE:    
+            switch( mdm_task )
+            {
+                case MDM_TASK_UNDEF: //podria hacerse al marcar el mdm task como undef, pero asi queda mas lindo
+                    MDM_ESTADO = MDM_ESTADOS_WAIT;
+                    break;
+                
+                case MDM_TASK_GET_GPS_FRAME:
+                    MDM_task.GPS_get.status = MDM_TASK_STATUS_WORKING; 
+                    switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
+                    {
+                        case MDM_AT_RESP_NAME_GNS_GET_INF:
+                            MDM_task.GPS_get.status = MDM_TASK_STATUS_DONE;
+                            mdm_task = MDM_TASK_UNDEF;
+                            break;
+
+                        case MDM_AT_RESP_NAME_ERROR:
+                            MDM_task.GPS_get.status = MDM_TASK_STATUS_ERROR;
+                            mdm_task = MDM_TASK_UNDEF;
+                            break;
+
+                        default: break; 
+
+                    }
                     break;
                     
-                case MODEM_READ_SMS:
-                    // lectura de sms
+                        
+                case MDM_TASK_READ_SMS:
                     break;
                     
-                case MODEM_SEND_SMS:
-                    // envio de sms
+                case MDM_TASK_SEND_SMS:
+                    MDM_task.SMS_send.status = MDM_TASK_STATUS_DONE;
+                    mdm_task = MDM_TASK_UNDEF;
                     break;
                     
-                case MODEM_GET_GPS_FRAME:
-                    // gps
-                    break;
                     
                 default: break;
             }
+            break;
+            
+        default: break;
+    }
+    
+}
+
+
+void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status )
+{
+    switch( p_task )
+    {
+        case MDM_TASK_GET_GPS_FRAME:
+            MDM_task.GPS_get.status = MDM_TASK_STATUS_UNDEF;
+            break;
+    
+        case MDM_TASK_READ_SMS:
+            MDM_task.GPS_get.status = MDM_TASK_STATUS_UNDEF;
+            break;
+    
+        case MDM_TASK_SEND_SMS:
+            MDM_task.GPS_get.status = MDM_TASK_STATUS_UNDEF;
+            break;
+            
+        default: break;
     }
 }
 
+
+bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
+{
+    switch( p_task )
+    {
+        case MDM_TASK_GET_GPS_FRAME:
+            if( MDM_task.GPS_get.status == MDM_TASK_STATUS_UNDEF )
+            {
+                MDM_task.GPS_get.status = MDM_TASK_STATUS_NEW;
+                return true;
+            }
+            break;
+            
+        case MDM_TASK_READ_SMS:
+            if( MDM_task.SMS_read.status == MDM_TASK_STATUS_UNDEF )
+            {
+                MDM_task.SMS_read.status = MDM_TASK_STATUS_NEW;
+                MDM_task.SMS_read.ptr = p_taskPtr;
+                return true;
+            }
+            break;
+            
+        case MDM_TASK_SEND_SMS:
+            if( MDM_task.SMS_send.status == MDM_TASK_STATUS_UNDEF )
+            {
+                MDM_task.SMS_send.status = MDM_TASK_STATUS_NEW;
+                MDM_task.SMS_send.ptr = p_taskPtr;
+                return true;
+            }
+            break;
+            
+        default: break;
+    }
+    return false;
+}
+
+MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task )
+{
+    switch( p_task )
+    {
+        case MDM_TASK_GET_GPS_FRAME:
+            return MDM_task.GPS_get.status;
+            break;
+            
+        case MDM_TASK_READ_SMS:
+            return MDM_task.SMS_read.status;
+            break;
+            
+        case MDM_TASK_SEND_SMS:
+            return MDM_task.SMS_send.status;
+            break;
+            
+        default: break;
+    }
+}
 
 //<editor-fold defaultstate="collapsed" desc="Init">
 
 bool MDM_Init(void)
 {
-    static uint8_t MODEM_ESTADO = MODEM_ESTADOS_INIT;
+    static uint8_t MDM_ESTADO = MDM_ESTADOS_INIT;
     
-    switch( MODEM_ESTADO )
+    switch( MDM_ESTADO )
     {
-        case MODEM_ESTADOS_INIT:
+        case MDM_ESTADOS_INIT:
             if( GPRS_STATUS_GetValue() )
             {
                 return true;
             }
             GPRS_PWR_SetLow(); //PWR OFF
             GPRS_PWR_SetDigitalOutput();
-            MODEM_ESTADO = MODEM_ESTADOS_WAIT; //No agregamos break para poder iniciar el delay
+            MDM_ESTADO = MDM_ESTADOS_WAIT; //No agregamos break para poder iniciar el delay
                         
-        case MODEM_ESTADOS_WAIT:
+        case MDM_ESTADOS_WAIT:
             if( UTS_delayms( UTS_DELAY_HANDLER_MDM_PWR, 2000, false ) )
             {
                 GPRS_PWR_SetDigitalInput();
-                MODEM_ESTADO = MODEM_ESTADOS_CHECK;
+                MDM_ESTADO = MDM_ESTADOS_CHECK;
             }
             break;
 
-        case MODEM_ESTADOS_CHECK:
+        case MDM_ESTADOS_CHECK:
             
             if( UTS_delayms( UTS_DELAY_HANDLER_MDM_PWR, 3000, false ) )
             {
-                MODEM_ESTADO = MODEM_ESTADOS_STATUS;
+                MDM_ESTADO = MDM_ESTADOS_STATUS;
             }
             break;
             
-        case MODEM_ESTADOS_STATUS:
+        case MDM_ESTADOS_STATUS:
             if (GPRS_STATUS_GetValue())
             {
-                MODEM_ESTADO = MODEM_ESTADOS_INIT;
+                MDM_ESTADO = MDM_ESTADOS_INIT;
                 return true;
             }
             //@ToDo: y si no agarro????????
@@ -186,18 +310,18 @@ void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param )
 
 MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_param, uint32_t p_timeout )
 {
-    static  uint8_t sendAndWaitState = MODEM_ESTADOS_SEND;
+    static  uint8_t sendAndWaitState = MDM_ESTADOS_SEND;
     uint8_t* retPtr; 
     uint8_t i;
     switch( sendAndWaitState )
     {   
-        case MODEM_ESTADOS_SEND:
+        case MDM_ESTADOS_SEND:
             UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_TIMEOUT, p_timeout, true );
             MDM_sendATCmd( MDM_commandString( p_cmd ), p_param );
-            sendAndWaitState = MODEM_ESTADOS_CHECK;
+            sendAndWaitState = MDM_ESTADOS_CHECK;
             break;
             
-        case MODEM_ESTADOS_CHECK:
+        case MDM_ESTADOS_CHECK:
             if( UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_ACHIQUEN, 1, false ) ) //si no no le da el tiempo a que lleguen todos los caracteres!!!!! 
             {
                 memset( MDM_rxBuffer, 0, sizeof( MDM_rxBuffer ) ); //esto es necesario afuera para que no borre el buffer cada vez que voy a comparar con una respuesta
@@ -208,14 +332,14 @@ MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_
                     retPtr = MDM_responseString( p_cmd, i );
                     if( retPtr == NULL )
                     {
-                        sendAndWaitState = MODEM_ESTADOS_TIMEOUT_CHECK;
+                        sendAndWaitState = MDM_ESTADOS_TIMEOUT_CHECK;
                         break;
                     }
                     else
                     {
                         if( strstr( MDM_rxBuffer, retPtr ) != NULL )
                         {
-                            sendAndWaitState = MODEM_ESTADOS_SEND;
+                            sendAndWaitState = MDM_ESTADOS_SEND;
                             UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_TIMEOUT, p_timeout, true );
                             return MDM_responseName( p_cmd, i );
                         }
@@ -225,13 +349,13 @@ MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_
             }
             break;
             
-        case MODEM_ESTADOS_TIMEOUT_CHECK:
+        case MDM_ESTADOS_TIMEOUT_CHECK:
             if( UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_TIMEOUT, p_timeout, false ) )
             {
-                sendAndWaitState = MODEM_ESTADOS_SEND;
+                sendAndWaitState = MDM_ESTADOS_SEND;
                 return MDM_AT_RESP_NAME_TIMEOUT;
             }
-            sendAndWaitState = MODEM_ESTADOS_CHECK;
+            sendAndWaitState = MDM_ESTADOS_CHECK;
             break;
         
         default: break;
@@ -545,42 +669,42 @@ uint8_t* MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_t p_response )
 
 bool MDM_sendInitialAT()
 {
-    static uint8_t initialATState = MODEM_ESTADOS_INIT;
+    static uint8_t initialATState = MDM_ESTADOS_INIT;
     
     switch( initialATState )
             {
-                case MODEM_ESTADOS_INIT:
+                case MDM_ESTADOS_INIT:
                     MDM_write( "A\r" );
-                    initialATState = MODEM_ESTADOS_WAIT;
+                    initialATState = MDM_ESTADOS_WAIT;
                     break;
                     
-                case MODEM_ESTADOS_WAIT:
+                case MDM_ESTADOS_WAIT:
                     if( UTS_delayms( UTS_DELAY_HANDLER_INITIAL_AT, 4000, false ) )
                     {
-                        initialATState = MODEM_ESTADOS_SEND;
+                        initialATState = MDM_ESTADOS_SEND;
                     }
                     break;
                     
-                case MODEM_ESTADOS_SEND:
+                case MDM_ESTADOS_SEND:
                     switch( MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_AT, NULL, 10000 ) )
                     {
                         case MDM_AT_RESP_NAME_WORKING:
                             return false;
                             
                         case MDM_AT_RESP_NAME_OK:
-                            initialATState = MODEM_ESTADOS_INIT;
+                            initialATState = MDM_ESTADOS_INIT;
                             return true;
                             
                         case MDM_AT_RESP_NAME_TIMEOUT:
-                            initialATState = MODEM_ESTADOS_INIT;
+                            initialATState = MDM_ESTADOS_INIT;
                             return false;
                             
                         case MDM_AT_RESP_NAME_ERROR:
-                            initialATState = MODEM_ESTADOS_INIT;
+                            initialATState = MDM_ESTADOS_INIT;
                             return false;
                             
                         case MDM_AT_RESP_NAME_UNKNOWN:
-                            initialATState = MODEM_ESTADOS_INIT;
+                            initialATState = MDM_ESTADOS_INIT;
                             return false;
                         
                     }
