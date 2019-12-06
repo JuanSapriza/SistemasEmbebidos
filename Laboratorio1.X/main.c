@@ -811,11 +811,73 @@ int main ()
 {
     struct tm p_time_aux;
     uint8_t* index = 0;
-    uint8_t dummyBuffer[ 64 ];
+//    uint8_t dummyBuffer[ 64 ];
     
+//    APP_var_t* log_data_test1;
+//    APP_var_t* log_data_test2;
+//    APP_var_t* log_data_test3;
+//
+//        
+//    log_data_test1->humidity=1;
+//    log_data_test1->humidity_sampling_time=1000;
+//    log_data_test1->log_sampling_time=2000;
+//    log_data_test1->plantID=10;
+//    log_data_test1->position.latitude=34.2;
+//    log_data_test1->position.longitude=55.2;
+//    log_data_test1->position_validity=1;
+//    log_data_test1->state=5;
+//    log_data_test1->thresholds.dry=40;
+//    log_data_test1->thresholds.high_automatic=30;
+//    log_data_test1->thresholds.low_automatic=15;
+//    log_data_test1->thresholds.manual=15;
+//    log_data_test1->thresholds.saturated=5;
+//    log_data_test1->thresholds.slightly_dry=20;
+//    log_data_test1->thresholds.slightly_saturated=9;
+//    log_data_test1->time=323;
+//
+//    log_data_test2->humidity=1;
+//    log_data_test2->humidity_sampling_time=1000;
+//    log_data_test2->log_sampling_time=2000;
+//    log_data_test2->plantID=10;
+//    log_data_test2->position.latitude=34.2;
+//    log_data_test2->position.longitude=55.1;
+//    log_data_test2->position_validity=1;
+//    log_data_test2->state=5;
+//    log_data_test2->thresholds.dry=40;
+//    log_data_test2->thresholds.high_automatic=30;
+//    log_data_test2->thresholds.low_automatic=15;
+//    log_data_test2->thresholds.manual=15;
+//    log_data_test2->thresholds.saturated=5;
+//    log_data_test2->thresholds.slightly_dry=20;
+//    log_data_test2->thresholds.slightly_saturated=9;
+//    log_data_test2->time=323;
+//
+//
+//    log_data_test3->humidity=1;
+//    log_data_test3->humidity_sampling_time=1000;
+//    log_data_test3->log_sampling_time=2000;
+//    log_data_test3->plantID=10;
+//    log_data_test3->position.latitude=34.2;
+//    log_data_test3->position.longitude=55.1;
+//    log_data_test3->position_validity=1;
+//    log_data_test3->state=5;
+//    log_data_test3->thresholds.dry=40;
+//    log_data_test3->thresholds.high_automatic=30;
+//    log_data_test3->thresholds.low_automatic=15;
+//    log_data_test3->thresholds.manual=15;
+//    log_data_test3->thresholds.saturated=5;
+//    log_data_test3->thresholds.slightly_dry=20;
+//    log_data_test3->thresholds.slightly_saturated=9;
+//    log_data_test3->time=323;
+//    
+//                            APP_LOG_data ( log_data_test1 );
+//                        APP_LOG_data ( log_data_test2 );
+//                        APP_LOG_data ( log_data_test3 );
+//    
+//    
     MAIN_init();
-    APP_info.state = APP_STATE_APP_INIT;
-    
+    APP_info.state = APP_STATE_APP_INIT; 
+        
     while(1)
     {
         if( !BTN_switch( BTN_BUTTON_B ) ) //pausa el programa
@@ -831,7 +893,8 @@ int main ()
                     }
                     break;
 
-                case APP_STATE_TASKS:
+                case APP_STATE_TASKS:                    
+                    
                     APP_tasks();
                     APP_UI();
                     MDM_tasks();

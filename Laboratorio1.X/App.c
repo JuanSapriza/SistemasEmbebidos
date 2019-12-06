@@ -18,9 +18,12 @@
 #include "framework/RTCC_fwk.h"
 #include "utils/Utils.h"
 
+#define UYT -3 //zona horaria de Uruguay
+
+
 APP_var_t APP_info;
 
-APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
+APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 uint32_t APP_logBufferHead;
 bool APP_convertPot2RGB;
 uint8_t APP_stringBuffer[APP_SHORT_STRING_SIZE];
@@ -32,6 +35,10 @@ APP_FUNC_STATUS_t APP_getNewPlantID();
 APP_FUNC_STATUS_t APP_setThresholds();
 uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
 APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold );
+
+void APP_print_Buffer_Register ( uint8_t index_aux );
+APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ( void );
+
 
 void APP_THRESHOLD_initialize()
 {
@@ -199,37 +206,59 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
 
 void APP_LOG_data ( APP_var_t* log_data )
 {
-    static APP_var_t* p_buffer;
-    
+    static APP_log_t* ptr_buffer;
     static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
+    static double latitude_prev=0;
+    static double longitude_prev=0;
     
     switch ( APP_LOG_STATE )
     {
         case APP_LOG_PTR_INIT:
             APP_logBufferHead = 0;
-            p_buffer = &APP_logBuffer[APP_logBufferHead];
+            memset(APP_logBuffer,0,sizeof(APP_logBuffer));
+            ptr_buffer = &APP_logBuffer[APP_logBufferHead];
             APP_LOG_STATE = APP_LOG_PTR_OK;
             //intentional breakthrough
+            
         case APP_LOG_PTR_OK:
             
-//            *p_buffer = log_data;
-            memcpy( p_buffer, log_data, sizeof( *log_data ) );
-    
-                if (p_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
+            ptr_buffer->humidity = log_data->humidity;
+            ptr_buffer->plantID = log_data->plantID;
+            ptr_buffer->position.latitude = log_data->position.latitude;
+            ptr_buffer->position.longitude = log_data->position.longitude;
+            ptr_buffer->position_validity = log_data->position_validity;
+            ptr_buffer->time = log_data->time;
+            
+            if ( log_data->position_validity ) 
+            {
+                latitude_prev = log_data->position.latitude;
+                longitude_prev  = log_data->position.longitude;      
+            }
+            
+            else 
+            {
+                if ( latitude_prev!=0 && longitude_prev!=0 ) 
                 {
-                    p_buffer=&APP_logBuffer[0];
-                    APP_logBufferHead = 0;
+                    ptr_buffer->position.latitude = latitude_prev;
+                    ptr_buffer->position.longitude = longitude_prev;
                 }
-                else
-                {
-                    p_buffer++;
-                    APP_logBufferHead++;
-                }
+                
+            }
+            
+            if (ptr_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
+            {
+                ptr_buffer=&APP_logBuffer[0];
+                APP_logBufferHead = 0;
+            }
+            
+            else
+            {
+                ptr_buffer++;
+                APP_logBufferHead++;
+            }
             
             break;
-            
-    }
-        
+    }     
 }
 
 void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
@@ -383,19 +412,6 @@ uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
     return APP_logBufferHead; //APP_logBufferHead da un entero que indica el indice dentro del buffer, no da la direccion de memoria del ultimo registro sino la posicion dentro del buffer
 }
 
-//void APP_LOG_Buffer_displayUSB ( uint32_t APP_logBufferHead )
-//{
-//    uint32_t index_aux;
-//    for (index_aux = 0; index_aux <= APP_LOG_BUFFER_SIZE-1; index_aux++)
-//    
-//    {   
-//        //Definir USB_dummyBuffer e incluir USB framework
-//        sprintf(USB_dummyBuffer,"La humedad del %d° registro es: %d \n",1+index_aux,(APP_logBufferHead*sizeof()+APP_logBuffer[0]).humidity),;
-//        USB_write(USB_dummyBuffer);
-//        sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[0].position.latitude);
-//        USB_write(USB_dummyBuffer);
-//    }
-//}
 void APP_pot2RGBEnable( bool p_enable )
 {
     APP_convertPot2RGB = p_enable;
@@ -455,7 +471,7 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
         
             state_thresholds = APP_SET_THRESHOLDS_MENU;
             
-//            break;  intentiugify breajgkgyft   
+            //intentional breakthrough  
     
         case APP_SET_THRESHOLDS_MENU:
             memset(USB_dummyBuffer,0,sizeof(USB_dummyBuffer));
@@ -828,6 +844,80 @@ APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t
 }
 
 
+ void APP_print_Buffer_Register ( uint8_t index_aux )
+{
+
+        struct tm * time_to_display;
+        
+        sprintf(USB_dummyBuffer,"Datos del registro %d correspondiente a la planta %04d \n",1+index_aux,APP_logBuffer[index_aux].plantID);
+        USB_write(USB_dummyBuffer);
+		time_to_display = gmtime(&APP_logBuffer[index_aux].time);
+        sprintf(USB_dummyBuffer,"Fecha y hora: %02d/%02d/%4d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+        USB_write(USB_dummyBuffer);
+        sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[index_aux].humidity);
+        USB_write(USB_dummyBuffer);
+        
+        if ( APP_logBuffer[index_aux].position_validity == 0 )
+        {
+            USB_write("Posicion no disponible \n");
+            USB_write("Ulitma posicion conocida: \n");            
+        }
+        
+        sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[index_aux].position.latitude);
+        USB_write(USB_dummyBuffer);
+        sprintf(USB_dummyBuffer,"Longitud: %f \n",APP_logBuffer[index_aux].position.longitude);
+        USB_write(USB_dummyBuffer);
+
+}
+
+
+APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ( void )
+{
+    uint32_t logBufferHead;
+    static uint8_t index_aux;
+    
+    logBufferHead = APP_LOG_BUFFER_HEAD_GetValue();
+    
+//index_aux = APP_LOG_BUFFER_HEAD_GetValue();
+
+	if ( logBufferHead == 0 )
+	{
+		for (index_aux = APP_LOG_BUFFER_SIZE-1; index_aux >= 0; index_aux--)
+        {
+			if ( (APP_logBuffer[index_aux].plantID != 0) && (USB_isSth2Write()==0) )
+            {
+                APP_print_Buffer_Register ( index_aux );
+                return APP_FUNC_WORKING;
+            }
+		}
+        return APP_FUNC_DONE; 
+	}
+    
+	else
+	{
+        for (index_aux = logBufferHead-1; index_aux >= 0; index_aux--)
+        {   
+            if ( (APP_logBuffer[index_aux].plantID != 0) && (USB_isSth2Write()==0) )
+            {
+                APP_print_Buffer_Register ( index_aux );
+                return APP_FUNC_WORKING;
+            }
+        }
+
+        for (index_aux = APP_LOG_BUFFER_SIZE-1; index_aux >= logBufferHead; index_aux--)
+        {   
+            if ( (APP_logBuffer[index_aux].plantID != 0) && (USB_isSth2Write()==0) )
+            {
+                APP_print_Buffer_Register ( index_aux );
+                return APP_FUNC_WORKING;
+            }
+        }
+        
+        return APP_FUNC_DONE;
+	}
+}
+
+
 bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion 
 {
     static uint8_t APP_INIT_STATE = APP_INIT_VARS;
@@ -963,6 +1053,12 @@ void APP_UI() //interfaz de usuario
                     break;
                     
                 case 4: //ACCESO AL REGISTRO
+                    if( APP_LOG_Buffer_displayUSB () ) //Se utiliza un if porque se distingue entre working (0) y return
+                    {
+                        UI_STATE = APP_UI_STATE_PRINT_HEADER;
+                    }                    
+                    
+                    
                     break;
                     
                 
@@ -979,3 +1075,8 @@ void APP_UI() //interfaz de usuario
 
 }
 
+//#include "rtcc.h"
+//void RTC_update_from_GPS ( void )
+//{
+//    
+//}

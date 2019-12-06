@@ -35,7 +35,7 @@
 
 
 
-#define APP_LOG_BUFFER_SIZE 5
+#define APP_LOG_BUFFER_SIZE 3
 
 #define NUMERO_VICKY "\"+59891972950\""
 
@@ -495,9 +495,18 @@ typedef struct
     
 }APP_var_t;
 
+typedef struct
+{
+    uint8_t humidity;
+    time_t time;
+    GPSPosition_t position;
+    bool position_validity;
+    uint16_t plantID;  
+}APP_log_t;
+
 extern APP_var_t APP_info;
 
-extern APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
+extern APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 
 
 //Funcion para mostrar el nivel de humedad con los leds RGB:
