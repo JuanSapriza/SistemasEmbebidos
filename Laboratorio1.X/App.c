@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
+//#include <stdlib.h>
 
 #include "mcc_generated_files/system.h"
 #include "mcc_generated_files/rtcc.h"
@@ -623,7 +625,16 @@ uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
         
         sprintf(USB_dummyBuffer,"\nDatos del registro %d correspondiente a la planta %04d \n",APP_logBuffer[index_aux].logNum,APP_logBuffer[index_aux].plantID);
         USB_write(USB_dummyBuffer);
+        
+        //memset(time_to_display,0,36);   //POR QUE EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
+        
 		time_to_display = localtime(&(APP_logBuffer[index_aux].time));
+        
+        time_to_display->tm_mon=time_to_display->tm_mon+1;
+           
+        time_to_display->tm_year=time_to_display->tm_year+1900;
+        
+        
         sprintf(USB_dummyBuffer,"Fecha y hora: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
         USB_write(USB_dummyBuffer);
         sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[index_aux].humidity);
@@ -744,7 +755,7 @@ void APP_LOG_data( APP_var_t* log_data )
             }
             
             // RAJAR A LA MIERDA
-            sprintf(USB_dummyBuffer, "hum: %d - lat: %d \n  ", ptr_buffer->humidity, ptr_buffer->position.latitude);
+            sprintf(USB_dummyBuffer, "hum: %d - lat: %f \n  ", ptr_buffer->humidity, ptr_buffer->position.latitude);
             USB_write( USB_dummyBuffer );
             // ESTO 
             
@@ -924,14 +935,15 @@ void APP_tasks()
 {
     static uint8_t APP_smsBuffer[APP_SMS_LENGTH]; //larog maximo de un sms
     struct tm aux_tm;
+    struct tm * time_to_display;
     
     //ACTUALIZACION DE LA HORA
-    if( UTS_delayms( UTS_DELAY_HANDLER_TIME_SYNC, 1000, false ) )
-    {
-        RTCC_TimeGet(&aux_tm);
-        APP_info.time = mktime( &aux_tm );
-    }
-    
+//    if( UTS_delayms( UTS_DELAY_HANDLER_TIME_SYNC, 1000, false ) )
+//    {
+//        RTCC_TimeGet(&aux_tm);
+//        APP_info.time = mktime( &aux_tm );
+//    }
+//    
     
     // SENSADO DE HUMEDAD
     if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
@@ -957,12 +969,35 @@ void APP_tasks()
             break;
 
         case MDM_TASK_STATUS_DONE:
+            
+            sprintf(USB_dummyBuffer,"Trama GPS: %s \n",MDM_whatsInReadBuffer());
+            USB_write(USB_dummyBuffer);
+            
             GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
-            if(APP_info.position_validity)
-            {
-               RTCC_TimeSet(&aux_tm);
-            }
+            
+            APP_info.time = mktime( &aux_tm );
+            
+            time_to_display = &aux_tm;	
+                    
+            time_to_display->tm_mon=time_to_display->tm_mon+1;
+            
+            time_to_display->tm_year=time_to_display->tm_year+1900;
+            
+            sprintf(USB_dummyBuffer,"La hora es %2d:%02d:%02d \n",(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+            USB_write(USB_dummyBuffer);
+            sprintf(USB_dummyBuffer,"La fecha es %02d/%02d/%04d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year); //Sumamos 1 al mes porque van de 0 a 11 y 1900 a la fecha por el offset inicial
+            USB_write(USB_dummyBuffer);
+                    
+//            sprintf(USB_dummyBuffer,"Latitud luego de parse: %f \n",APP_info.position.latitude);
+//            USB_write(USB_dummyBuffer);
+            
+            
+            
+//            if(APP_info.position_validity)
+//            {
+//               RTCC_TimeSet(&aux_tm);
+//            }
             break;
 
         default: 
@@ -1022,7 +1057,7 @@ void APP_UI() //interfaz de usuario
             {
                 USB_write("Bienvenido!\n");
                 USB_write("Presione una tecla \n");
-                APP_info.time = mktime(&RTC_time);
+                //APP_info.time = mktime(&RTC_time);
                 UI_STATE = APP_UI_STATE_WAIT_4_KEY;
             }
             break;
@@ -1111,8 +1146,3 @@ void APP_UI() //interfaz de usuario
 
 }
 
-//#include "rtcc.h"
-//void RTC_update_from_GPS ( void )
-//{
-//    
-//}

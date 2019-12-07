@@ -75,7 +75,7 @@ void GPS_getUTC( struct tm *p_newtime, uint8_t *p_sentence ){
     // Copy Month MM
     memset( temp_str, 0, 5 );
     strncpy( temp_str, (p_sentence+offset), 2 );
-    p_newtime->tm_mon = atoi(temp_str)-1;  //a juan le parece que deberia IR UN MENOS UNO
+    p_newtime->tm_mon = atoi(temp_str)-1;  //MENOS UNO porque los meses empiezan en 0
     offset+=2;
     // Copy Day DD
     memset( temp_str, 0, 5 );
