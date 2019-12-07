@@ -100,6 +100,7 @@ bool RTCC_TimeGet(struct tm *currentTime)
     }
      
     register_value = RTCDATE;
+    //currentTime-> tm_isdst = 0;
     currentTime->tm_year = ConvertBCDToHex((register_value & 0xFF000000) >> 24);
     currentTime->tm_mon = ConvertBCDToHex((register_value & 0xFF0000) >> 16);
     currentTime->tm_mday = ConvertBCDToHex((register_value & 0xFF00) >> 8);

@@ -936,14 +936,17 @@ void APP_tasks()
     static uint8_t APP_smsBuffer[APP_SMS_LENGTH]; //larog maximo de un sms
     struct tm aux_tm;
     struct tm * time_to_display;
+    struct tm *currentTime;
     
-    //ACTUALIZACION DE LA HORA
-//    if( UTS_delayms( UTS_DELAY_HANDLER_TIME_SYNC, 1000, false ) )
-//    {
-//        RTCC_TimeGet(&aux_tm);
-//        APP_info.time = mktime( &aux_tm );
-//    }
-//    
+    // ACTUALIZACION DE LA HORA
+    if( UTS_delayms( UTS_DELAY_HANDLER_TIME_SYNC, 1000, false ) )
+    {
+      if (RTCC_TimeGet(&aux_tm) == true)
+      {
+          APP_info.time = mktime( &aux_tm );
+      }
+    }
+    
     
     // SENSADO DE HUMEDAD
     if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
@@ -970,34 +973,43 @@ void APP_tasks()
 
         case MDM_TASK_STATUS_DONE:
             
-            sprintf(USB_dummyBuffer,"Trama GPS: %s \n",MDM_whatsInReadBuffer());
-            USB_write(USB_dummyBuffer);
-            
+            RTCC_TimeGet(currentTime);
             GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
             
-            APP_info.time = mktime( &aux_tm );
+            //--------------------PARA PRUEBAS (SACARLO LUEGO)------------------
             
+            //Imprimimos fecha y hora directamente del GPS (OK)
             time_to_display = &aux_tm;	
-                    
-            time_to_display->tm_mon=time_to_display->tm_mon+1;
-            
+            time_to_display->tm_mon=time_to_display->tm_mon+1;//Sumamos 1 al mes porque van de 0 a 11 y 1900 al año
             time_to_display->tm_year=time_to_display->tm_year+1900;
-            
-            sprintf(USB_dummyBuffer,"La hora es %2d:%02d:%02d \n",(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+            sprintf(USB_dummyBuffer,"La hora del GPS es %2d:%02d:%02d \n",(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
             USB_write(USB_dummyBuffer);
-            sprintf(USB_dummyBuffer,"La fecha es %02d/%02d/%04d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year); //Sumamos 1 al mes porque van de 0 a 11 y 1900 a la fecha por el offset inicial
+            sprintf(USB_dummyBuffer,"La fecha del GPS es %02d/%02d/%04d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year);
             USB_write(USB_dummyBuffer);
-                    
-//            sprintf(USB_dummyBuffer,"Latitud luego de parse: %f \n",APP_info.position.latitude);
-//            USB_write(USB_dummyBuffer);
+            
+            //Hora a partir de leer el RTC (OK?)
+            
+            sprintf(USB_dummyBuffer,"La hora del RTC es %2d:%02d:%02d \n",(currentTime->tm_hour+UYT)%24,currentTime->tm_min,currentTime->tm_sec);
+            USB_write(USB_dummyBuffer);
+            
+            //Fecha y hora de APP_info (incorrecta) 
             
             
+            time_to_display = localtime(&(APP_info.time));
+            time_to_display->tm_mon=time_to_display->tm_mon+1;
+            time_to_display->tm_year=time_to_display->tm_year+1900;
+            sprintf(USB_dummyBuffer,"Fecha y hora de APP info: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+            USB_write(USB_dummyBuffer);
+
+            //------------------------------------------------------------------
             
-//            if(APP_info.position_validity)
-//            {
-//               RTCC_TimeSet(&aux_tm);
-//            }
+            //Actualizamos RTC con hora del GPS si es válida
+            
+            if(APP_info.position_validity)
+            {
+               RTCC_TimeSet(&aux_tm);               
+            }
             break;
 
         default: 
