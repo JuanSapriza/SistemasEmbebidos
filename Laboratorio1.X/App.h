@@ -32,11 +32,14 @@
 #include "mcc_generated_files/adc1.h"
 #include "platform/GPS.h"
 #include "platform/RGB.h"
+#include "platform/Modem.h"
 
 
 
 
-#define NUMERO_VICKY "\"+59891972950\""
+
+#define APP_EMERGENCY_NUMBER_DEFAULT "\"+59891972950\""
+#define APP_PHONE_NUM_SIZE 12
 
 #define APP_THRESHOLD_SATURATED_DEFAULT 5
 #define APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT 9
@@ -47,7 +50,7 @@
 #define APP_THRESHOLD_MANUAL_DEFAULT 15
 
 #define APP_HUMIDITY_SENSE_PERIOD_DEFAULT 500
-#define APP_LOG_REGISTRER_PERIOD_DEFAULT 2000
+#define APP_LOG_REGISTRER_PERIOD_DEFAULT 5000
 #define APP_GPS_GET_PERIOD_DEFAULT 5000
 #define APP_SMS_ALERT_PERIOD_DEFAULT 6000
 #define APP_SMS_ALERT_COOL_DOWN_DEFAULT 10000
@@ -385,6 +388,9 @@ enum APP_STATES
     APP_STATE_APP_INIT,
     APP_STATE_TASKS,
     APP_STATE_WAIT,
+    APP_STATE_CHECK,
+    APP_STATE_CHECK_OK,
+    APP_STATE_CHECK_ERROR,
     
     
     APP_STATE_INIT,
@@ -399,7 +405,13 @@ enum APP_STATES
     APP_STATE_MAIN_MENU_CREATE,
     APP_STATE_MAIN_MENU_SHOW,
     APP_STATE_FINISH,
-    APP_STATE_CHECK,
+};
+
+enum state_buffer
+{
+    STATE_BUFFER_INIT,
+    STATE_BUFFER_PRINT,
+    STATE_BUFFER_CHECK,
 };
 
 enum APP_IRRIGATE
@@ -518,12 +530,24 @@ typedef struct
     APP_HUMIDITY_t humidity;
     APP_PARAMS_t param;
     APP_THRESHOLD_t threshold;
+    uint8_t emergencyNum[APP_PHONE_NUM_SIZE];
+    uint8_t simPin[MDM_SIM_PIN_SIZE];
     
 }APP_var_t;
 
+typedef struct
+{
+    uint8_t humidity;
+    time_t time;
+    GPSPosition_t position;
+    bool position_validity;
+    uint16_t plantID;  
+    uint32_t logNum;
+}APP_log_t;
+
 extern APP_var_t APP_info;
 
-extern APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
+extern APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 
 
 //Funcion para mostrar el nivel de humedad con los leds RGB:

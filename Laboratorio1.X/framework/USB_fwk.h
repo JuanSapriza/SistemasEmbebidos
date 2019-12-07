@@ -14,6 +14,7 @@
 uint8_t USB_dummyBuffer[USB_BUFFER_SIZE];
 
 //<editor-fold defaultstate="collapsed" desc="USB Gral">
+bool USB_isSth2Write();
 uint8_t *USB_read( uint8_t p_length );
 void USB_write( uint8_t *p_text );
 void USB_CDC_tasks();

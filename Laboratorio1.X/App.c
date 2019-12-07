@@ -18,9 +18,12 @@
 #include "framework/RTCC_fwk.h"
 #include "utils/Utils.h"
 
+#define UYT -3 //zona horaria de Uruguay
+
+
 APP_var_t APP_info;
 
-APP_var_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
+APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 uint32_t APP_logBufferHead;
 bool APP_convertPot2RGB;
 uint8_t APP_stringBuffer[APP_SHORT_STRING_SIZE];
@@ -34,7 +37,13 @@ void APP_clearHumidityAlert();
 APP_FUNC_STATUS_t APP_setThresholds();
 uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
 APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold );
+APP_FUNC_STATUS_t APP_setNewPhone();
+void APP_print_Buffer_Register ( uint8_t index_aux );
+APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ();
+APP_FUNC_STATUS_t APP_celularConfig();
 
+
+// THRESHOLDS Y PARAMETROS -------------------------------------------------------
 
 void APP_THRESHOLD_initialize()
 {
@@ -58,8 +67,6 @@ void APP_THRESHOLD_set (APP_THRESHOLD_t p_threshold  )
     APP_info.threshold.manual=p_threshold.manual;
 }
 
-
-
 void APP_PARAM_initialize()
 {
     APP_info.param.humiditySensePeriod=APP_HUMIDITY_SENSE_PERIOD_DEFAULT;
@@ -79,389 +86,6 @@ void APP_PARAM_set ( APP_PARAMS_t p_param )
     APP_info.param.SMSalertCoolDown=p_param.SMSalertCoolDown;
 }
 
-void APP_RGB_humidity ( uint8_t ADC_humedad )
-{
-    
-    if( ( (ADC_humedad>=0) && (ADC_humedad<=APP_info.threshold.saturated) )  )
-    {
-        RGB_setAll( BLUE );
-    }            
-     
-    if( ( (ADC_humedad>APP_info.threshold.saturated) && (ADC_humedad<=APP_info.threshold.slightly_saturated) )  ) 
-    {
-        RGB_setAll( WATER_GREEN );
-    }
-    
-    if( (ADC_humedad>APP_info.threshold.slightly_saturated) && (ADC_humedad<=APP_info.threshold.slightly_dry) ) 
-    {
-        RGB_setAll( GREEN );
-    }
-    
-    if( ( (ADC_humedad>APP_info.threshold.slightly_dry) && (ADC_humedad<=APP_info.threshold.dry) )) 
-    {
-        RGB_setAll( YELLOW );
-    }
-    
-    if( (ADC_humedad>APP_info.threshold.dry) && (ADC_humedad<=60)  )
-    {
-        RGB_setAll( RED );
-    }
-        
-}
-
-void APP_LEDA_irrigate ( uint8_t ADC_humedad )
-{
-    static uint8_t APP_IRRIGATE = APP_IRRIGATE_OFF;
-    
-    static uint8_t APP_LEDA = APP_LEDA_OFF;
-        
-    
-    switch ( APP_IRRIGATE )
-    {
-        case APP_IRRIGATE_OFF:        
-            if( (ADC_humedad)>APP_info.threshold.high_automatic )
-            {
-                APP_LEDA=APP_LEDA_ON;
-                APP_IRRIGATE = APP_IRRIGATE_ON;
-            }
-            break;
-            
-        case APP_IRRIGATE_ON:   
-            if( (ADC_humedad)<APP_info.threshold.low_automatic )
-            {
-                APP_LEDA=APP_LEDA_OFF;
-                APP_IRRIGATE = APP_IRRIGATE_OFF;
-            }
-            break;
-            
-        default: break;
-            
-    }    
-    
-    switch ( APP_LEDA )
-    {
-        case APP_LEDA_ON:
-            LED_A_SetHigh();
-            break;    
-    
-        case APP_LEDA_OFF:
-            LED_A_SetLow();
-            break;  
-            
-        default: break;
-    
-    }
-
-    
-}    
-    
-void APP_changePlantID( uint16_t p_newID )
-{
-    APP_info.plantID = p_newID;
-}
-   
-
-APP_FUNC_STATUS_t APP_getNewPlantID()
-{
-    static uint8_t state = APP_GET_NEW_ID_SHOW;
-    static int32_t aux; 
-    
-    switch( state )
-    {
-        case APP_GET_NEW_ID_SHOW:
-            USB_write("\n\n Ingrese el Identificador de la Planta \n");
-            USB_write(    "         - máximo 4 dígitos -  \n        ");
-            state = APP_GET_NEW_ID_WAIT;
-            //intentional breakthrough
-            
-        case APP_GET_NEW_ID_WAIT:
-            if( USB_sth2Read() )
-            {
-                state = APP_GET_NEW_ID_VALIDATE;
-            }
-            else
-            {
-                break;
-            }
-            //intentional breakthrough
-            
-        case APP_GET_NEW_ID_VALIDATE:
-            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
-            {
-                state = APP_GET_NEW_ID_SHOW;
-                return APP_FUNC_RETURN;
-            }
-            aux = (int32_t) atoi( USB_whatsInReadBuffer() );
-            if( aux > 0 && aux <= APP_PLANT_ID_MAX_NUM )
-            {
-                state = APP_GET_NEW_ID_RESPONSE_OK;
-            }
-            else
-            {
-                state = APP_GET_NEW_ID_RESPONSE_ERROR;
-            }
-            break;
-            
-        case APP_GET_NEW_ID_RESPONSE_OK:
-            USB_write("\n\n ID configurado correctamente! \n");
-            APP_changePlantID( (uint16_t) aux);
-            state = APP_GET_NEW_ID_SHOW;
-            return APP_FUNC_DONE;
-            
-        case APP_GET_NEW_ID_RESPONSE_ERROR:
-            USB_write("\n\n ERROR \n");
-            sprintf( USB_dummyBuffer, "\n\n ingrese un número entre 0 y %d \n",APP_PLANT_ID_MAX_NUM );
-            USB_write(USB_dummyBuffer);
-            state = APP_GET_NEW_ID_WAIT;
-            break;
-    
-        default: break;
-    }
-    
-    return APP_FUNC_WORKING;
-}
-
-void APP_LOG_data ( APP_var_t* log_data )
-{
-    static APP_var_t* p_buffer;
-    
-    static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
-    
-    switch ( APP_LOG_STATE )
-    {
-        case APP_LOG_PTR_INIT:
-            APP_logBufferHead = 0;
-            p_buffer = &APP_logBuffer[APP_logBufferHead];
-            APP_LOG_STATE = APP_LOG_PTR_OK;
-            //intentional breakthrough
-        case APP_LOG_PTR_OK:
-            
-//            *p_buffer = log_data;
-            memcpy( p_buffer, log_data, sizeof( *log_data ) );
-    
-                if (p_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
-                {
-                    p_buffer=&APP_logBuffer[0];
-                    APP_logBufferHead = 0;
-                }
-                else
-                {
-                    p_buffer++;
-                    APP_logBufferHead++;
-                }
-            
-            break;
-            
-    }
-        
-}
-
-void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
-    
-    static uint8_t APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_INIT;
-    
-    switch ( APP_MANUAL_IRRIGATE )
-    {  
-    
-        case APP_MANUAL_IRRIGATE_INIT:
-            
-            if(BTN_A_GetValue())
-            {
-        
-                APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_BTN_PRESSED;
-            }  
-            
-        break;
-            
-        case APP_MANUAL_IRRIGATE_BTN_PRESSED:
-           
-            
-            if ( ADC_humedad > APP_info.threshold.manual )
-            {
-                APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_ON;
-            }
-            
-            else
-            {
-                APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_OFF;
-            }
-                       
-        break;
-        
-        case APP_MANUAL_IRRIGATE_LEDA_ON:
-            
-            LED_A_SetHigh();
-            
-            if ( ADC_humedad <= APP_info.threshold.manual )
-            {
-                APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_OFF;
-            }
-            
-        break;
-        
-        case APP_MANUAL_IRRIGATE_LEDA_OFF:
-            
-            LED_A_SetLow();
-            APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_INIT;
-            
-        break;
-                   
-    }
- 
-}
-
-//void APP_MDM_tasks()
-//{
-//    static uint8_t state = APP_STATE_INIT;
-//    uint8_t* ret;
-//    
-//    
-//    switch( state )
-//    {
-//        case APP_STATE_INIT:
-//            if( MDM_Init() )
-//            {
-//                if( MDM_sendInitialAT() )
-//                {
-//                    state = APP_STATE_GSM_SMS_INIT;
-//                }
-//            }
-//            break;
-//
-//        case APP_STATE_GSM_SMS_INIT:
-//            if( MDM_GSM_init() == MDM_AT_RESP_NAME_OK )
-//            {
-//                state = APP_STATE_GPS_GET;
-////                state = APP_STATE_GSM_SMS_GET;
-//            }
-//            break;
-//
-//        case APP_STATE_GPS_GET:
-//            switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
-//            {
-//                case MDM_AT_RESP_NAME_GNS_GET_INF:
-//                    state = APP_STATE_PARSE_FRAME;
-//                    break;
-//
-//                case MDM_AT_RESP_NAME_ERROR:
-//                    state = APP_STATE_WAIT;
-//                    break;
-//
-//                    case MDM_AT_RESP_NAME_WORKING:
-//                    break;
-//
-//                default:
-//                    break;
-//            }
-//            break;    
-//
-//        case APP_STATE_PARSE_FRAME:
-//
-//
-//            break;
-//            
-//        case APP_STATE_GSM_SMS_GET:
-//            if( BTN_isButtonPressed( BTN_BUTTON_A ) )
-//            {
-//                ret = USB_read(0);
-//                if( ret[0] != 0 )
-//                {
-//                    state = APP_STATE_GSM_SMS_SEND;
-//                }
-//            }
-//            break;
-//
-//        case APP_STATE_GSM_SMS_SEND:
-//            if( MDM_sendSMS( NUMERO_VICKY, ret ) )
-//            {
-//                state = APP_STATE_GSM_SMS_GET;
-//            }
-//            break;    
-//            
-//        default: break;
-//    
-//    }
-//}
-
-//void APP_RGB_tasks()
-//{
-//    switch( RGB_displayType )
-//    {
-//        case RGB_DISPLAY_TYPE_UNDEF:
-//        case RGB_DISPLAY_TYPE_ALL:
-//        case RGB_DISPLAY_TYPE_1_BY_1:
-//            break;
-//            
-//        case RGB_DISPLAY_TYPE_GO_ROUND:
-//            RGB_goRound( RGB_goRoundConfig );
-//            break;
-//            
-//        default: break;
-//    }
-//    RGB_tasks();
-//}
-
-
-uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
-{
-    return APP_logBufferHead; //APP_logBufferHead da un entero que indica el indice dentro del buffer, no da la direccion de memoria del ultimo registro sino la posicion dentro del buffer
-}
-
-//void APP_LOG_Buffer_displayUSB ( uint32_t APP_logBufferHead )
-//{
-//    uint32_t index_aux;
-//    for (index_aux = 0; index_aux <= APP_LOG_BUFFER_SIZE-1; index_aux++)
-//    
-//    {   
-//        //Definir USB_dummyBuffer e incluir USB framework
-//        sprintf(USB_dummyBuffer,"La humedad del %d° registro es: %d \n",1+index_aux,(APP_logBufferHead*sizeof()+APP_logBuffer[0]).humidity),;
-//        USB_write(USB_dummyBuffer);
-//        sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[0].position.latitude);
-//        USB_write(USB_dummyBuffer);
-//    }
-//}
-void APP_pot2RGBEnable( bool p_enable )
-{
-    APP_convertPot2RGB = p_enable;
-}
-
-bool APP_pot2RGBIsEnabled()
-{
-    return APP_convertPot2RGB;
-}
-
-bool APP_getHumidity()
-{
-    uint16_t datos_potenciometro;
-    
-    if(POT_Convert( &datos_potenciometro ) )
-    {
-        APP_info.humidity.level  = POT_Linearized ( datos_potenciometro ); 
-        return true;
-    }
-    return false;
-}
-
-void APP_pot2RGB( uint8_t p_humidity )
-{
-    APP_RGB_humidity ( p_humidity );
-    APP_LEDA_irrigate ( p_humidity );
-    APP_BTNA_manual_irrigate ( p_humidity );
-}
-
-bool APP_checkHumidityAlert()
-{
-    if( APP_info.humidity.level < APP_info.threshold.saturated || APP_info.humidity.level > APP_info.threshold.dry )
-    {
-        APP_info.humidity.alert = true;
-    }
-    return APP_info.humidity.alert;
-}
-
-void APP_clearHumidityAlert()
-{
-    APP_info.humidity.alert = false;
-}
 
 APP_FUNC_STATUS_t APP_setThresholds( void )
 {
@@ -493,7 +117,7 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
         
             state_thresholds = APP_SET_THRESHOLDS_MENU;
             
-//            break;  intentiugify breajgkgyft   
+            //intentional breakthrough  
     
         case APP_SET_THRESHOLDS_MENU:
             memset(USB_dummyBuffer,0,sizeof(USB_dummyBuffer));
@@ -742,6 +366,471 @@ APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t
 
 }
 
+// CONTROL DE HUMEDAD    -------------------------------------------------------
+
+void APP_RGB_humidity ( uint8_t ADC_humedad )
+{
+    
+    if( ( (ADC_humedad>=0) && (ADC_humedad<=APP_info.threshold.saturated) )  )
+    {
+        RGB_setAll( BLUE );
+    }            
+     
+    if( ( (ADC_humedad>APP_info.threshold.saturated) && (ADC_humedad<=APP_info.threshold.slightly_saturated) )  ) 
+    {
+        RGB_setAll( WATER_GREEN );
+    }
+    
+    if( (ADC_humedad>APP_info.threshold.slightly_saturated) && (ADC_humedad<=APP_info.threshold.slightly_dry) ) 
+    {
+        RGB_setAll( GREEN );
+    }
+    
+    if( ( (ADC_humedad>APP_info.threshold.slightly_dry) && (ADC_humedad<=APP_info.threshold.dry) )) 
+    {
+        RGB_setAll( YELLOW );
+    }
+    
+    if( (ADC_humedad>APP_info.threshold.dry) && (ADC_humedad<=60)  )
+    {
+        RGB_setAll( RED );
+    }
+        
+}
+
+void APP_LEDA_irrigate ( uint8_t ADC_humedad )
+{
+    static uint8_t APP_IRRIGATE = APP_IRRIGATE_OFF;
+    
+    static uint8_t APP_LEDA = APP_LEDA_OFF;
+        
+    
+    switch ( APP_IRRIGATE )
+    {
+        case APP_IRRIGATE_OFF:        
+            if( (ADC_humedad)>APP_info.threshold.high_automatic )
+            {
+                APP_LEDA=APP_LEDA_ON;
+                APP_IRRIGATE = APP_IRRIGATE_ON;
+            }
+            break;
+            
+        case APP_IRRIGATE_ON:   
+            if( (ADC_humedad)<APP_info.threshold.low_automatic )
+            {
+                APP_LEDA=APP_LEDA_OFF;
+                APP_IRRIGATE = APP_IRRIGATE_OFF;
+            }
+            break;
+            
+        default: break;
+            
+    }    
+    
+    switch ( APP_LEDA )
+    {
+        case APP_LEDA_ON:
+            LED_A_SetHigh();
+            break;    
+    
+        case APP_LEDA_OFF:
+            LED_A_SetLow();
+            break;  
+            
+        default: break;
+    
+    }
+
+    
+}    
+
+void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
+    
+    static uint8_t APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_INIT;
+    
+    switch ( APP_MANUAL_IRRIGATE )
+    {  
+    
+        case APP_MANUAL_IRRIGATE_INIT:
+            
+            if(BTN_A_GetValue())
+            {
+        
+                APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_BTN_PRESSED;
+            }  
+            
+        break;
+            
+        case APP_MANUAL_IRRIGATE_BTN_PRESSED:
+           
+            
+            if ( ADC_humedad > APP_info.threshold.manual )
+            {
+                APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_ON;
+            }
+            
+            else
+            {
+                APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_OFF;
+            }
+                       
+        break;
+        
+        case APP_MANUAL_IRRIGATE_LEDA_ON:
+            
+            LED_A_SetHigh();
+            
+            if ( ADC_humedad <= APP_info.threshold.manual )
+            {
+                APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_LEDA_OFF;
+            }
+            
+        break;
+        
+        case APP_MANUAL_IRRIGATE_LEDA_OFF:
+            
+            LED_A_SetLow();
+            APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_INIT;
+            
+        break;
+                   
+    }
+ 
+}
+
+void APP_pot2RGBEnable( bool p_enable )
+{
+    APP_convertPot2RGB = p_enable;
+}
+
+bool APP_pot2RGBIsEnabled()
+{
+    return APP_convertPot2RGB;
+}
+
+bool APP_getHumidity()
+{
+    uint16_t datos_potenciometro;
+    
+    if(POT_Convert( &datos_potenciometro ) )
+    {
+        APP_info.humidity.level  = POT_Linearized ( datos_potenciometro ); 
+        return true;
+    }
+    return false;
+}
+
+void APP_pot2RGB( uint8_t p_humidity )
+{
+    APP_RGB_humidity ( p_humidity );
+    APP_LEDA_irrigate ( p_humidity );
+    APP_BTNA_manual_irrigate ( p_humidity );
+}
+
+bool APP_checkHumidityAlert()
+{
+    if( APP_info.humidity.level < APP_info.threshold.saturated || APP_info.humidity.level > APP_info.threshold.dry )
+    {
+        APP_info.humidity.alert = true;
+    }
+    return APP_info.humidity.alert;
+}
+
+void APP_clearHumidityAlert()
+{
+    APP_info.humidity.alert = false;
+}
+    
+// ID DE LA PLANTA -------------------------------------------------------------
+
+void APP_changePlantID( uint16_t p_newID )
+{
+    APP_info.plantID = p_newID;
+}
+   
+
+APP_FUNC_STATUS_t APP_getNewPlantID()
+{
+    static uint8_t state = APP_GET_NEW_ID_SHOW;
+    static int32_t aux; 
+    
+    switch( state )
+    {
+        case APP_GET_NEW_ID_SHOW:
+            USB_write("\n\n Ingrese el Identificador de la Planta \n");
+            USB_write(    "         - máximo 4 dígitos -  \n        ");
+            state = APP_GET_NEW_ID_WAIT;
+            //intentional breakthrough
+            
+        case APP_GET_NEW_ID_WAIT:
+            if( USB_sth2Read() )
+            {
+                state = APP_GET_NEW_ID_VALIDATE;
+            }
+            else
+            {
+                break;
+            }
+            //intentional breakthrough
+            
+        case APP_GET_NEW_ID_VALIDATE:
+            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
+            {
+                state = APP_GET_NEW_ID_SHOW;
+                return APP_FUNC_RETURN;
+            }
+            aux = (int32_t) atoi( USB_whatsInReadBuffer() );
+            if( aux > 0 && aux <= APP_PLANT_ID_MAX_NUM )
+            {
+                state = APP_GET_NEW_ID_RESPONSE_OK;
+            }
+            else
+            {
+                state = APP_GET_NEW_ID_RESPONSE_ERROR;
+            }
+            break;
+            
+        case APP_GET_NEW_ID_RESPONSE_OK:
+            USB_write("\n\n ID configurado correctamente! \n");
+            APP_changePlantID( (uint16_t) aux);
+            state = APP_GET_NEW_ID_SHOW;
+            return APP_FUNC_DONE;
+            
+        case APP_GET_NEW_ID_RESPONSE_ERROR:
+            USB_write("\n\n ERROR \n");
+            sprintf( USB_dummyBuffer, "\n\n ingrese un número entre 0 y %d \n",APP_PLANT_ID_MAX_NUM );
+            USB_write(USB_dummyBuffer);
+            state = APP_GET_NEW_ID_WAIT;
+            break;
+    
+        default: break;
+    }
+    
+    return APP_FUNC_WORKING;
+}
+
+// LOGGEO DE INFO  -------------------------------------------------------------
+
+uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
+{
+    return APP_logBufferHead; //APP_logBufferHead da un entero que indica el indice dentro del buffer, no da la direccion de memoria del ultimo registro sino la posicion dentro del buffer
+}
+
+
+ void APP_print_Buffer_Register ( uint8_t index_aux )
+{
+        struct tm * time_to_display;
+        
+        sprintf(USB_dummyBuffer,"\nDatos del registro %d correspondiente a la planta %04d \n",APP_logBuffer[index_aux].logNum,APP_logBuffer[index_aux].plantID);
+        USB_write(USB_dummyBuffer);
+		time_to_display = localtime(&(APP_logBuffer[index_aux].time));
+        sprintf(USB_dummyBuffer,"Fecha y hora: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+        USB_write(USB_dummyBuffer);
+        sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[index_aux].humidity);
+        USB_write(USB_dummyBuffer);
+        
+        if ( APP_logBuffer[index_aux].position_validity == 0 )
+        {
+            USB_write("Posicion no disponible \n");
+            USB_write("Ulitma posicion conocida: \n");            
+        }
+        
+        sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[index_aux].position.latitude);
+        USB_write(USB_dummyBuffer);
+        sprintf(USB_dummyBuffer,"Longitud: %f \n",APP_logBuffer[index_aux].position.longitude);
+        USB_write(USB_dummyBuffer);
+
+}
+
+APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ()
+{
+    static uint8_t index_buffer;
+    static uint8_t state_buffer;
+    
+    switch ( state_buffer )
+    {
+        case STATE_BUFFER_INIT:
+            if ( APP_LOG_BUFFER_HEAD_GetValue() == 0 )
+            {
+                index_buffer = APP_LOG_BUFFER_SIZE-1 ;  
+            }
+            else
+            {
+                index_buffer = APP_LOG_BUFFER_HEAD_GetValue()-1; //porque APP_LOG_BUFFER_HEAD_GetValue() es el siguente elemento a escribir en el log y APP_LOG_BUFFER_HEAD_GetValue()-1 es el último registro
+            }
+            state_buffer = STATE_BUFFER_PRINT;
+        //intentional breakthrough
+        
+        case STATE_BUFFER_PRINT:
+            if (APP_logBuffer[index_buffer].plantID != 0)
+            {
+                APP_print_Buffer_Register ( index_buffer );
+                state_buffer = STATE_BUFFER_CHECK;
+                return APP_FUNC_WORKING;
+            }
+            state_buffer = STATE_BUFFER_CHECK;
+            break;
+         
+        case STATE_BUFFER_CHECK:
+            if ( USB_isSth2Write() == 0 )
+            {
+                if ( index_buffer == 0 )
+                {
+                    index_buffer = APP_LOG_BUFFER_SIZE-1 ;
+                }
+                
+                else
+                {
+                    index_buffer--;
+                }
+                
+                if ( ( index_buffer == APP_LOG_BUFFER_HEAD_GetValue()-1 ) || (APP_LOG_BUFFER_HEAD_GetValue() == 0 && index_buffer == APP_LOG_BUFFER_SIZE-1 ) )
+                {
+                    state_buffer=STATE_BUFFER_INIT;
+                    return APP_FUNC_DONE;
+                }   
+                
+                state_buffer=STATE_BUFFER_PRINT;
+            }
+        break;
+            
+        default: break;
+    }
+    
+ return APP_FUNC_WORKING;
+
+}
+    
+void APP_LOG_data( APP_var_t* log_data )
+{
+    static APP_log_t* ptr_buffer;
+    static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
+    static double latitude_prev=0;
+    static double longitude_prev=0;
+    static uint32_t logCount = 0; 
+    
+    switch ( APP_LOG_STATE )
+    {
+        case APP_LOG_PTR_INIT:
+            APP_logBufferHead = 0;
+            memset(APP_logBuffer,0,sizeof(APP_logBuffer));
+            ptr_buffer = &APP_logBuffer[APP_logBufferHead];
+            APP_LOG_STATE = APP_LOG_PTR_OK;
+            //intentional breakthrough
+            
+        case APP_LOG_PTR_OK:
+            ptr_buffer->logNum = ++logCount;
+            ptr_buffer->humidity = log_data->humidity.level;
+            ptr_buffer->plantID = log_data->plantID;
+            ptr_buffer->position.latitude = log_data->position.latitude;
+            ptr_buffer->position.longitude = log_data->position.longitude;
+            ptr_buffer->position_validity = log_data->position_validity;
+            ptr_buffer->time = log_data->time;
+            
+            if ( log_data->position_validity ) 
+            {
+                latitude_prev = log_data->position.latitude;
+                longitude_prev  = log_data->position.longitude;      
+            }
+            
+            else 
+            {
+                if ( latitude_prev!=0 && longitude_prev!=0 ) 
+                {
+                    ptr_buffer->position.latitude = latitude_prev;
+                    ptr_buffer->position.longitude = longitude_prev;
+                }
+                
+            }
+            
+            // RAJAR A LA MIERDA
+            sprintf(USB_dummyBuffer, "hum: %d - lat: %d \n  ", ptr_buffer->humidity, ptr_buffer->position.latitude);
+            USB_write( USB_dummyBuffer );
+            // ESTO 
+            
+            if (ptr_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
+            {
+                ptr_buffer=&APP_logBuffer[0];
+                APP_logBufferHead = 0;
+            }
+            
+            else
+            {
+                ptr_buffer++;
+                APP_logBufferHead++;
+            }
+            
+            break;
+    }     
+}
+
+// CELULAR         -------------------------------------------------------------
+
+APP_FUNC_STATUS_t APP_setNewPhone()
+{
+    static uint8_t state = APP_STATE_INIT;
+    uint8_t auxBuffer[ APP_PHONE_NUM_SIZE +2 ]; //por las comillas de los bordes
+    
+    switch( state )
+    {
+        case APP_STATE_INIT:
+            
+            sprintf(USB_dummyBuffer, "\nIngrese el nuevo número de emergencia (con código país )\n" );
+            USB_write(USB_dummyBuffer);
+            sprintf( USB_dummyBuffer,"         - o presione %s para regresar -  \n", USB_FWK_RETURN_CHAR);
+            USB_write(USB_dummyBuffer);
+            state = APP_STATE_WAIT;
+            //intentional breakthrough
+            
+        case APP_STATE_WAIT:
+            if( USB_sth2Read() )
+            {
+                state = APP_STATE_CHECK;
+            }
+            else
+            {
+                break;
+            }
+            //intentional breakthrough
+            
+        case APP_STATE_CHECK:
+            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
+            {                          
+                state = APP_STATE_INIT;
+                return APP_FUNC_RETURN;
+            }
+            if( strlen( USB_whatsInReadBuffer() -1 ) == APP_PHONE_NUM_SIZE ) //por el /n
+            {
+                state = APP_STATE_CHECK_OK;
+            }
+            else
+            {
+                state = APP_STATE_CHECK_ERROR;
+            }
+            break;            
+            
+        case APP_STATE_CHECK_OK:
+            USB_write("\n\n El valor ha sido ingresado \n");
+            memset( APP_info.emergencyNum, 0, sizeof(APP_info.emergencyNum) );
+            strcat(APP_info.emergencyNum,"\"");
+            strncat(APP_info.emergencyNum,USB_whatsInReadBuffer(),strlen(USB_whatsInReadBuffer())-1);
+            strcat(APP_info.emergencyNum,"\"");
+            state = APP_STATE_INIT;
+            return APP_FUNC_DONE;
+            
+        case APP_STATE_CHECK_ERROR:
+            USB_write("\n ERROR \n");
+            sprintf( USB_dummyBuffer, "\n\n Ingrese un número en formato +XXXYYYYYYYY \n");
+            USB_write(USB_dummyBuffer);
+            state = APP_STATE_WAIT;
+            break;
+    
+        default: break;
+    }
+    return APP_FUNC_WORKING;
+    
+
+}
 
 APP_FUNC_STATUS_t APP_celularConfig()
 {
@@ -753,12 +842,13 @@ APP_FUNC_STATUS_t APP_celularConfig()
         case APP_STATE_INIT:
             UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_CEL_CONFIG, "Configuración Celular" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_CEL_CONFIG, "Configurar GSM" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_CEL_CONFIG, "Setear Nro de Emergencia" );
+            sprintf(USB_dummyBuffer, "Nro de Emergencia: %s", APP_info.emergencyNum );
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_CEL_CONFIG, USB_dummyBuffer );
             state_celConfig = APP_STATE_MENU_SHOW;
             //break; intentional breakthrough
     
         case APP_STATE_MENU_SHOW:
-            retMenu_celConfig = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PRINCIPAL );
+            retMenu_celConfig = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_CEL_CONFIG );
             state_celConfig = APP_STATE_MENU_OPTIONS;
             //break; intentional breakthrough
             
@@ -773,8 +863,11 @@ APP_FUNC_STATUS_t APP_celularConfig()
                     //configurar GSM
                     break;
                     
-                case 2:
-                    //setear nuevo numero
+                case 2: //setear nuevo numero
+                    if( APP_setNewPhone() ) //solo distingue entre working y return/done
+                    {
+                        state_celConfig = APP_STATE_INIT;
+                    }
                     break;
                     
                 default: 
@@ -790,6 +883,8 @@ APP_FUNC_STATUS_t APP_celularConfig()
 }
 
 
+// FUNCIONES GRANDES------------------------------------------------------------
+
 bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion 
 {
     static uint8_t APP_INIT_STATE = APP_INIT_VARS;
@@ -802,6 +897,7 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
             APP_info.plantID = APP_DEFAULT_PLANT_ID;
             APP_info.humidity.alert = false;
             APP_info.humidity.coolDown = false;
+            strcpy( APP_info.emergencyNum, APP_EMERGENCY_NUMBER_DEFAULT );
             APP_THRESHOLD_initialize();
             APP_PARAM_initialize();
             APP_INIT_STATE = APP_INIT_MDM;
@@ -810,7 +906,6 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
         case APP_INIT_MDM:
             if( MDM_Init() )
             {
-                USB_write("+ Modem Encendido\n");
                 if( MDM_sendInitialAT() )
                 {
                     USB_write("+ Modem Configurado\n");
@@ -825,86 +920,17 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
     return false;    
 }
 
-//APP_tasks()
-//{
-//    static uint8_t APP_TASK_STATE = APP_TASK_POT;
-//    struct tm aux_tm;
-//    
-//    switch( APP_TASK_STATE )
-//    {
-//        case APP_TASK_POT:
-//            if( APP_getHumidity() )
-//            {
-//                APP_TASK_STATE = APP_TASK_POT_2_RGB;
-//            }
-//            break;
-//            
-//        case APP_TASK_POT_2_RGB:
-//            if( APP_pot2RGBIsEnabled() )
-//            {
-//                APP_pot2RGB( APP_info.humidity );
-//            }
-//            APP_TASK_STATE = APP_TASK_POT;
-//            break;
-//            
-//        case APP_TASK_GPS_GET:
-//            switch( MDM_taskGetStatus( MDM_TASK_GET_GPS_FRAME ) )
-//            {
-//                case MDM_TASK_STATUS_UNDEF:
-//                    //condicion para obtener una trama gps
-//                        MDM_taskSchedule( MDM_TASK_GET_GPS_FRAME, NULL );
-//                    break;
-//                    
-//                case MDM_TASK_STATUS_DONE:
-//                    GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
-//                    APP_TASK_STATE = APP_TASK_SMS_SEND;
-//                    break;
-//                    
-//                default: 
-//                    //que hago?
-//                    break;
-//            
-//            }
-//            break;
-//            
-//        case APP_TASK_SMS_SEND:
-//            switch( MDM_taskGetStatus( MDM_TASK_GET_GPS_FRAME ) )
-//            {
-//                case MDM_TASK_STATUS_UNDEF:
-//                    //condicion para mandar un sms...
-//                        MDM_taskSchedule( MDM_TASK_GET_GPS_FRAME, NULL );
-//                        
-//                    break;
-//                    
-//                case MDM_TASK_STATUS_DONE:
-//                    //que hago?
-//                    break;
-//                    
-//                default: 
-//                    //que hago?
-//                    break;
-//            }
-//            break;
-//            
-//            
-//        case APP_TASK_REGISTER_SAVE:
-//            //si llego la condicion para guardar un registro, lo guard
-//            // y si la trama gps no es valida no guardarlo.  
-//
-//            
-//            // control ( SI ME VOY DE MAMBO ENVIAR UN SMS!! )
-//            
-//            // esperar un comando por sms
-//            
-//        default: break;
-//    }
-//}
-
-
 void APP_tasks()
 {
-    struct tm aux_tm;
     static uint8_t APP_smsBuffer[APP_SMS_LENGTH]; //larog maximo de un sms
+    struct tm aux_tm;
+    
+    //ACTUALIZACION DE LA HORA
+    if( UTS_delayms( UTS_DELAY_HANDLER_TIME_SYNC, 1000, false ) )
+    {
+        RTCC_TimeGet(&aux_tm);
+        APP_info.time = mktime( &aux_tm );
+    }
     
     
     // SENSADO DE HUMEDAD
@@ -914,8 +940,6 @@ void APP_tasks()
         {
             if( APP_pot2RGBIsEnabled() )
             {
-                sprintf(USB_dummyBuffer,"humedad: %d - %d - %d \n",APP_info.humidity.level, APP_info.humidity.coolDown, MDM_taskGetStatus( MDM_TASK_SEND_SMS ) );
-                USB_write(USB_dummyBuffer);
                 APP_pot2RGB( APP_info.humidity.level );
             }
         }
@@ -935,6 +959,10 @@ void APP_tasks()
         case MDM_TASK_STATUS_DONE:
             GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
+            if(APP_info.position_validity)
+            {
+               RTCC_TimeSet(&aux_tm);
+            }
             break;
 
         default: 
@@ -971,11 +999,11 @@ void APP_tasks()
         }
     }
      
-//    if( UTS_delayms( UTS_DELAY_HANDLER_REGISTRY_LOG, APP_info.param.logRegisterPeriod, false ) && APP_info.position_validity )
-//    {
-//        //GUARDAR EN EL BUFFER
-//        //ID PLANTA - FECHA - HORA - HUMEDAD - POSICION
-//    }
+    if( UTS_delayms( UTS_DELAY_HANDLER_REGISTRY_LOG, APP_info.param.logRegisterPeriod, false ) && APP_info.position_validity )
+    {
+        //GUARDAR EN EL BUFFER
+        APP_LOG_data( &APP_info );
+    }
             
 
         // esperar un comando por sms
@@ -1009,11 +1037,11 @@ void APP_UI() //interfaz de usuario
             
         case APP_UI_STATE_MENU_CREATE:
             UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Menu Principal. ¿Qué desea hacer?" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Setear ID de Planta" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Teléfono" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" );
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configuración Celular" );
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Setear ID de Planta" ); //1
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" ); //2
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Teléfono" ); //3
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" ); //4
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configuración Celular" ); //5
             // configurar parametros 
             UI_STATE = APP_UI_STATE_PRINT_HEADER;
             break;   
@@ -1056,10 +1084,17 @@ void APP_UI() //interfaz de usuario
                     break;
                     
                 case 4: //ACCESO AL REGISTRO
+                    if( APP_LOG_Buffer_displayUSB () ) //Se utiliza un if porque se distingue entre working (0) y return
+                    {
+                        UI_STATE = APP_UI_STATE_PRINT_HEADER;
+                    }                    
                     break;
                     
-                case 5:
-                    // configuraion celular 
+                case 5: // configuraion celular
+                    if( APP_celularConfig() ) 
+                    {
+                        UI_STATE = APP_UI_STATE_PRINT_HEADER;
+                    }
                     break;
                     
                 
@@ -1076,3 +1111,8 @@ void APP_UI() //interfaz de usuario
 
 }
 
+//#include "rtcc.h"
+//void RTC_update_from_GPS ( void )
+//{
+//    
+//}

@@ -14,6 +14,11 @@ static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_NONE;
 
 //<editor-fold defaultstate="collapsed" desc="USB Gral">
 
+bool USB_isSth2Write()
+{
+    return sth2write;
+}
+
 void USB_CDC_tasks()
 {
     static bool sending = false;
