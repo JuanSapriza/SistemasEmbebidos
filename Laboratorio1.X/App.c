@@ -613,17 +613,80 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
 
 // LOGGEO DE INFO  -------------------------------------------------------------
 
+
 uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
 {
     return APP_logBufferHead; //APP_logBufferHead da un entero que indica el indice dentro del buffer, no da la direccion de memoria del ultimo registro sino la posicion dentro del buffer
 }
 
+void APP_LOG_data( APP_var_t* log_data )
+{
+    static APP_log_t* ptr_buffer;
+    static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
+    static double latitude_prev=0;
+    static double longitude_prev=0;
+    static uint32_t logCount = 0; 
+    
+    switch ( APP_LOG_STATE )
+    {
+        case APP_LOG_PTR_INIT:
+            APP_logBufferHead = 0;
+            memset(APP_logBuffer,0,sizeof(APP_logBuffer));
+            ptr_buffer = &APP_logBuffer[APP_logBufferHead];
+            APP_LOG_STATE = APP_LOG_PTR_OK;
+            //intentional breakthrough
+            
+        case APP_LOG_PTR_OK:
+            ptr_buffer->logNum = ++logCount;
+            ptr_buffer->humidity = log_data->humidity.level;
+            ptr_buffer->plantID = log_data->plantID;
+            ptr_buffer->position.latitude = log_data->position.latitude;
+            ptr_buffer->position.longitude = log_data->position.longitude;
+            ptr_buffer->position_validity = log_data->position_validity;
+            ptr_buffer->time = log_data->time;
+            
+            if ( log_data->position_validity ) 
+            {
+                latitude_prev = log_data->position.latitude;
+                longitude_prev  = log_data->position.longitude;      
+            }
+            
+            else 
+            {
+                if ( latitude_prev!=0 && longitude_prev!=0 ) 
+                {
+                    ptr_buffer->position.latitude = latitude_prev;
+                    ptr_buffer->position.longitude = longitude_prev;
+                }
+                
+            }
+            
+            // RAJAR A LA MIERDA
+//            sprintf(USB_dummyBuffer, "hum: %d - lat: %f \n  ", ptr_buffer->humidity, ptr_buffer->position.latitude);
+//            USB_write( USB_dummyBuffer );
+            // ESTO 
+            
+            if (ptr_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
+            {
+                ptr_buffer=&APP_logBuffer[0];
+                APP_logBufferHead = 0;
+            }
+            
+            else
+            {
+                ptr_buffer++;
+                APP_logBufferHead++;
+            }
+            
+            break;
+    }     
+}
 
  void APP_print_Buffer_Register ( uint8_t index_aux )
 {
         struct tm * time_to_display;
         
-        sprintf(USB_dummyBuffer,"\nDatos del registro %d correspondiente a la planta %04d \n",APP_logBuffer[index_aux].logNum,APP_logBuffer[index_aux].plantID);
+        sprintf(USB_dummyBuffer,"\n  | Datos del registro %d correspondiente a la planta %04d \n",APP_logBuffer[index_aux].logNum,APP_logBuffer[index_aux].plantID);
         USB_write(USB_dummyBuffer);
         
         //memset(time_to_display,0,36);   //POR QUE EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
@@ -635,20 +698,20 @@ uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
         time_to_display->tm_year=time_to_display->tm_year+1900;
         
         
-        sprintf(USB_dummyBuffer,"Fecha y hora: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+        sprintf(USB_dummyBuffer,"  | Fecha y hora: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
         USB_write(USB_dummyBuffer);
-        sprintf(USB_dummyBuffer,"Humedad: %d \n",APP_logBuffer[index_aux].humidity);
+        sprintf(USB_dummyBuffer,"  | Humedad: %d \n",APP_logBuffer[index_aux].humidity);
         USB_write(USB_dummyBuffer);
         
         if ( APP_logBuffer[index_aux].position_validity == 0 )
         {
-            USB_write("Posicion no disponible \n");
-            USB_write("Ulitma posicion conocida: \n");            
+            USB_write("  | Posición no disponible \n");
+            USB_write("  | Úlitma posición conocida: \n");            
         }
         
-        sprintf(USB_dummyBuffer,"Latitud: %f \n",APP_logBuffer[index_aux].position.latitude);
+        sprintf(USB_dummyBuffer,"  | Latitud: %f \n",APP_logBuffer[index_aux].position.latitude);
         USB_write(USB_dummyBuffer);
-        sprintf(USB_dummyBuffer,"Longitud: %f \n",APP_logBuffer[index_aux].position.longitude);
+        sprintf(USB_dummyBuffer,"  | Longitud: %f \n",APP_logBuffer[index_aux].position.longitude);
         USB_write(USB_dummyBuffer);
 
 }
@@ -710,69 +773,6 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ()
     
  return APP_FUNC_WORKING;
 
-}
-    
-void APP_LOG_data( APP_var_t* log_data )
-{
-    static APP_log_t* ptr_buffer;
-    static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
-    static double latitude_prev=0;
-    static double longitude_prev=0;
-    static uint32_t logCount = 0; 
-    
-    switch ( APP_LOG_STATE )
-    {
-        case APP_LOG_PTR_INIT:
-            APP_logBufferHead = 0;
-            memset(APP_logBuffer,0,sizeof(APP_logBuffer));
-            ptr_buffer = &APP_logBuffer[APP_logBufferHead];
-            APP_LOG_STATE = APP_LOG_PTR_OK;
-            //intentional breakthrough
-            
-        case APP_LOG_PTR_OK:
-            ptr_buffer->logNum = ++logCount;
-            ptr_buffer->humidity = log_data->humidity.level;
-            ptr_buffer->plantID = log_data->plantID;
-            ptr_buffer->position.latitude = log_data->position.latitude;
-            ptr_buffer->position.longitude = log_data->position.longitude;
-            ptr_buffer->position_validity = log_data->position_validity;
-            ptr_buffer->time = log_data->time;
-            
-            if ( log_data->position_validity ) 
-            {
-                latitude_prev = log_data->position.latitude;
-                longitude_prev  = log_data->position.longitude;      
-            }
-            
-            else 
-            {
-                if ( latitude_prev!=0 && longitude_prev!=0 ) 
-                {
-                    ptr_buffer->position.latitude = latitude_prev;
-                    ptr_buffer->position.longitude = longitude_prev;
-                }
-                
-            }
-            
-            // RAJAR A LA MIERDA
-            sprintf(USB_dummyBuffer, "hum: %d - lat: %f \n  ", ptr_buffer->humidity, ptr_buffer->position.latitude);
-            USB_write( USB_dummyBuffer );
-            // ESTO 
-            
-            if (ptr_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
-            {
-                ptr_buffer=&APP_logBuffer[0];
-                APP_logBufferHead = 0;
-            }
-            
-            else
-            {
-                ptr_buffer++;
-                APP_logBufferHead++;
-            }
-            
-            break;
-    }     
 }
 
 // CELULAR         -------------------------------------------------------------
@@ -936,7 +936,7 @@ void APP_tasks()
     static uint8_t APP_smsBuffer[APP_SMS_LENGTH]; //larog maximo de un sms
     struct tm aux_tm;
     struct tm * time_to_display;
-    struct tm *currentTime;
+    struct tm *currentTime; //debug
     
     // ACTUALIZACION DE LA HORA
     if( UTS_delayms( UTS_DELAY_HANDLER_TIME_SYNC, 1000, false ) )
@@ -973,34 +973,36 @@ void APP_tasks()
 
         case MDM_TASK_STATUS_DONE:
             
-            RTCC_TimeGet(currentTime);
+            RTCC_TimeGet(currentTime); // debug
             GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
             
-            //--------------------PARA PRUEBAS (SACARLO LUEGO)------------------
-            
-            //Imprimimos fecha y hora directamente del GPS (OK)
-            time_to_display = &aux_tm;	
-            time_to_display->tm_mon=time_to_display->tm_mon+1;//Sumamos 1 al mes porque van de 0 a 11 y 1900 al año
-            time_to_display->tm_year=time_to_display->tm_year+1900;
-            sprintf(USB_dummyBuffer,"La hora del GPS es %2d:%02d:%02d \n",(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
-            USB_write(USB_dummyBuffer);
-            sprintf(USB_dummyBuffer,"La fecha del GPS es %02d/%02d/%04d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year);
-            USB_write(USB_dummyBuffer);
-            
-            //Hora a partir de leer el RTC (OK?)
-            
-            sprintf(USB_dummyBuffer,"La hora del RTC es %2d:%02d:%02d \n",(currentTime->tm_hour+UYT)%24,currentTime->tm_min,currentTime->tm_sec);
-            USB_write(USB_dummyBuffer);
-            
-            //Fecha y hora de APP_info (incorrecta) 
-            
-            
-            time_to_display = localtime(&(APP_info.time));
-            time_to_display->tm_mon=time_to_display->tm_mon+1;
-            time_to_display->tm_year=time_to_display->tm_year+1900;
-            sprintf(USB_dummyBuffer,"Fecha y hora de APP info: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
-            USB_write(USB_dummyBuffer);
+//            //--------------------PARA PRUEBAS (SACARLO LUEGO)------------------
+//            
+//            //Imprimimos fecha y hora directamente del GPS (OK)
+//            time_to_display = &aux_tm;	
+//            sprintf(USB_dummyBuffer,"La hora del GPS es %2d:%02d:%02d \n",(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+//            USB_write(USB_dummyBuffer);
+//            sprintf(USB_dummyBuffer,"La fecha del GPS es %02d/%02d/%04d \n",time_to_display->tm_mday,time_to_display->tm_mon+1,time_to_display->tm_year+1900);
+//            USB_write(USB_dummyBuffer);
+//            
+//            //Hora a partir de leer el RTC (OK?)
+//            
+//            sprintf(USB_dummyBuffer,"La hora del RTC es %2d:%02d:%02d \n",(currentTime->tm_hour+UYT)%24,currentTime->tm_min,currentTime->tm_sec);
+//            USB_write(USB_dummyBuffer);
+//            
+//            //Fecha y hora de APP_info (incorrecta) 
+//            
+//            
+//            time_to_display = localtime(&(APP_info.time));
+//            time_to_display->tm_mon=time_to_display->tm_mon;
+//            time_to_display->tm_year=time_to_display->tm_year;
+//            sprintf(USB_dummyBuffer,"\n 1:Fecha y hora de APP info: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon+1,time_to_display->tm_year+1900,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+//            USB_write(USB_dummyBuffer);
+//            time_to_display->tm_mon=time_to_display->tm_mon+1;
+//            time_to_display->tm_year=time_to_display->tm_year+1900;
+//            sprintf(USB_dummyBuffer,"\n2:Fecha y hora de APP info: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+//            USB_write(USB_dummyBuffer);
 
             //------------------------------------------------------------------
             
@@ -1046,7 +1048,7 @@ void APP_tasks()
         }
     }
      
-    if( UTS_delayms( UTS_DELAY_HANDLER_REGISTRY_LOG, APP_info.param.logRegisterPeriod, false ) && APP_info.position_validity )
+    if( UTS_delayms( UTS_DELAY_HANDLER_REGISTRY_LOG, APP_info.param.logRegisterPeriod, false ) )
     {
         //GUARDAR EN EL BUFFER
         APP_LOG_data( &APP_info );
