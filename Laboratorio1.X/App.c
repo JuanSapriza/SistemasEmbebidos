@@ -522,13 +522,6 @@ bool APP_getHumidity()
     return false;
 }
 
-void APP_pot2RGB( uint8_t p_humidity )
-{
-    APP_RGB_humidity ( p_humidity );
-    APP_LEDA_irrigate ( p_humidity );
-    APP_BTNA_manual_irrigate ( p_humidity );
-}
-
 bool APP_checkHumidityAlert()
 {
     if( APP_info.humidity.level < APP_info.threshold.saturated || APP_info.humidity.level > APP_info.threshold.dry )
@@ -612,7 +605,6 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
 }
 
 // LOGGEO DE INFO  -------------------------------------------------------------
-
 
 uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
 {
@@ -775,6 +767,7 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ()
 
 }
 
+
 // CELULAR         -------------------------------------------------------------
 
 APP_FUNC_STATUS_t APP_setNewPhone()
@@ -870,8 +863,8 @@ APP_FUNC_STATUS_t APP_celularConfig()
                 case -1: //return 
                     return APP_FUNC_RETURN;
                     
-                case 1:
-                    //configurar GSM
+                case 1: //configurar GSM
+                    MDM_GSM_init();
                     break;
                     
                 case 2: //setear nuevo numero
@@ -955,10 +948,12 @@ void APP_tasks()
         {
             if( APP_pot2RGBIsEnabled() )
             {
-                APP_pot2RGB( APP_info.humidity.level );
+                APP_RGB_humidity ( APP_info.humidity.level );
             }
         }
     }
+    APP_LEDA_irrigate ( APP_info.humidity.level );
+    APP_BTNA_manual_irrigate ( APP_info.humidity.level );
     
     
     // OBTENCION DE TRAMA GPS 
@@ -1049,8 +1044,7 @@ void APP_tasks()
     }
      
     if( UTS_delayms( UTS_DELAY_HANDLER_REGISTRY_LOG, APP_info.param.logRegisterPeriod, false ) )
-    {
-        //GUARDAR EN EL BUFFER
+    {//GUARDAR EN EL BUFFER
         APP_LOG_data( &APP_info );
     }
             
@@ -1088,7 +1082,7 @@ void APP_UI() //interfaz de usuario
             UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Menu Principal. ¿Qué desea hacer?" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Setear ID de Planta" ); //1
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" ); //2
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Teléfono" ); //3
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Parmámetros" ); //3
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" ); //4
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configuración Celular" ); //5
             // configurar parametros 
@@ -1129,7 +1123,7 @@ void APP_UI() //interfaz de usuario
                     }
                     break;
                     
-                case 3: //CONFIGURAR TELÉFONO
+                case 3: //CONFIGURAR TPARÁMETROS
                     break;
                     
                 case 4: //ACCESO AL REGISTRO

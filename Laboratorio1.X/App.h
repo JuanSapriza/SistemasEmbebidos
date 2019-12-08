@@ -524,14 +524,15 @@ typedef struct
 {
     enum APP_STATES state;
     time_t time;
-    GPSPosition_t position;
     bool position_validity;
     uint16_t plantID;
+    uint8_t emergencyNum[APP_PHONE_NUM_SIZE];
+    uint8_t simPin[MDM_SIM_PIN_SIZE];
+    
+    GPSPosition_t position;
     APP_HUMIDITY_t humidity;
     APP_PARAMS_t param;
     APP_THRESHOLD_t threshold;
-    uint8_t emergencyNum[APP_PHONE_NUM_SIZE];
-    uint8_t simPin[MDM_SIM_PIN_SIZE];
     
 }APP_var_t;
 
@@ -562,8 +563,7 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
 void APP_MDM_tasks();
 //Funcion que se encarga de todas las operaciones relativas a los LEDs RGB
 void APP_RGB_tasks();
-//Funcion que obtiene info del potenciometro y prende los leds segun corresponda
-void APP_pot2RGB( uint8_t p_humidity );
+
 void APP_UI();
 
 bool APP_init();
