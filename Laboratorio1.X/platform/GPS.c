@@ -128,20 +128,20 @@ void GPS_parseFrame( uint8_t *p_frame, struct tm *p_time, GPSPosition_t *p_posit
 {
     uint8_t* index = 0;
    
-    index = strstr( p_frame, MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) ); 
+    index = strstr( p_frame, MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 2 ) ); 
     
     
     if( index == NULL ) return;
     
     //  voy hasta el final de +CGNSINF: 
-    index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) )+1;
-//    index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );
-//    if( *(index + 3) == 0x30 )
+    index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 2 ) )+1;
+
     if( *(index + 2) != 0x31 ) //Contemplamos caso donde es 0 y .
     {
         *p_validity = false;
         return;
     }
+    
     memset(p_time,0,36);   //POR QUE EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
     GPS_getUTC( p_time, index );
     memset(p_position,0,sizeof(GPSPosition_t));

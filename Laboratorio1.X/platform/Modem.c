@@ -7,16 +7,17 @@
 
 #include "../framework/USB_fwk.h"
 
-#define SIM_PIN_JUAN "\"2222\""
-
-
 uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ]; //guarda que no puede ser mayor que el largo del buffer de la uart1!!!
 uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ]; 
 uint8_t MDM_cmdBuffer[20];  //solo para guardar los string con los comandos
 uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de respuesta
 
 
+//<editor-fold defaultstate="collapsed" desc="Tasks">
+
 static MDM_TASKS_t MDM_task;
+static MDM_smsInfo_t* sms_ptr;
+
 
 void MDM_tasks()
 {
@@ -28,6 +29,7 @@ void MDM_tasks()
         case MDM_ESTADOS_INIT:
             if( MDM_Init() )
             {
+                MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_UNDEF );
                 MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
                 MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_UNDEF );
                 MDM_taskSetStatus( MDM_TASK_READ_SMS, MDM_TASK_STATUS_UNDEF );
@@ -38,6 +40,12 @@ void MDM_tasks()
         case MDM_ESTADOS_WAIT:
             if( mdm_task == MDM_TASK_UNDEF )
             {
+                if( MDM_taskGetStatus(MDM_TASK_GSM_CONFIG) == MDM_TASK_STATUS_NEW )
+                {
+                    mdm_task = MDM_TASK_GSM_CONFIG;
+                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
+                    break;
+                }
                 if( MDM_taskGetStatus(MDM_TASK_GET_GPS_FRAME) == MDM_TASK_STATUS_NEW )
                 {
                     mdm_task = MDM_TASK_GET_GPS_FRAME;
@@ -66,6 +74,20 @@ void MDM_tasks()
                     MDM_ESTADO = MDM_ESTADOS_WAIT;
                     break;
                 
+                case MDM_TASK_GSM_CONFIG:
+                    if( MDM_taskGetStatus( MDM_TASK_GSM_CONFIG ) == MDM_TASK_STATUS_DONE )
+                    {
+                        MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_UNDEF );
+                        mdm_task = MDM_TASK_UNDEF;
+                    }
+                    else
+                    {
+                        MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_WORKING );
+                    }
+                    //el control se lo cedo a la funcion MDM_GSM_init...
+                    //no hay nada que hacer aqui m[as que no permitir que se manden otros comandos 
+                    break;
+                
                 case MDM_TASK_GET_GPS_FRAME:
                     MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_WORKING );
                     switch( MDM_GNSS_getInf( MDM_GNS_NMEA_RMC, true ) )
@@ -90,11 +112,19 @@ void MDM_tasks()
                     break;
                     
                 case MDM_TASK_SEND_SMS:
-                    
-                    
-                    
-                    MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_DONE );
-                    mdm_task = MDM_TASK_UNDEF;
+                    if( MDM_taskGetStatus( MDM_TASK_SEND_SMS ) == MDM_TASK_STATUS_NEW )
+                    {
+                        sms_ptr = (MDM_smsInfo_t*)MDM_task.SMS_send.ptr;
+                        MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_WORKING );
+                    }
+                    else
+                    {
+                        if( MDM_sendSMS( sms_ptr->num , sms_ptr->text ) )
+                        {
+                            MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_DONE );
+                            mdm_task = MDM_TASK_UNDEF;
+                        }
+                    }
                     break;
                     
                     
@@ -112,6 +142,10 @@ void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status )
 {
     switch( p_task )
     {
+        case MDM_TASK_GSM_CONFIG:
+            MDM_task.GSM_conf.status = p_status;
+            break;
+        
         case MDM_TASK_GET_GPS_FRAME:
             MDM_task.GPS_get.status = p_status;
             break;
@@ -133,6 +167,14 @@ bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
 {
     switch( p_task )
     {
+        case MDM_TASK_GSM_CONFIG:
+            if( MDM_taskGetStatus(MDM_TASK_GSM_CONFIG) == MDM_TASK_STATUS_UNDEF )
+            {
+                MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_NEW );
+                return true;
+            }
+            break;
+            
         case MDM_TASK_GET_GPS_FRAME:
             if( MDM_taskGetStatus(MDM_TASK_GET_GPS_FRAME) == MDM_TASK_STATUS_UNDEF )
             {
@@ -168,6 +210,9 @@ MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task )
 {
     switch( p_task )
     {
+        case MDM_TASK_GSM_CONFIG:
+            return MDM_task.GSM_conf.status;
+        
         case MDM_TASK_GET_GPS_FRAME:
             return MDM_task.GPS_get.status;
             
@@ -180,6 +225,8 @@ MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task )
         default: return MDM_TASK_STATUS_ERROR;
     }
 }
+
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Init">
 
@@ -404,8 +451,10 @@ MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
             switch ( p_index )
             {
                 case 1:
-                    return MDM_AT_RESP_NAME_GNS_GET_INF;
+                    return MDM_AT_RESP_NAME_GNS_GET_INF_NO_SIGNAL;
                 case 2:
+                    return MDM_AT_RESP_NAME_GNS_GET_INF;
+                case 3:
                     return MDM_AT_RESP_NAME_OK;
                 default: return MDM_AT_RESP_NAME_UNKNOWN; 
             }
@@ -416,7 +465,7 @@ MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
                 case 1:
                     return MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED;
                 case 2:
-                    return MDM_AT_RESP_NAME_ERROR;    
+                    return MDM_AT_RESP_NAME_GSM_SIM_ERROR;    
                 case 3:
                     return MDM_AT_RESP_NAME_OK;
                 default: return MDM_AT_RESP_NAME_UNKNOWN;       
@@ -573,9 +622,12 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
             switch ( p_index )
             {
                 case 1:
-                    strcpy (MDM_respBuffer,"+CGNSINF:" );
+                    strcpy (MDM_respBuffer,"+CGNSINF: 0,,,,,,,,,,,,,,,,,,,," );
                     return MDM_respBuffer;
                 case 2:
+                    strcpy (MDM_respBuffer,"+CGNSINF:" );
+                    return MDM_respBuffer;
+                case 3:
                     strcpy (MDM_respBuffer,"OK" );
                     return MDM_respBuffer;
                 default: return NULL; 
@@ -585,7 +637,7 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
             switch ( p_index )
             {
                 case 1:
-                    strcpy (MDM_respBuffer,"+CPIN" );
+                    strcpy (MDM_respBuffer,"+CPIN:" );
                     return MDM_respBuffer;
                 case 2:
                     strcpy (MDM_respBuffer,"ERROR" );
@@ -728,6 +780,7 @@ uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea );
 MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr )
 {
     static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GNS_PWR;
+    static uint8_t retries = 0;
     MDM_AT_RESP_NAME_t ret;
     
     state = ( !p_pwr ? MDM_AT_CMD_NAME_GNS_PWR : state );
@@ -770,10 +823,24 @@ MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr )
             ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GNS_GET_INFO, NULL , MDM_COMMAND_DEFAULT_TIMEOUT );
             switch( ret )
             {
+                case MDM_AT_RESP_NAME_GNS_GET_INF_NO_SIGNAL:
+                    if( retries++ == MDM_GPS_MAX_RETRIES )
+                    {
+                        retries = 0;
+                        state = MDM_AT_CMD_NAME_GNS_PWR;
+                    }
+                    else
+                    {
+                        return MDM_AT_RESP_NAME_GNS_GET_INF;
+                    }
+                    break;
+                
                 case MDM_AT_RESP_NAME_GNS_GET_INF:
+                    retries = 0;
                     return ret;
 
                 case MDM_AT_RESP_NAME_ERROR:
+                    retries = 0;
                     return ret;
                     
                 default:
@@ -816,7 +883,18 @@ uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea )
 
 //<editor-fold defaultstate="collapsed" desc="GSM">
 
-MDM_AT_RESP_NAME_t MDM_GSM_init()
+uint8_t* MDM_pin2str( uint16_t p_pin );
+
+uint8_t* MDM_pin2str( uint16_t p_pin )
+{
+    static uint8_t pinBuff[6];
+    
+    memset(pinBuff,0,sizeof(pinBuff));
+    sprintf(pinBuff,"\"%04d\"",p_pin);
+    return pinBuff;
+}
+
+MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
 {
     static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
     MDM_AT_RESP_NAME_t ret;
@@ -861,13 +939,14 @@ MDM_AT_RESP_NAME_t MDM_GSM_init()
             {
                 case MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED:
                     state = MDM_AT_CMD_NAME_GSM_SIM_PIN_SET;
+                    return ret;
                     break;
                 
                 case MDM_AT_RESP_NAME_OK:
                     state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
                     break;
                     
-                case MDM_AT_RESP_NAME_ERROR:
+                case MDM_AT_RESP_NAME_GSM_SIM_ERROR:
                     return ret;
                     
                 default:
@@ -876,7 +955,7 @@ MDM_AT_RESP_NAME_t MDM_GSM_init()
             break;
             
         case MDM_AT_CMD_NAME_GSM_SIM_PIN_SET:
-            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SIM_PIN_SET, SIM_PIN_JUAN , MDM_COMMAND_DEFAULT_TIMEOUT );
+            ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SIM_PIN_SET, MDM_pin2str( p_pin )  , MDM_COMMAND_DEFAULT_TIMEOUT );
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_OK:
@@ -963,6 +1042,7 @@ MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string )
             {
                 case MDM_AT_RESP_NAME_GSM_SMS_SENT:
                 case MDM_AT_RESP_NAME_ERROR:
+                    state = MDM_AT_CMD_NAME_GSM_SMS_SEND_HEADER;
                     return ret;
                     break;
 

@@ -12,7 +12,7 @@
 #include "utils/Utils.h"
 #include "framework/RGB_fwk.h"
 
-#define UYT -3 //zona horaria de Uruguay
+
 
 
 //</editor-fold>
