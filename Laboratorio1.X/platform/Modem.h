@@ -25,7 +25,7 @@
 
 typedef enum
 {
-    MDM_TASK_GSM_CONFIG,
+    MDM_TASK_CONFIG,
     MDM_TASK_GET_GPS_FRAME,
     MDM_TASK_SEND_SMS,
     MDM_TASK_READ_SMS,

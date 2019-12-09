@@ -32,14 +32,7 @@
 static void MAIN_init() //inicializaciones que son instantaneas (ACA NO VA NINGUNA M[AQUINA DE ESTADOS!)
 {
     SYSTEM_Initialize();
-    RGB_setLed(0,OFF);
-    RGB_setLed(1,OFF);
-    RGB_setLed(2,OFF);
-    RGB_setLed(3,OFF);
-    RGB_setLed(4,OFF);
-    RGB_setLed(5,OFF);
-    RGB_setLed(6,OFF);
-    RGB_setLed(7,OFF);
+    RGB_setAll(OFF);
     GPRS_PWR_SetDigitalInput();
     GPRS_RESET_SetHigh();
     ADC1_ChannelSelect( ADC1_POT );
@@ -835,12 +828,12 @@ int main ()
                 case APP_STATE_TASKS:
                     APP_UI();
                     APP_tasks();
-                    MDM_tasks();
                     break;
                 
                 default: break;
             }
             
+            MDM_tasks();
             RGB_tasks();    //APP_RGB_tasks();
             USB_CDC_tasks();
             

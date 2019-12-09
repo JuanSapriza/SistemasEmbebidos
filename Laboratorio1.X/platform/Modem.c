@@ -29,7 +29,7 @@ void MDM_tasks()
         case MDM_ESTADOS_INIT:
             if( MDM_Init() )
             {
-                MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_UNDEF );
+                MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_UNDEF );
                 MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
                 MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_UNDEF );
                 MDM_taskSetStatus( MDM_TASK_READ_SMS, MDM_TASK_STATUS_UNDEF );
@@ -40,9 +40,9 @@ void MDM_tasks()
         case MDM_ESTADOS_WAIT:
             if( mdm_task == MDM_TASK_UNDEF )
             {
-                if( MDM_taskGetStatus(MDM_TASK_GSM_CONFIG) == MDM_TASK_STATUS_NEW )
+                if( MDM_taskGetStatus(MDM_TASK_CONFIG) == MDM_TASK_STATUS_NEW )
                 {
-                    mdm_task = MDM_TASK_GSM_CONFIG;
+                    mdm_task = MDM_TASK_CONFIG;
                     MDM_ESTADO = MDM_ESTADOS_EXECUTE;
                     break;
                 }
@@ -74,15 +74,15 @@ void MDM_tasks()
                     MDM_ESTADO = MDM_ESTADOS_WAIT;
                     break;
                 
-                case MDM_TASK_GSM_CONFIG:
-                    if( MDM_taskGetStatus( MDM_TASK_GSM_CONFIG ) == MDM_TASK_STATUS_DONE )
+                case MDM_TASK_CONFIG:
+                    if( MDM_taskGetStatus( MDM_TASK_CONFIG ) == MDM_TASK_STATUS_DONE )
                     {
-                        MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_UNDEF );
+                        MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_UNDEF );
                         mdm_task = MDM_TASK_UNDEF;
                     }
                     else
                     {
-                        MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_WORKING );
+                        MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_WORKING );
                     }
                     //el control se lo cedo a la funcion MDM_GSM_init...
                     //no hay nada que hacer aqui m[as que no permitir que se manden otros comandos 
@@ -142,7 +142,7 @@ void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status )
 {
     switch( p_task )
     {
-        case MDM_TASK_GSM_CONFIG:
+        case MDM_TASK_CONFIG:
             MDM_task.GSM_conf.status = p_status;
             break;
         
@@ -167,10 +167,10 @@ bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
 {
     switch( p_task )
     {
-        case MDM_TASK_GSM_CONFIG:
-            if( MDM_taskGetStatus(MDM_TASK_GSM_CONFIG) == MDM_TASK_STATUS_UNDEF )
+        case MDM_TASK_CONFIG:
+            if( MDM_taskGetStatus(MDM_TASK_CONFIG) == MDM_TASK_STATUS_UNDEF )
             {
-                MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_NEW );
+                MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_NEW );
                 return true;
             }
             break;
@@ -210,7 +210,7 @@ MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task )
 {
     switch( p_task )
     {
-        case MDM_TASK_GSM_CONFIG:
+        case MDM_TASK_CONFIG:
             return MDM_task.GSM_conf.status;
         
         case MDM_TASK_GET_GPS_FRAME:
@@ -728,6 +728,7 @@ bool MDM_sendInitialAT()
     switch( initialATState )
             {
                 case MDM_ESTADOS_INIT:
+                    MDM_taskSchedule( MDM_TASK_CONFIG, NULL );
                     MDM_write( "A\r" );
                     initialATState = MDM_ESTADOS_WAIT;
                     break;
@@ -747,6 +748,7 @@ bool MDM_sendInitialAT()
                             
                         case MDM_AT_RESP_NAME_OK:
                             initialATState = MDM_ESTADOS_INIT;
+                            MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_DONE );
                             return true;
                             
                         case MDM_AT_RESP_NAME_TIMEOUT:

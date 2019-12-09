@@ -21,7 +21,7 @@
 #include "utils/Utils.h"
 
 
-
+//<editor-fold defaultstate="collapsed" desc="Funciones">
 
 APP_var_t APP_info;
 
@@ -49,7 +49,7 @@ uint8_t* APP_location2GoogleMapsString();
 uint8_t* APP_printDateTime( struct tm* p_time );
 void APP_RGB_humidityAnalag( uint8_t p_humidity );
 
-
+//</editor-fold>
 
 uint8_t* APP_printDateTime( struct tm* p_time )
 {
@@ -60,7 +60,9 @@ uint8_t* APP_printDateTime( struct tm* p_time )
 
 }
 
-// THRESHOLDS Y PARAMETROS -------------------------------------------------------
+
+
+//<editor-fold defaultstate="collapsed" desc="Parámteros y Umbrales">
 
 void APP_THRESHOLD_initialize()
 {
@@ -383,7 +385,10 @@ APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t
 
 }
 
-// CONTROL DE HUMEDAD    -------------------------------------------------------
+//</editor-fold>
+
+
+//<editor-fold defaultstate="collapsed" desc="Control de Humedad">
 
 APP_HUMIDITY_LEVEL_t APP_humidity2level( uint8_t p_humidity )
 {
@@ -636,8 +641,10 @@ void APP_clearHumidityAlert()
     APP_info.humidity.alert = false;
 }
     
+//</editor-fold>
 
-// ID DE LA PLANTA -------------------------------------------------------------
+
+//<editor-fold defaultstate="collapsed" desc="ID de la Planta">
 
 void APP_changePlantID( uint16_t p_newID )
 {
@@ -705,7 +712,10 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
     return APP_FUNC_WORKING;
 }
 
-// LOGGEO DE INFO  -------------------------------------------------------------
+//</editor-fold>
+
+
+//<editor-fold defaultstate="collapsed" desc="Loggeo">
 
 uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
 {
@@ -863,8 +873,10 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ()
 
 }
 
+//</editor-fold>
 
-// CELULAR         -------------------------------------------------------------
+
+//<editor-fold defaultstate="collapsed" desc="Celular">
 
 APP_FUNC_STATUS_t APP_setNewPhone()
 {
@@ -940,7 +952,7 @@ APP_FUNC_STATUS_t APP_GSMConfig()
     switch( state_gsmConfig )
     {
         case APP_STATE_INIT:
-            MDM_taskSchedule( MDM_TASK_GSM_CONFIG, NULL );
+            MDM_taskSchedule( MDM_TASK_CONFIG, NULL );
             state_gsmConfig = APP_STATE_TASKS;
             //intentional breakthrough
         
@@ -966,7 +978,7 @@ APP_FUNC_STATUS_t APP_GSMConfig()
                 case MDM_AT_RESP_NAME_OK:
                     tempPIN = 0;
                     APP_info.GSM_active = true;
-                    MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_DONE );
+                    MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_DONE );
                     return APP_FUNC_DONE;
                     break;
 
@@ -1079,8 +1091,10 @@ APP_FUNC_STATUS_t APP_celularConfig()
     return APP_FUNC_WORKING;
 }
 
+//</editor-fold>
 
-// SMS DE EMERGENCIA ------------------------------------------------------------
+
+//<editor-fold defaultstate="collapsed" desc="SMS de Emergencia">
 
 MDM_smsInfo_t* APP_emergencySMS()
 {
@@ -1110,8 +1124,8 @@ uint8_t* APP_location2GoogleMapsString()
     return dummyBuffer;
 }
 
+//</editor-fold>
 
-// FUNCIONES GRANDES------------------------------------------------------------
 
 bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion 
 {
@@ -1154,6 +1168,7 @@ void APP_tasks()
     static MDM_smsInfo_t emergency_sms; 
     struct tm aux_tm;
     struct tm *currentTime; //debug
+    static bool sense = false;
     
     // ACTUALIZACION DE LA HORA
     if( UTS_delayms( UTS_DELAY_HANDLER_TIME_SYNC, 1000, false ) )
@@ -1167,7 +1182,11 @@ void APP_tasks()
     
     
     // SENSADO DE HUMEDAD
-    if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
+    if( !sense && UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
+    {
+        sense = true;
+    }
+    if( sense )
     {
         if( APP_getHumidity() )
         {
@@ -1176,6 +1195,7 @@ void APP_tasks()
 //                APP_RGB_humidity ( APP_humidity2level( APP_info.humidity.level) );
                 APP_RGB_humidityAnalag( APP_info.humidity.level );
             }
+            sense = false;
         }
     }
     APP_LEDA_irrigate ( APP_info.humidity.level );
@@ -1266,7 +1286,6 @@ void APP_UI() //interfaz de usuario
             {
                 USB_write("Bienvenido!\n");
                 USB_write("Presione una tecla \n");
-                //APP_info.time = mktime(&RTC_time);
                 UI_STATE = APP_UI_STATE_WAIT_4_KEY;
             }
             break;
@@ -1286,7 +1305,6 @@ void APP_UI() //interfaz de usuario
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Parmámetros" ); //3
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" ); //4
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configuración Celular" ); //5
-            // configurar parametros 
             UI_STATE = APP_UI_STATE_PRINT_HEADER;
             break;   
             
