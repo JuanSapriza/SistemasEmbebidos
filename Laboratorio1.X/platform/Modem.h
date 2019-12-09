@@ -13,7 +13,11 @@
 
 #define MDM_SMS_WAIT_TIME 500
 
+#define MDM_SMS_LENGTH 100
+#define MDM_SMS_PHONE_NUM_LENGTH 15
 #define MDM_SIM_PIN_SIZE 4
+
+#define MDM_GPS_MAX_RETRIES 5
 
 #define MDM_COMMAND_SYNTAX_PARAM_ASK "=?"
 #define MDM_COMMAND_SYNTAX_STATUS_ASK "?"
@@ -21,6 +25,7 @@
 
 typedef enum
 {
+    MDM_TASK_GSM_CONFIG,
     MDM_TASK_GET_GPS_FRAME,
     MDM_TASK_SEND_SMS,
     MDM_TASK_READ_SMS,
@@ -44,6 +49,7 @@ typedef struct
 
 typedef struct
 {
+    MDM_TASK_ELEMENT_t GSM_conf;
     MDM_TASK_ELEMENT_t GPS_get;
     MDM_TASK_ELEMENT_t SMS_read;
     MDM_TASK_ELEMENT_t SMS_send;
@@ -100,8 +106,10 @@ typedef enum
             
     MDM_AT_RESP_NAME_GNS_PWR,
     MDM_AT_RESP_NAME_GNS_GET_INF,
+    MDM_AT_RESP_NAME_GNS_GET_INF_NO_SIGNAL,
             
     MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED,
+    MDM_AT_RESP_NAME_GSM_SIM_ERROR,
     MDM_AT_RESP_NAME_GSM_SMS_READ,
     MDM_AT_RESP_NAME_GSM_SMS_SENT,
            
@@ -133,6 +141,12 @@ struct MDM_GNS_INFO
 } gMDM_gnsInfo;
 
 
+typedef struct
+{
+    uint8_t num[MDM_SMS_PHONE_NUM_LENGTH];
+    uint8_t text[MDM_SMS_LENGTH];
+} MDM_smsInfo_t;
+
 void MDM_tasks();
 void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status );
 bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr );
@@ -152,7 +166,7 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
 bool MDM_sendInitialAT();
 MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr );
 
-MDM_AT_RESP_NAME_t MDM_GSM_init();
+MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin );
 MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string );
 
 #endif

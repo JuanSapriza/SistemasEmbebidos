@@ -39,7 +39,6 @@
 
 
 #define APP_EMERGENCY_NUMBER_DEFAULT "\"+59891972950\""
-#define APP_PHONE_NUM_SIZE 12
 
 #define APP_THRESHOLD_SATURATED_DEFAULT 5
 #define APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT 9
@@ -57,7 +56,7 @@
 
 #define APP_HUMIDITY_DEFAULT_LEVEL 30
 
-#define APP_PLANT_ID_MAX_NUM 9999
+#define APP_4_DIGITS_MAX_NUM 9999
 #define APP_DEFAULT_PLANT_ID 1234
 
 #define APP_HUMIDITY_MAX_NUM 60
@@ -386,14 +385,18 @@ enum APP_UI_STATES
 enum APP_STATES
 {
     APP_STATE_APP_INIT,
+    
+    APP_STATE_INIT,
     APP_STATE_TASKS,
     APP_STATE_WAIT,
     APP_STATE_CHECK,
     APP_STATE_CHECK_OK,
     APP_STATE_CHECK_ERROR,
+    APP_STATE_GET,
+    APP_STATE_SHOW,
+    APP_STATE_ERROR_SHOW,
+    APP_STATE_COOLDOWN,
     
-    
-    APP_STATE_INIT,
     APP_STATE_MENU_CREATE,
     APP_STATE_MENU_SHOW,
     APP_STATE_MENU_OPTIONS,
@@ -526,8 +529,9 @@ typedef struct
     time_t time;
     bool position_validity;
     uint16_t plantID;
-    uint8_t emergencyNum[APP_PHONE_NUM_SIZE];
+    uint8_t emergencyNum[MDM_SMS_PHONE_NUM_LENGTH];
     uint8_t simPin[MDM_SIM_PIN_SIZE];
+    bool GSM_active;
     
     GPSPosition_t position;
     APP_HUMIDITY_t humidity;

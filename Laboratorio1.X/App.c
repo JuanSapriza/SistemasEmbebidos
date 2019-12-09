@@ -575,7 +575,7 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
                 return APP_FUNC_RETURN;
             }
             aux = (int32_t) atoi( USB_whatsInReadBuffer() );
-            if( aux > 0 && aux <= APP_PLANT_ID_MAX_NUM )
+            if( aux > 0 && aux <= APP_4_DIGITS_MAX_NUM )
             {
                 state = APP_GET_NEW_ID_RESPONSE_OK;
             }
@@ -593,7 +593,7 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
             
         case APP_GET_NEW_ID_RESPONSE_ERROR:
             USB_write("\n\n ERROR \n");
-            sprintf( USB_dummyBuffer, "\n\n ingrese un número entre 0 y %d \n",APP_PLANT_ID_MAX_NUM );
+            sprintf( USB_dummyBuffer, "\n\n ingrese un número entre 0 y %d \n",APP_4_DIGITS_MAX_NUM );
             USB_write(USB_dummyBuffer);
             state = APP_GET_NEW_ID_WAIT;
             break;
@@ -773,7 +773,7 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ()
 APP_FUNC_STATUS_t APP_setNewPhone()
 {
     static uint8_t state = APP_STATE_INIT;
-    uint8_t auxBuffer[ APP_PHONE_NUM_SIZE +2 ]; //por las comillas de los bordes
+    uint8_t auxBuffer[ MDM_SMS_PHONE_NUM_LENGTH +2 ]; //por las comillas de los bordes
     
     switch( state )
     {
@@ -803,7 +803,7 @@ APP_FUNC_STATUS_t APP_setNewPhone()
                 state = APP_STATE_INIT;
                 return APP_FUNC_RETURN;
             }
-            if( strlen( USB_whatsInReadBuffer() -1 ) == APP_PHONE_NUM_SIZE ) //por el /n
+            if( strlen( USB_whatsInReadBuffer() -1 ) == MDM_SMS_PHONE_NUM_LENGTH ) //por el /n
             {
                 state = APP_STATE_CHECK_OK;
             }
@@ -836,6 +836,99 @@ APP_FUNC_STATUS_t APP_setNewPhone()
 
 }
 
+APP_FUNC_STATUS_t APP_GSMConfig()
+{
+    static uint8_t state_gsmConfig = APP_STATE_INIT;
+    static uint16_t tempPIN = 0; 
+    
+    switch( state_gsmConfig )
+    {
+        case APP_STATE_INIT:
+            MDM_taskSchedule( MDM_TASK_GSM_CONFIG, NULL );
+            state_gsmConfig = APP_STATE_TASKS;
+            //intentional breakthrough
+        
+        case APP_STATE_TASKS:
+            switch( MDM_GSM_init( tempPIN ) )
+            {
+                
+                case MDM_AT_RESP_NAME_GSM_SIM_ERROR:
+                    USB_write("\nRevise la SIM y vuelva a intentar\n");
+                    state_gsmConfig = APP_STATE_INIT;
+                    return APP_FUNC_ERROR;
+                    break;
+                    
+                case MDM_AT_RESP_NAME_ERROR:
+                    state_gsmConfig = APP_STATE_COOLDOWN;
+                    //MANEJAR LOS ERRORES!! 
+                    break;
+
+                case MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED:
+                    state_gsmConfig = APP_STATE_SHOW;
+                    break;
+                    
+                case MDM_AT_RESP_NAME_OK:
+                    tempPIN = 0;
+                    APP_info.GSM_active = true;
+                    MDM_taskSetStatus( MDM_TASK_GSM_CONFIG, MDM_TASK_STATUS_DONE );
+                    return APP_FUNC_DONE;
+                    break;
+
+                default: break;
+            }
+            break;
+            
+        case APP_STATE_SHOW:
+            USB_write("\nIngrese el PIN: \n");
+            state_gsmConfig = APP_STATE_GET;
+            //intentional breakthrough
+            
+        case APP_STATE_GET:
+            if( USB_sth2Read() )
+            {
+                state_gsmConfig = APP_STATE_CHECK;  
+            }
+            else
+            {
+                break;
+            }
+            //intentional breakthrough
+
+        case APP_STATE_CHECK:
+            if( strstr( USB_whatsInReadBuffer(), USB_FWK_RETURN_CHAR ) != NULL )
+            {
+                tempPIN = 0;
+                state_gsmConfig = APP_STATE_INIT;
+                return APP_FUNC_RETURN;
+            }
+            tempPIN = (uint32_t) atoi( USB_whatsInReadBuffer() );
+            if( tempPIN <= APP_4_DIGITS_MAX_NUM )
+            {
+                state_gsmConfig = APP_STATE_TASKS;
+            }
+            else
+            {
+                tempPIN = 0;
+                USB_write("\nIngrese un PIN válido\n");
+                state_gsmConfig = APP_STATE_GET;
+            }
+            break;
+            
+        case APP_STATE_COOLDOWN:
+            if( UTS_delayms( UTS_DELAY_HANDLER_USB_SEND_TO_MODEM_ACHIQUEN, MDM_COMMAND_DEFAULT_TIMEOUT, false ) )
+            {
+                USB_send2Modem();
+//                state_gsmConfig = APP_STATE_TASKS;
+            }
+            break;
+            
+        default: break;
+            
+    }
+    
+    return APP_FUNC_WORKING;
+}
+
 APP_FUNC_STATUS_t APP_celularConfig()
 {
     static uint8_t state_celConfig = APP_STATE_INIT;
@@ -861,10 +954,14 @@ APP_FUNC_STATUS_t APP_celularConfig()
             {
                     
                 case -1: //return 
+                    state_celConfig = APP_STATE_INIT;
                     return APP_FUNC_RETURN;
                     
                 case 1: //configurar GSM
-                    MDM_GSM_init();
+                    if( APP_GSMConfig() )
+                    {
+                        state_celConfig = APP_STATE_INIT;
+                    }
                     break;
                     
                 case 2: //setear nuevo numero
@@ -901,6 +998,7 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
             APP_info.plantID = APP_DEFAULT_PLANT_ID;
             APP_info.humidity.alert = false;
             APP_info.humidity.coolDown = false;
+            APP_info.GSM_active = false;
             strcpy( APP_info.emergencyNum, APP_EMERGENCY_NUMBER_DEFAULT );
             APP_THRESHOLD_initialize();
             APP_PARAM_initialize();
@@ -926,9 +1024,8 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
 
 void APP_tasks()
 {
-    static uint8_t APP_smsBuffer[APP_SMS_LENGTH]; //larog maximo de un sms
+    static MDM_smsInfo_t emergency_sms; 
     struct tm aux_tm;
-    struct tm * time_to_display;
     struct tm *currentTime; //debug
     
     // ACTUALIZACION DE LA HORA
@@ -972,37 +1069,6 @@ void APP_tasks()
             GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
             
-//            //--------------------PARA PRUEBAS (SACARLO LUEGO)------------------
-//            
-//            //Imprimimos fecha y hora directamente del GPS (OK)
-//            time_to_display = &aux_tm;	
-//            sprintf(USB_dummyBuffer,"La hora del GPS es %2d:%02d:%02d \n",(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
-//            USB_write(USB_dummyBuffer);
-//            sprintf(USB_dummyBuffer,"La fecha del GPS es %02d/%02d/%04d \n",time_to_display->tm_mday,time_to_display->tm_mon+1,time_to_display->tm_year+1900);
-//            USB_write(USB_dummyBuffer);
-//            
-//            //Hora a partir de leer el RTC (OK?)
-//            
-//            sprintf(USB_dummyBuffer,"La hora del RTC es %2d:%02d:%02d \n",(currentTime->tm_hour+UYT)%24,currentTime->tm_min,currentTime->tm_sec);
-//            USB_write(USB_dummyBuffer);
-//            
-//            //Fecha y hora de APP_info (incorrecta) 
-//            
-//            
-//            time_to_display = localtime(&(APP_info.time));
-//            time_to_display->tm_mon=time_to_display->tm_mon;
-//            time_to_display->tm_year=time_to_display->tm_year;
-//            sprintf(USB_dummyBuffer,"\n 1:Fecha y hora de APP info: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon+1,time_to_display->tm_year+1900,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
-//            USB_write(USB_dummyBuffer);
-//            time_to_display->tm_mon=time_to_display->tm_mon+1;
-//            time_to_display->tm_year=time_to_display->tm_year+1900;
-//            sprintf(USB_dummyBuffer,"\n2:Fecha y hora de APP info: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
-//            USB_write(USB_dummyBuffer);
-
-            //------------------------------------------------------------------
-            
-            //Actualizamos RTC con hora del GPS si es válida
-            
             if(APP_info.position_validity)
             {
                RTCC_TimeSet(&aux_tm);               
@@ -1015,13 +1081,14 @@ void APP_tasks()
     } 
     
     // ENVIO DE ALERTA POR SMS 
-    if( !APP_info.humidity.coolDown && APP_checkHumidityAlert() )
+    if( !APP_info.humidity.coolDown && APP_checkHumidityAlert() && APP_info.GSM_active )
     {
-                                                                    //TENER ARMADO EL SMS!!
+        sprintf(emergency_sms.text, "AHHHH, EMERGENCIA!");
+        strcpy(emergency_sms.num, APP_info.emergencyNum );
         switch( MDM_taskGetStatus( MDM_TASK_SEND_SMS ) )
         {
             case MDM_TASK_STATUS_UNDEF:
-                MDM_taskSchedule( MDM_TASK_SEND_SMS, (uint8_t*) APP_smsBuffer );
+                MDM_taskSchedule( MDM_TASK_SEND_SMS, (MDM_smsInfo_t*)&(emergency_sms) );
                 break;
 
             case MDM_TASK_STATUS_DONE:
