@@ -137,7 +137,7 @@ void GPS_parseFrame( uint8_t *p_frame, struct tm *p_time, GPSPosition_t *p_posit
     index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) )+1;
 //    index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 1 ) );
 //    if( *(index + 3) == 0x30 )
-    if( *(index + 2) == 0x30 )
+    if( *(index + 2) != 0x31 ) //Contemplamos caso donde es 0 y .
     {
         *p_validity = false;
         return;

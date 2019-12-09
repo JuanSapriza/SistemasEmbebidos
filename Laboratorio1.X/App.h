@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <stdbool.h>
+//#include <math.h>
 
 #include "mcc_generated_files/pin_manager.h"
 #include "mcc_generated_files/adc1.h"
@@ -52,8 +53,13 @@
 #define APP_HUMIDITY_SENSE_PERIOD_DEFAULT 500
 #define APP_LOG_REGISTRER_PERIOD_DEFAULT 5000
 #define APP_GPS_GET_PERIOD_DEFAULT 5000
-#define APP_SMS_ALERT_PERIOD_DEFAULT 6000
+//#define APP_SMS_ALERT_PERIOD_DEFAULT 6000
 #define APP_SMS_ALERT_COOL_DOWN_DEFAULT 10000
+#define APP_LOG_BUFFER_SIZE 5
+
+#define APP_LOG_BUFFER_SIZE_MAX 50000 //Calculado en base a la memoria de datos disponible y un valor razonable de registros (100 años guardando cada 12 hrs o un año guardando cada 10 minutos)
+
+#define APP_PERIOD_MAX 1728000 //Período máximo de 20 días en segundos
 
 #define APP_HUMIDITY_DEFAULT_LEVEL 30
 
@@ -63,7 +69,6 @@
 #define APP_HUMIDITY_MAX_NUM 60
 #define APP_HUMIDITY_MIN_NUM 1
 
-#define APP_LOG_BUFFER_SIZE 5
 #define APP_SHORT_STRING_SIZE 30
 #define APP_SMS_LENGTH 100
 
@@ -482,6 +487,37 @@ typedef enum
 }APP_THRESHOLD_NAMES_t;
 
 //---------------------------
+//Para setear parámetros:
+
+enum APP_SET_PARAMETERS
+{
+    APP_SET_PARAMETERS_INIT,
+    APP_SET_PARAMETERS_MENU,
+    APP_SET_PARAMETERS_SHOW,
+    APP_SET_PARAMETERS_FUNCTIONS,
+};
+
+enum APP_SET_NEW_PARAMETER
+{
+    APP_SET_NEW_PARAMETER_SHOW,
+    APP_SET_NEW_PARAMETER_WAIT,
+    APP_SET_NEW_PARAMETER_VALIDATE,
+    APP_SET_NEW_PARAMETER_RESPONSE_OK,
+    APP_SET_NEW_PARAMETER_RESPONSE_ERROR,
+}; 
+
+
+typedef enum 
+{
+    APP_PARAMETER_UNDEF,
+    APP_PARAMETER_HUMIDITY_PERIOD,
+    APP_PARAMETER_LOG_PERIOD,
+    APP_PARAMETER_GPS_PERIOD,
+    APP_PARAMETER_BUFFER_SIZE,
+    APP_PARAMETER_SMS_COOL_DOWN,
+
+}APP_PARAMETER_NAMES_t;
+//---------------------------
 
 typedef enum
 {
@@ -509,8 +545,9 @@ typedef struct
     uint32_t humiditySensePeriod;
     uint32_t logRegisterPeriod;
     uint32_t gpsGetPeriod;
-    uint32_t SMSalertPeriod;
+//    uint32_t SMSalertPeriod;
     uint32_t SMSalertCoolDown;
+    uint32_t logBufferSize;
 } APP_PARAMS_t;
 
 typedef struct
@@ -528,6 +565,7 @@ typedef struct
     uint16_t plantID;
     uint8_t emergencyNum[APP_PHONE_NUM_SIZE];
     uint8_t simPin[MDM_SIM_PIN_SIZE];
+    
     
     GPSPosition_t position;
     APP_HUMIDITY_t humidity;
@@ -569,9 +607,9 @@ void APP_UI();
 bool APP_init();
 
 void APP_THRESHOLD_initialize ();
-void APP_THRESHOLD_set ( APP_THRESHOLD_t p_threshold );
+//void APP_THRESHOLD_set ( APP_THRESHOLD_t p_threshold );
 void APP_PARAM_initialize();
-void APP_PARAM_set ( APP_PARAMS_t p_param );
+//void APP_PARAM_set ( APP_PARAMS_t p_param );
 #endif
 
 

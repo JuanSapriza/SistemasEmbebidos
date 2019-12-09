@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 
 #include "mcc_generated_files/system.h"
 #include "mcc_generated_files/rtcc.h"
@@ -36,6 +36,9 @@ void APP_changePlantID( uint16_t p_newID );
 APP_FUNC_STATUS_t APP_getNewPlantID();
 bool APP_checkHumidityAlert();
 void APP_clearHumidityAlert();
+APP_FUNC_STATUS_t APP_setParameters( void );
+uint8_t* APP_parameter2String( APP_PARAMETER_NAMES_t p_parameter );
+APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32_t *p_users_new_parameter );
 APP_FUNC_STATUS_t APP_setThresholds();
 uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
 APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold );
@@ -58,35 +61,36 @@ void APP_THRESHOLD_initialize()
     APP_info.threshold.manual=APP_THRESHOLD_MANUAL_DEFAULT;
 }
 
-void APP_THRESHOLD_set (APP_THRESHOLD_t p_threshold  )
-{
-    APP_info.threshold.saturated=p_threshold.saturated;
-    APP_info.threshold.slightly_saturated= p_threshold.slightly_saturated;
-    APP_info.threshold.slightly_dry=p_threshold.slightly_dry;
-    APP_info.threshold.dry=p_threshold.dry;
-    APP_info.threshold.low_automatic=p_threshold.low_automatic;
-    APP_info.threshold.high_automatic=p_threshold.high_automatic;
-    APP_info.threshold.manual=p_threshold.manual;
-}
+//void APP_THRESHOLD_set (APP_THRESHOLD_t p_threshold  )
+//{
+//    APP_info.threshold.saturated=p_threshold.saturated;
+//    APP_info.threshold.slightly_saturated= p_threshold.slightly_saturated;
+//    APP_info.threshold.slightly_dry=p_threshold.slightly_dry;
+//    APP_info.threshold.dry=p_threshold.dry;
+//    APP_info.threshold.low_automatic=p_threshold.low_automatic;
+//    APP_info.threshold.high_automatic=p_threshold.high_automatic;
+//    APP_info.threshold.manual=p_threshold.manual;
+//}
 
 void APP_PARAM_initialize()
 {
     APP_info.param.humiditySensePeriod=APP_HUMIDITY_SENSE_PERIOD_DEFAULT;
     APP_info.param.logRegisterPeriod=APP_LOG_REGISTRER_PERIOD_DEFAULT;
     APP_info.param.gpsGetPeriod=APP_GPS_GET_PERIOD_DEFAULT;
-    APP_info.param.SMSalertPeriod=APP_SMS_ALERT_PERIOD_DEFAULT;
+//    APP_info.param.SMSalertPeriod=APP_SMS_ALERT_PERIOD_DEFAULT;
     APP_info.param.SMSalertCoolDown=APP_SMS_ALERT_COOL_DOWN_DEFAULT;
-    
+    APP_info.param.logBufferSize=APP_LOG_BUFFER_SIZE;
+            
 }
 
-void APP_PARAM_set ( APP_PARAMS_t p_param )
-{
-    APP_info.param.humiditySensePeriod=p_param.humiditySensePeriod;
-    APP_info.param.logRegisterPeriod=p_param.logRegisterPeriod;
-    APP_info.param.gpsGetPeriod=p_param.gpsGetPeriod;
-    APP_info.param.SMSalertPeriod=p_param.SMSalertPeriod;
-    APP_info.param.SMSalertCoolDown=p_param.SMSalertCoolDown;
-}
+//void APP_PARAM_set ( APP_PARAMS_t p_param )
+//{
+//    APP_info.param.humiditySensePeriod=p_param.humiditySensePeriod;
+//    APP_info.param.logRegisterPeriod=p_param.logRegisterPeriod;
+//    APP_info.param.gpsGetPeriod=p_param.gpsGetPeriod;
+//    APP_info.param.SMSalertPeriod=p_param.SMSalertPeriod;
+//    APP_info.param.SMSalertCoolDown=p_param.SMSalertCoolDown;
+//}
 
 
 APP_FUNC_STATUS_t APP_setThresholds( void )
@@ -368,7 +372,255 @@ APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t
 
 }
 
-// CONTROL DE HUMEDAD    -------------------------------------------------------
+APP_FUNC_STATUS_t APP_setParameters( void )
+{
+    static uint8_t state_parameters = APP_SET_PARAMETERS_MENU;
+    static int8_t retMenu_parameters; 
+    static APP_PARAMETER_NAMES_t selectedParameter; 
+    
+    uint32_t aux_user_parameter;
+    
+    switch( state_parameters )
+    {
+        case APP_SET_PARAMETERS_MENU:
+            memset(USB_dummyBuffer,0,sizeof(USB_dummyBuffer));
+            
+            UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, "Configuración de parámetros. ¿Qué parámetro desea modificar?" );
+            
+            sprintf( USB_dummyBuffer, "Período de sensado de humedad: %d.%d s",APP_info.param.humiditySensePeriod/1000,APP_info.param.humiditySensePeriod%1000);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Período de guardado de registros: %d.%d s",APP_info.param.logRegisterPeriod/1000,APP_info.param.logRegisterPeriod%1000);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Período de obtención de trama de GPS: %d.%d s",APP_info.param.gpsGetPeriod/1000,APP_info.param.gpsGetPeriod%1000);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Cantidad de registros a guardar: %d",APP_info.param.logBufferSize);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            
+            sprintf( USB_dummyBuffer, "Período de alertas de SMS: %d.%d s",APP_info.param.SMSalertCoolDown/1000,APP_info.param.SMSalertCoolDown%1000);
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            
+            
+            // configurar parametros 
+            state_parameters = APP_SET_PARAMETERS_SHOW;
+            //intentional breakthrough
+            
+
+        case APP_SET_PARAMETERS_SHOW:
+            retMenu_parameters = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PARAMETER );
+            state_parameters = APP_SET_PARAMETERS_FUNCTIONS;
+            //intentional breakthrough
+            
+            
+        case APP_SET_PARAMETERS_FUNCTIONS:
+            switch( retMenu_parameters )
+            {
+                case 0: //working
+                    state_parameters = APP_SET_PARAMETERS_SHOW;
+                    selectedParameter = APP_PARAMETER_UNDEF;
+                    break;
+                    
+                case -1: //return                  
+                    state_parameters = APP_SET_PARAMETERS_MENU;
+                    return APP_FUNC_RETURN;
+                    break;
+                    
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+
+                    selectedParameter = (APP_PARAMETER_NAMES_t) retMenu_parameters;
+                    break;
+                    
+                default: break;
+            }
+            
+            if( selectedParameter != APP_PARAMETER_UNDEF )
+            {
+                switch( APP_getNewParameter( selectedParameter, &aux_user_parameter ) )
+                    {
+                        case APP_FUNC_RETURN:
+                            state_parameters = APP_SET_PARAMETERS_MENU;
+                            break;
+                            
+                        case APP_FUNC_DONE:
+                            switch( selectedParameter )
+                            {
+                                case APP_PARAMETER_HUMIDITY_PERIOD:
+                                    APP_info.param.humiditySensePeriod = aux_user_parameter;
+                                    break;
+                                    
+                                case APP_PARAMETER_LOG_PERIOD:
+                                    APP_info.param.logRegisterPeriod = aux_user_parameter;
+                                    break;
+                                    
+                                case APP_PARAMETER_GPS_PERIOD:
+                                    APP_info.param.gpsGetPeriod = aux_user_parameter;
+                                    break;
+                                    
+                                case APP_PARAMETER_BUFFER_SIZE:
+                                    APP_info.param.logBufferSize = aux_user_parameter;
+                                    break;
+                                    
+                                case APP_PARAMETER_SMS_COOL_DOWN:
+                                    APP_info.param.SMSalertCoolDown = aux_user_parameter;
+                                    break;
+               
+                                default: break;
+                                    
+                            }
+                            selectedParameter = APP_PARAMETER_UNDEF;
+                            state_parameters = APP_SET_PARAMETERS_MENU;
+                            break;
+                            
+                        default: break;
+                    }
+            }
+            break;
+            
+        default: break;
+    
+    }
+
+    return APP_FUNC_WORKING;
+
+}    
+
+APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32_t *p_users_new_parameter )
+{
+    static uint8_t state_parameter = APP_SET_NEW_PARAMETER_SHOW;
+    static uint32_t aux_parameter; 
+    double aux_parameter_double;
+    
+    switch( state_parameter )
+    {
+        case APP_SET_NEW_PARAMETER_SHOW:
+            
+            sprintf(USB_dummyBuffer, "\n Ingrese el nuevo valor para %s \n", APP_parameter2String( p_parameter ) );
+            USB_write(USB_dummyBuffer);
+            state_parameter = APP_SET_NEW_PARAMETER_WAIT;
+            //intentional breakthrough
+            
+        case APP_SET_NEW_PARAMETER_WAIT:
+            if( USB_sth2Read() )
+            {
+                state_parameter = APP_SET_NEW_PARAMETER_VALIDATE;
+            }
+            else
+            {
+                break;
+            }
+            //intentional breakthrough
+            
+        case APP_SET_NEW_PARAMETER_VALIDATE:
+            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
+            {                          
+                state_parameter = APP_SET_NEW_PARAMETER_SHOW;
+                return APP_FUNC_RETURN;
+            }
+ 
+            aux_parameter_double = ( strtod( USB_whatsInReadBuffer() , NULL));
+            
+            //aux_parameter =  xtoi( USB_whatsInReadBuffer() );
+            if ( p_parameter == APP_PARAMETER_BUFFER_SIZE )
+            {
+                aux_parameter = (uint32_t) aux_parameter_double;
+                if ( ( aux_parameter > 0 ) && ( aux_parameter <= APP_LOG_BUFFER_SIZE_MAX ) )
+                {
+                    state_parameter = APP_SET_NEW_PARAMETER_RESPONSE_OK;
+                }
+                else
+                {
+                    state_parameter = APP_SET_NEW_PARAMETER_RESPONSE_ERROR;
+                }
+            }
+                
+            else
+            {
+                aux_parameter_double = aux_parameter_double*1000;
+                aux_parameter = (uint32_t) aux_parameter_double;
+                if ( ( aux_parameter > 0 ) && ( aux_parameter < APP_PERIOD_MAX *1000 ) )
+                {
+                    state_parameter = APP_SET_NEW_PARAMETER_RESPONSE_OK;
+                }
+                else
+                {
+                    state_parameter = APP_SET_NEW_PARAMETER_RESPONSE_ERROR;
+                }
+            }
+            break;
+            
+        case APP_SET_NEW_PARAMETER_RESPONSE_OK:
+            USB_write("\n\n El valor ha sido ingresado \n");
+            *p_users_new_parameter= aux_parameter;
+            state_parameter = APP_SET_NEW_PARAMETER_SHOW;
+            return APP_FUNC_DONE;
+            
+        case APP_SET_NEW_PARAMETER_RESPONSE_ERROR:
+            USB_write("\n\n ERROR \n");
+            
+            if ( p_parameter == APP_PARAMETER_BUFFER_SIZE )
+            {
+                USB_write("\n\n ERROR \n");
+                sprintf( USB_dummyBuffer, "\n\n Ingrese un número mayor a 0 y menor a %f \n",APP_LOG_BUFFER_SIZE_MAX);
+                USB_write(USB_dummyBuffer);
+                state_parameter = APP_SET_NEW_PARAMETER_WAIT;
+            }
+            
+            else
+            {
+                USB_write("\n\n ERROR \n");
+                sprintf( USB_dummyBuffer, "\n\n Ingrese un número mayor a 0 s y menor a %ld s (20 días) \n",APP_PERIOD_MAX);
+                USB_write(USB_dummyBuffer);
+                state_parameter = APP_SET_NEW_PARAMETER_WAIT;
+                
+            }
+
+            break;
+    
+        default: break;
+    }
+    return APP_FUNC_WORKING;
+
+}
+
+
+uint8_t* APP_parameter2String( APP_PARAMETER_NAMES_t p_parameter )
+{
+    switch( p_parameter )
+    {
+        case APP_PARAMETER_HUMIDITY_PERIOD:
+            strcpy( APP_stringBuffer, "el período de sensado de humedad" );
+            break;
+    
+        case APP_PARAMETER_LOG_PERIOD:
+            strcpy( APP_stringBuffer, "el período de guardado de registros" );
+            break;
+    
+        case APP_PARAMETER_GPS_PERIOD:
+            strcpy( APP_stringBuffer, "el período de obtención de trama de GPS" );
+            break;
+    
+        case APP_PARAMETER_BUFFER_SIZE:
+            strcpy( APP_stringBuffer, "la cantidad de registros a guardar" );
+            break;
+    
+    
+        case APP_PARAMETER_SMS_COOL_DOWN:
+            strcpy( APP_stringBuffer, "el período de alertas de SMS" );
+            break;
+   
+    
+        default: return NULL;
+    
+    }
+    return APP_stringBuffer;
+}
+
 
 void APP_RGB_humidity ( uint8_t ADC_humedad )
 {
@@ -1124,6 +1376,10 @@ void APP_UI() //interfaz de usuario
                     break;
                     
                 case 3: //CONFIGURAR TPARÁMETROS
+                    if( APP_setParameters() ) //Se utiliza un if porque se distingue entre working (0) y return
+                    {
+                        UI_STATE = APP_UI_STATE_PRINT_HEADER;
+                    }
                     break;
                     
                 case 4: //ACCESO AL REGISTRO
