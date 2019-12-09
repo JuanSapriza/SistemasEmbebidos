@@ -20,7 +20,7 @@
 #include "framework/RTCC_fwk.h"
 #include "utils/Utils.h"
 
-#define UYT -3 //zona horaria de Uruguay
+
 
 
 APP_var_t APP_info;
@@ -43,7 +43,22 @@ APP_FUNC_STATUS_t APP_setNewPhone();
 void APP_print_Buffer_Register ( uint8_t index_aux );
 APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ();
 APP_FUNC_STATUS_t APP_celularConfig();
+void APP_RGB_humidity ( APP_HUMIDITY_LEVEL_t p_level );
+APP_HUMIDITY_LEVEL_t APP_humidity2level( uint8_t humidity );
+uint8_t* APP_location2GoogleMapsString();
+uint8_t* APP_printDateTime( struct tm* p_time );
+void APP_RGB_humidityAnalag( uint8_t p_humidity );
 
+
+
+uint8_t* APP_printDateTime( struct tm* p_time )
+{
+    static uint8_t dummyBuffer[20]; //largo de DD/MM/AAAA_hh:mm:ss
+    memset( dummyBuffer,0, sizeof(dummyBuffer) );
+    sprintf(dummyBuffer,"%02d/%02d/%04d %2d:%02d:%02d",p_time->tm_mday,p_time->tm_mon+1, p_time->tm_year+1900,p_time->tm_hour, p_time->tm_min, p_time->tm_sec );
+    return dummyBuffer;
+
+}
 
 // THRESHOLDS Y PARAMETROS -------------------------------------------------------
 
@@ -370,47 +385,132 @@ APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t
 
 // CONTROL DE HUMEDAD    -------------------------------------------------------
 
-void APP_RGB_humidity ( uint8_t ADC_humedad )
+APP_HUMIDITY_LEVEL_t APP_humidity2level( uint8_t p_humidity )
 {
-    
-    if( ( (ADC_humedad>=0) && (ADC_humedad<=APP_info.threshold.saturated) )  )
+    if( ( (p_humidity>=0) && (p_humidity<=APP_info.threshold.saturated) )  )
     {
-        RGB_setAll( BLUE );
+        return APP_HUMIDITY_SATURATED;
     }            
      
-    if( ( (ADC_humedad>APP_info.threshold.saturated) && (ADC_humedad<=APP_info.threshold.slightly_saturated) )  ) 
+    if( ( (p_humidity>APP_info.threshold.saturated) && (p_humidity<=APP_info.threshold.slightly_saturated) )  ) 
     {
-        RGB_setAll( WATER_GREEN );
+        return APP_HUMIDITY_SLIGHTLY_SATURATED;
     }
     
-    if( (ADC_humedad>APP_info.threshold.slightly_saturated) && (ADC_humedad<=APP_info.threshold.slightly_dry) ) 
+    if( (p_humidity>APP_info.threshold.slightly_saturated) && (p_humidity<=APP_info.threshold.slightly_dry) ) 
     {
-        RGB_setAll( GREEN );
+        return APP_HUMIDITY_OPTIMAL;
     }
     
-    if( ( (ADC_humedad>APP_info.threshold.slightly_dry) && (ADC_humedad<=APP_info.threshold.dry) )) 
+    if( ( (p_humidity>APP_info.threshold.slightly_dry) && (p_humidity<=APP_info.threshold.dry) )) 
     {
-        RGB_setAll( YELLOW );
+        return APP_HUMIDITY_SLIGHTLY_DRY;
     }
     
-    if( (ADC_humedad>APP_info.threshold.dry) && (ADC_humedad<=60)  )
+    if( (p_humidity>APP_info.threshold.dry) && (p_humidity<=60)  )
     {
-        RGB_setAll( RED );
+        return APP_HUMIDITY_DRY;
     }
-        
 }
 
-void APP_LEDA_irrigate ( uint8_t ADC_humedad )
+uint8_t* APP_humidityLevel2String( APP_HUMIDITY_LEVEL_t p_level )
+{
+    static uint8_t dummyBuffer[APP_HUMIDITY_LEVEL_DESCRIPTION_LENGTH];
+    
+    memset( dummyBuffer, 0, sizeof( dummyBuffer ) );
+    switch( p_level )
+    {
+        case APP_HUMIDITY_SATURATED:
+            strcpy(dummyBuffer,"saturado");
+            break;
+            
+        case APP_HUMIDITY_SLIGHTLY_SATURATED:
+            strcpy(dummyBuffer,"levemente saturado");
+            break;
+            
+        case APP_HUMIDITY_OPTIMAL:
+            strcpy(dummyBuffer,"óptimo");
+            break;
+            
+        case APP_HUMIDITY_SLIGHTLY_DRY:
+            strcpy(dummyBuffer,"levemente seco");
+            break;
+            
+        case APP_HUMIDITY_DRY:
+            strcpy(dummyBuffer,"muy seco");
+            break;
+            
+        default: break;
+    }
+    return dummyBuffer;
+
+}
+
+void APP_RGB_humidity ( APP_HUMIDITY_LEVEL_t p_level )
+{
+    switch( p_level )
+    {
+        case APP_HUMIDITY_SATURATED:
+            RGB_setAll( BLUE );
+            break;
+            
+        case APP_HUMIDITY_SLIGHTLY_SATURATED:
+            RGB_setAll( WATER_GREEN );
+            break;
+            
+        case APP_HUMIDITY_OPTIMAL:
+            RGB_setAll( GREEN );
+            break;
+            
+        case APP_HUMIDITY_SLIGHTLY_DRY:
+            RGB_setAll( YELLOW );
+            break;
+            
+        case APP_HUMIDITY_DRY:
+            RGB_setAll( RED );
+            break;
+            
+        default: break;
+    }
+}
+
+void APP_RGB_humidityAnalag( uint8_t p_humidity )
+{
+    RGB_color color;
+    uint8_t R, G, B;
+    
+    if( p_humidity <= 20 )
+    {
+        color.r = 0;
+        color.g = p_humidity;
+        color.b = 25;
+        RGB_setAll( color );
+        return;
+    }
+    if( p_humidity <= 40)
+    {
+        color.r = p_humidity -20;
+        color.g = 25;
+        color.b = -p_humidity +40; 
+        RGB_setAll( color );
+        return;
+    }
+    color.r = 25;
+    color.g = -p_humidity +60;
+    color.b = 0; 
+    RGB_setAll( color );
+    return;
+}
+
+void APP_LEDA_irrigate ( uint8_t p_humidity )
 {
     static uint8_t APP_IRRIGATE = APP_IRRIGATE_OFF;
-    
     static uint8_t APP_LEDA = APP_LEDA_OFF;
-        
-    
+
     switch ( APP_IRRIGATE )
     {
         case APP_IRRIGATE_OFF:        
-            if( (ADC_humedad)>APP_info.threshold.high_automatic )
+            if( (p_humidity)>APP_info.threshold.high_automatic )
             {
                 APP_LEDA=APP_LEDA_ON;
                 APP_IRRIGATE = APP_IRRIGATE_ON;
@@ -418,7 +518,7 @@ void APP_LEDA_irrigate ( uint8_t ADC_humedad )
             break;
             
         case APP_IRRIGATE_ON:   
-            if( (ADC_humedad)<APP_info.threshold.low_automatic )
+            if( (p_humidity)<APP_info.threshold.low_automatic )
             {
                 APP_LEDA=APP_LEDA_OFF;
                 APP_IRRIGATE = APP_IRRIGATE_OFF;
@@ -536,6 +636,7 @@ void APP_clearHumidityAlert()
     APP_info.humidity.alert = false;
 }
     
+
 // ID DE LA PLANTA -------------------------------------------------------------
 
 void APP_changePlantID( uint16_t p_newID )
@@ -685,14 +786,9 @@ void APP_LOG_data( APP_var_t* log_data )
         
 		time_to_display = localtime(&(APP_logBuffer[index_aux].time));
         
-        time_to_display->tm_mon=time_to_display->tm_mon+1;
-           
-        time_to_display->tm_year=time_to_display->tm_year+1900;
-        
-        
-        sprintf(USB_dummyBuffer,"  | Fecha y hora: %02d/%02d/%04d %2d:%02d:%02d \n",time_to_display->tm_mday,time_to_display->tm_mon,time_to_display->tm_year,(time_to_display->tm_hour+UYT)%24,time_to_display->tm_min,time_to_display->tm_sec);
+        sprintf(USB_dummyBuffer,"  | Fecha y hora: %s \n",APP_printDateTime( time_to_display ));
         USB_write(USB_dummyBuffer);
-        sprintf(USB_dummyBuffer,"  | Humedad: %d \n",APP_logBuffer[index_aux].humidity);
+        sprintf(USB_dummyBuffer,"  | Humedad: %dCb: %s \n",APP_logBuffer[index_aux].humidity, APP_humidityLevel2String( APP_humidity2level( APP_logBuffer[index_aux].humidity ) ));
         USB_write(USB_dummyBuffer);
         
         if ( APP_logBuffer[index_aux].position_validity == 0 )
@@ -984,6 +1080,37 @@ APP_FUNC_STATUS_t APP_celularConfig()
 }
 
 
+// SMS DE EMERGENCIA ------------------------------------------------------------
+
+MDM_smsInfo_t* APP_emergencySMS()
+{
+    static MDM_smsInfo_t smsInfo;
+    struct tm * time_to_display;
+    
+    time_to_display = localtime(&(APP_info.time));
+    
+    memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
+    strcpy( smsInfo.num, APP_info.emergencyNum );
+    sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display ), APP_location2GoogleMapsString() );
+    return &smsInfo;
+}
+
+uint8_t* APP_location2GoogleMapsString()
+{
+    static uint8_t dummyBuffer[APP_GOOGLE_MAPS_LOCATION_URL_LENGTH];
+    memset(dummyBuffer,0,sizeof(dummyBuffer));
+    if( APP_info.position_validity )
+    {
+        sprintf(dummyBuffer,"https://www.google.com/maps/@%+02.6lf,%+02.6lf,17z \n",APP_info.position.latitude,APP_info.position.longitude);
+    }
+    else
+    {
+        sprintf( dummyBuffer,"Ubicación no disponible" );
+    }
+    return dummyBuffer;
+}
+
+
 // FUNCIONES GRANDES------------------------------------------------------------
 
 bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion 
@@ -1034,6 +1161,7 @@ void APP_tasks()
       if (RTCC_TimeGet(&aux_tm) == true)
       {
           APP_info.time = mktime( &aux_tm );
+          APP_info.time += UYT*3600;
       }
     }
     
@@ -1045,7 +1173,8 @@ void APP_tasks()
         {
             if( APP_pot2RGBIsEnabled() )
             {
-                APP_RGB_humidity ( APP_info.humidity.level );
+//                APP_RGB_humidity ( APP_humidity2level( APP_info.humidity.level) );
+                APP_RGB_humidityAnalag( APP_info.humidity.level );
             }
         }
     }
@@ -1065,7 +1194,7 @@ void APP_tasks()
 
         case MDM_TASK_STATUS_DONE:
             
-            RTCC_TimeGet(currentTime); // debug
+            
             GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
             
@@ -1081,26 +1210,31 @@ void APP_tasks()
     } 
     
     // ENVIO DE ALERTA POR SMS 
-    if( !APP_info.humidity.coolDown && APP_checkHumidityAlert() && APP_info.GSM_active )
+    if( !APP_info.humidity.coolDown && APP_checkHumidityAlert() )
     {
-        sprintf(emergency_sms.text, "AHHHH, EMERGENCIA!");
-        strcpy(emergency_sms.num, APP_info.emergencyNum );
-        switch( MDM_taskGetStatus( MDM_TASK_SEND_SMS ) )
+        if( APP_info.GSM_active )
         {
-            case MDM_TASK_STATUS_UNDEF:
-                MDM_taskSchedule( MDM_TASK_SEND_SMS, (MDM_smsInfo_t*)&(emergency_sms) );
-                break;
+            switch( MDM_taskGetStatus( MDM_TASK_SEND_SMS ) )
+            {
+                case MDM_TASK_STATUS_UNDEF:
+                    MDM_taskSchedule( MDM_TASK_SEND_SMS, (MDM_smsInfo_t*) APP_emergencySMS() );
+                    break;
 
-            case MDM_TASK_STATUS_DONE:
-                MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_UNDEF );
-                APP_clearHumidityAlert();   
-                APP_info.humidity.coolDown = true;
-                break;
+                case MDM_TASK_STATUS_DONE:
+                    MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_UNDEF );
+                    APP_clearHumidityAlert();   
+                    APP_info.humidity.coolDown = true;
+                    break;
 
-            default: 
-                //que hago?
-                break;
-        } 
+                default: 
+                    //que hago?
+                    break;
+            } 
+        }
+        else
+        { 
+            APP_clearHumidityAlert();
+        }
     }
     else if( APP_info.humidity.coolDown )
     {

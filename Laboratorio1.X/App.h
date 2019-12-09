@@ -39,6 +39,7 @@
 
 
 #define APP_EMERGENCY_NUMBER_DEFAULT "\"+59891972950\""
+#define APP_GOOGLE_MAPS_LOCATION_URL_LENGTH 70
 
 #define APP_THRESHOLD_SATURATED_DEFAULT 5
 #define APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT 9
@@ -48,7 +49,7 @@
 #define APP_THRESHOLD_HIGH_AUTOMATIC_DEFAULT 30
 #define APP_THRESHOLD_MANUAL_DEFAULT 15
 
-#define APP_HUMIDITY_SENSE_PERIOD_DEFAULT 500
+#define APP_HUMIDITY_SENSE_PERIOD_DEFAULT 5
 #define APP_LOG_REGISTRER_PERIOD_DEFAULT 5000
 #define APP_GPS_GET_PERIOD_DEFAULT 5000
 #define APP_SMS_ALERT_PERIOD_DEFAULT 6000
@@ -65,6 +66,10 @@
 #define APP_LOG_BUFFER_SIZE 5
 #define APP_SHORT_STRING_SIZE 30
 #define APP_SMS_LENGTH 100
+
+#define APP_HUMIDITY_LEVEL_DESCRIPTION_LENGTH 20
+
+#define UYT -3 //zona horaria de Uruguay
 
 #ifdef LABORATORIO_3_5
 
@@ -484,6 +489,15 @@ typedef enum
     APP_THRESHOLD_MANUAL,
 }APP_THRESHOLD_NAMES_t;
 
+typedef enum
+{
+    APP_HUMIDITY_SATURATED,
+    APP_HUMIDITY_SLIGHTLY_SATURATED,
+    APP_HUMIDITY_OPTIMAL,
+    APP_HUMIDITY_SLIGHTLY_DRY,
+    APP_HUMIDITY_DRY,
+} APP_HUMIDITY_LEVEL_t;
+
 //---------------------------
 
 typedef enum
@@ -555,8 +569,6 @@ extern APP_var_t APP_info;
 extern APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 
 
-//Funcion para mostrar el nivel de humedad con los leds RGB:
-void APP_RGB_humidity ( uint8_t ADC_linearized );
 //Funcion para indicar riego con led A:
 void APP_LEDA_irrigate ( uint8_t ADC_humedad);
 //Funcion que actualiza el registro historico
