@@ -55,11 +55,14 @@
 #define APP_GPS_GET_PERIOD_DEFAULT 5000
 //#define APP_SMS_ALERT_PERIOD_DEFAULT 6000
 #define APP_SMS_ALERT_COOL_DOWN_DEFAULT 10000
-#define APP_LOG_BUFFER_SIZE 5
+#define APP_DISPLAY_HUMIDITY_DEFAULT true
+#define APP_LOG_BUFFER_SIZE 60
 
 #define APP_LOG_BUFFER_SIZE_MAX 50000 //Calculado en base a la memoria de datos disponible y un valor razonable de registros (100 años guardando cada 12 hrs o un año guardando cada 10 minutos)
 
-#define APP_PERIOD_MAX 1728000 //Período máximo de 20 días en segundos
+#define APP_PERIOD_IN_SECONDS_MAX 3600000
+
+#define APP_PERIOD_MAX 604800 //Período máximo de 20 días en segundos
 
 #define APP_HUMIDITY_DEFAULT_LEVEL 30
 
@@ -507,13 +510,21 @@ enum APP_SET_NEW_PARAMETER
 }; 
 
 
+enum APP_DISPLAY_HUMIDITY
+{
+    APP_DISPLAY_HUMIDITY_OFF,
+    APP_DISPLAY_HUMIDITY_DISCRETE,
+    APP_DISPLAY_HUMIDITY_ANALOG,
+}; 
+
+
 typedef enum 
 {
     APP_PARAMETER_UNDEF,
     APP_PARAMETER_HUMIDITY_PERIOD,
     APP_PARAMETER_LOG_PERIOD,
     APP_PARAMETER_GPS_PERIOD,
-    APP_PARAMETER_BUFFER_SIZE,
+    APP_PARAMETER_DISPLAY_HUMIDITY,
     APP_PARAMETER_SMS_COOL_DOWN,
 
 }APP_PARAMETER_NAMES_t;
@@ -546,8 +557,8 @@ typedef struct
     uint32_t logRegisterPeriod;
     uint32_t gpsGetPeriod;
 //    uint32_t SMSalertPeriod;
+    uint8_t displayHumidity;
     uint32_t SMSalertCoolDown;
-    uint32_t logBufferSize;
 } APP_PARAMS_t;
 
 typedef struct

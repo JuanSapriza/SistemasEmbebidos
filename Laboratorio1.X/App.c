@@ -38,6 +38,7 @@ bool APP_checkHumidityAlert();
 void APP_clearHumidityAlert();
 APP_FUNC_STATUS_t APP_setParameters( void );
 uint8_t* APP_parameter2String( APP_PARAMETER_NAMES_t p_parameter );
+uint8_t* APP_typeDisplay2String( uint8_t p_parameter );
 APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32_t *p_users_new_parameter );
 APP_FUNC_STATUS_t APP_setThresholds();
 uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
@@ -79,7 +80,7 @@ void APP_PARAM_initialize()
     APP_info.param.gpsGetPeriod=APP_GPS_GET_PERIOD_DEFAULT;
 //    APP_info.param.SMSalertPeriod=APP_SMS_ALERT_PERIOD_DEFAULT;
     APP_info.param.SMSalertCoolDown=APP_SMS_ALERT_COOL_DOWN_DEFAULT;
-    APP_info.param.logBufferSize=APP_LOG_BUFFER_SIZE;
+    APP_info.param.displayHumidity=APP_DISPLAY_HUMIDITY_DEFAULT;
             
 }
 
@@ -387,22 +388,54 @@ APP_FUNC_STATUS_t APP_setParameters( void )
             
             UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, "Configuración de parámetros. ¿Qué parámetro desea modificar?" );
             
-            sprintf( USB_dummyBuffer, "Período de sensado de humedad: %d.%d s",APP_info.param.humiditySensePeriod/1000,APP_info.param.humiditySensePeriod%1000);
+            if(APP_info.param.humiditySensePeriod>APP_PERIOD_IN_SECONDS_MAX)
+            {
+                sprintf( USB_dummyBuffer, "Período de sensado de humedad: %d min",APP_info.param.humiditySensePeriod/60000);
+                UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            }
+            else
+            {
+                sprintf( USB_dummyBuffer, "Período de sensado de humedad: %d.%d s",APP_info.param.humiditySensePeriod/1000,APP_info.param.humiditySensePeriod%1000);
+                UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            }
+            
+            if(APP_info.param.logRegisterPeriod>APP_PERIOD_IN_SECONDS_MAX)
+            {
+                sprintf( USB_dummyBuffer, "Período de guardado de registros: %d min",APP_info.param.logRegisterPeriod/60000);
+                UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            }
+            else
+            {
+                sprintf( USB_dummyBuffer, "Período de guardado de registros: %d.%d s",APP_info.param.logRegisterPeriod/1000,APP_info.param.logRegisterPeriod%1000);
+                UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            }
+
+            if(APP_info.param.gpsGetPeriod>APP_PERIOD_IN_SECONDS_MAX)
+            {
+                sprintf( USB_dummyBuffer, "Período de obtención de trama de GPS: %d min",APP_info.param.gpsGetPeriod/60000);
+                UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            }
+            else
+            {
+                sprintf( USB_dummyBuffer, "Período de obtención de trama de GPS: %d.%d s",APP_info.param.gpsGetPeriod/1000,APP_info.param.gpsGetPeriod%1000);
+                UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );  
+            }
+            
+            sprintf( USB_dummyBuffer, "Tipo de display: %s",APP_typeDisplay2String( APP_info.param.displayHumidity ));
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+
             
-            sprintf( USB_dummyBuffer, "Período de guardado de registros: %d.%d s",APP_info.param.logRegisterPeriod/1000,APP_info.param.logRegisterPeriod%1000);
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
-            
-            sprintf( USB_dummyBuffer, "Período de obtención de trama de GPS: %d.%d s",APP_info.param.gpsGetPeriod/1000,APP_info.param.gpsGetPeriod%1000);
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
-            
-            sprintf( USB_dummyBuffer, "Cantidad de registros a guardar: %d",APP_info.param.logBufferSize);
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
-            
-            sprintf( USB_dummyBuffer, "Período de alertas de SMS: %d.%d s",APP_info.param.SMSalertCoolDown/1000,APP_info.param.SMSalertCoolDown%1000);
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
-            
-            
+            if(APP_info.param.SMSalertCoolDown>APP_PERIOD_IN_SECONDS_MAX)
+            {
+                sprintf( USB_dummyBuffer, "Período de alertas de SMS: %d min",APP_info.param.SMSalertCoolDown/60000,APP_info.param.SMSalertCoolDown%1000);
+                UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );  
+            }
+            else
+            {
+                sprintf( USB_dummyBuffer, "Período de alertas de SMS: %d.%d s",APP_info.param.SMSalertCoolDown/1000,APP_info.param.SMSalertCoolDown%1000);
+                UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PARAMETER, USB_dummyBuffer );
+            }
+
             // configurar parametros 
             state_parameters = APP_SET_PARAMETERS_SHOW;
             //intentional breakthrough
@@ -462,8 +495,9 @@ APP_FUNC_STATUS_t APP_setParameters( void )
                                     APP_info.param.gpsGetPeriod = aux_user_parameter;
                                     break;
                                     
-                                case APP_PARAMETER_BUFFER_SIZE:
-                                    APP_info.param.logBufferSize = aux_user_parameter;
+                                case APP_PARAMETER_DISPLAY_HUMIDITY:
+                                    APP_info.param.displayHumidity = aux_user_parameter;
+                                    APP_pot2RGBEnable( APP_info.param.displayHumidity );
                                     break;
                                     
                                 case APP_PARAMETER_SMS_COOL_DOWN:
@@ -500,8 +534,16 @@ APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32
     {
         case APP_SET_NEW_PARAMETER_SHOW:
             
-            sprintf(USB_dummyBuffer, "\n Ingrese el nuevo valor para %s \n", APP_parameter2String( p_parameter ) );
-            USB_write(USB_dummyBuffer);
+            if ( p_parameter == APP_PARAMETER_DISPLAY_HUMIDITY )
+            {
+                sprintf(USB_dummyBuffer, "\n Ingrese el nuevo valor para %s \n", APP_parameter2String( p_parameter ) );
+                USB_write(USB_dummyBuffer);
+            }
+            else
+            {
+                sprintf(USB_dummyBuffer, "\n Ingrese el nuevo valor para %s en segundos \n", APP_parameter2String( p_parameter ) );
+                USB_write(USB_dummyBuffer);                
+            }
             state_parameter = APP_SET_NEW_PARAMETER_WAIT;
             //intentional breakthrough
             
@@ -525,11 +567,10 @@ APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32
  
             aux_parameter_double = ( strtod( USB_whatsInReadBuffer() , NULL));
             
-            //aux_parameter =  xtoi( USB_whatsInReadBuffer() );
-            if ( p_parameter == APP_PARAMETER_BUFFER_SIZE )
+            if ( p_parameter == APP_PARAMETER_DISPLAY_HUMIDITY )
             {
                 aux_parameter = (uint32_t) aux_parameter_double;
-                if ( ( aux_parameter > 0 ) && ( aux_parameter <= APP_LOG_BUFFER_SIZE_MAX ) )
+                if ( ( aux_parameter >= APP_DISPLAY_HUMIDITY_OFF ) && ( aux_parameter <= APP_DISPLAY_HUMIDITY_ANALOG ) )
                 {
                     state_parameter = APP_SET_NEW_PARAMETER_RESPONSE_OK;
                 }
@@ -563,10 +604,10 @@ APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32
         case APP_SET_NEW_PARAMETER_RESPONSE_ERROR:
             USB_write("\n\n ERROR \n");
             
-            if ( p_parameter == APP_PARAMETER_BUFFER_SIZE )
+            if ( p_parameter == APP_PARAMETER_DISPLAY_HUMIDITY )
             {
                 USB_write("\n\n ERROR \n");
-                sprintf( USB_dummyBuffer, "\n\n Ingrese un número mayor a 0 y menor a %f \n",APP_LOG_BUFFER_SIZE_MAX);
+                sprintf( USB_dummyBuffer, "\n\n Ingrese un número entre %d y %d \n",APP_DISPLAY_HUMIDITY_OFF,APP_DISPLAY_HUMIDITY_ANALOG);
                 USB_write(USB_dummyBuffer);
                 state_parameter = APP_SET_NEW_PARAMETER_WAIT;
             }
@@ -574,7 +615,7 @@ APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32
             else
             {
                 USB_write("\n\n ERROR \n");
-                sprintf( USB_dummyBuffer, "\n\n Ingrese un número mayor a 0 s y menor a %ld s (20 días) \n",APP_PERIOD_MAX);
+                sprintf( USB_dummyBuffer, "\n\n Ingrese un número mayor a 0 s y menor a %d s (7 días) \n",APP_PERIOD_MAX);
                 USB_write(USB_dummyBuffer);
                 state_parameter = APP_SET_NEW_PARAMETER_WAIT;
                 
@@ -605,8 +646,8 @@ uint8_t* APP_parameter2String( APP_PARAMETER_NAMES_t p_parameter )
             strcpy( APP_stringBuffer, "el período de obtención de trama de GPS" );
             break;
     
-        case APP_PARAMETER_BUFFER_SIZE:
-            strcpy( APP_stringBuffer, "la cantidad de registros a guardar" );
+        case APP_PARAMETER_DISPLAY_HUMIDITY:
+            strcpy( APP_stringBuffer, "el tipo de display de humedad (0-OFF 1-Discreto 2-Analógico)" );
             break;
     
     
@@ -621,6 +662,27 @@ uint8_t* APP_parameter2String( APP_PARAMETER_NAMES_t p_parameter )
     return APP_stringBuffer;
 }
 
+uint8_t* APP_typeDisplay2String( uint8_t p_parameter )
+{
+    switch( p_parameter )
+    {
+        case APP_DISPLAY_HUMIDITY_OFF:
+            strcpy( APP_stringBuffer, "OFF" );
+            break;
+    
+        case APP_DISPLAY_HUMIDITY_DISCRETE:
+            strcpy( APP_stringBuffer, "discreto" );
+            break;
+    
+        case APP_DISPLAY_HUMIDITY_ANALOG:
+            strcpy( APP_stringBuffer, "analógico" );
+            break;
+    
+        default: return NULL;
+    
+    }
+    return APP_stringBuffer;
+}
 
 void APP_RGB_humidity ( uint8_t ADC_humedad )
 {
@@ -755,6 +817,10 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
 void APP_pot2RGBEnable( bool p_enable )
 {
     APP_convertPot2RGB = p_enable;
+    if ( !p_enable )
+    {
+        RGB_setAll(OFF);
+    }    
 }
 
 bool APP_pot2RGBIsEnabled()
@@ -960,7 +1026,7 @@ void APP_LOG_data( APP_var_t* log_data )
 
 }
 
-APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ()
+APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
 {
     static uint8_t index_buffer;
     static uint8_t state_buffer;
@@ -970,7 +1036,7 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ()
         case STATE_BUFFER_INIT:
             if ( APP_LOG_BUFFER_HEAD_GetValue() == 0 )
             {
-                index_buffer = APP_LOG_BUFFER_SIZE-1 ;  
+                index_buffer = APP_LOG_BUFFER_SIZE-1 ;
             }
             else
             {
@@ -1196,7 +1262,7 @@ void APP_tasks()
     // SENSADO DE HUMEDAD
     if( UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
     {
-        if( APP_getHumidity() )
+    if( APP_getHumidity() )
         {
             if( APP_pot2RGBIsEnabled() )
             {
@@ -1334,7 +1400,7 @@ void APP_UI() //interfaz de usuario
             UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Menu Principal. ¿Qué desea hacer?" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Setear ID de Planta" ); //1
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" ); //2
-            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Parmámetros" ); //3
+            UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Parámetros" ); //3
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Acceso al Registro" ); //4
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configuración Celular" ); //5
             // configurar parametros 
