@@ -1,23 +1,47 @@
+
+//<editor-fold defaultstate="collapsed" desc="Includes">
+
 #include "Modem.h"
 #include <stdio.h>
 #include <string.h>
-#include "../utils/Utils.h"
 #include "../mcc_generated_files/uart1.h"
 #include "../mcc_generated_files/pin_manager.h"
-
 #include "../framework/USB_fwk.h"
+#include "../utils/Utils.h"
 
-uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ]; //guarda que no puede ser mayor que el largo del buffer de la uart1!!!
-uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ]; 
-uint8_t MDM_cmdBuffer[20];  //solo para guardar los string con los comandos
-uint8_t MDM_respBuffer[20];  //solo para guardar los string con los modelos de respuesta
+//</editor-fold>
 
+//<editor-fold defaultstate="collapsed" desc="Local Variables">
+
+static uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ]; //var de interes
+static uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ]; //var de interes
+static uint8_t MDM_cmdBuffer[20];  //var de interes
+static uint8_t MDM_respBuffer[20]; //var de interes
+
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Local Functions">
+
+void MDM_read( uint8_t* p_string );
+uint8_t MDM_write(uint8_t *p_string);
+bool MDM_writeChar( uint8_t p_char );
+void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param );
+MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_param, uint32_t p_timeout );
+MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
+uint8_t* MDM_commandString( MDM_AT_CMD_NAME_t p_cmd );
+uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
+uint8_t* MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_t p_response );
+uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea );
+uint8_t* MDM_pin2str( uint16_t p_pin );
+MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr );
+MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string );
+
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Tasks">
 
-static MDM_TASKS_t MDM_task;
-static MDM_smsInfo_t* sms_ptr;
-
+static MDM_TASKS_t MDM_task; //var de interes
+static MDM_smsInfo_t* sms_ptr; //var de interes
 
 void MDM_tasks()
 {
@@ -46,12 +70,6 @@ void MDM_tasks()
                     MDM_ESTADO = MDM_ESTADOS_EXECUTE;
                     break;
                 }
-                if( MDM_taskGetStatus(MDM_TASK_GET_GPS_FRAME) == MDM_TASK_STATUS_NEW )
-                {
-                    mdm_task = MDM_TASK_GET_GPS_FRAME;
-                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
-                    break;
-                }
                 if( MDM_taskGetStatus(MDM_TASK_SEND_SMS) == MDM_TASK_STATUS_NEW )
                 {
                     mdm_task = MDM_TASK_SEND_SMS;
@@ -61,6 +79,12 @@ void MDM_tasks()
                 if( MDM_taskGetStatus(MDM_TASK_READ_SMS) == MDM_TASK_STATUS_NEW )
                 {
                     mdm_task = MDM_TASK_READ_SMS;
+                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
+                    break;
+                }
+                if( MDM_taskGetStatus(MDM_TASK_GET_GPS_FRAME) == MDM_TASK_STATUS_NEW )
+                {
+                    mdm_task = MDM_TASK_GET_GPS_FRAME;
                     MDM_ESTADO = MDM_ESTADOS_EXECUTE;
                     break;
                 }
@@ -137,32 +161,6 @@ void MDM_tasks()
     
 }
 
-
-void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status )
-{
-    switch( p_task )
-    {
-        case MDM_TASK_CONFIG:
-            MDM_task.GSM_conf.status = p_status;
-            break;
-        
-        case MDM_TASK_GET_GPS_FRAME:
-            MDM_task.GPS_get.status = p_status;
-            break;
-    
-        case MDM_TASK_READ_SMS:
-            MDM_task.SMS_read.status = p_status;
-            break;
-    
-        case MDM_TASK_SEND_SMS:
-            MDM_task.SMS_send.status = p_status;
-            break;
-            
-        default: break;
-    }
-}
-
-
 bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
 {
     switch( p_task )
@@ -187,6 +185,30 @@ bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
         default: break;
     }
     return false;
+}
+
+void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status )
+{
+    switch( p_task )
+    {
+        case MDM_TASK_CONFIG:
+            MDM_task.GSM_conf.status = p_status;
+            break;
+        
+        case MDM_TASK_GET_GPS_FRAME:
+            MDM_task.GPS_get.status = p_status;
+            break;
+    
+        case MDM_TASK_READ_SMS:
+            MDM_task.SMS_read.status = p_status;
+            break;
+    
+        case MDM_TASK_SEND_SMS:
+            MDM_task.SMS_send.status = p_status;
+            break;
+            
+        default: break;
+    }
 }
 
 MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task )
@@ -257,7 +279,6 @@ bool MDM_Init(void)
     return false;
 }
 
-
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Read Write">
@@ -280,7 +301,7 @@ void MDM_read( uint8_t* p_string )
                 //intentional breakthrough
 
             case 2:
-                if( UTS_delayms( UTS_DELAY_HANDLER_USB_READ_FROM_MODEM_ACHIQUEN, 10, false  )) 
+                if( UTS_delayms( UTS_DELAY_HANDLER_READ_FROM_MODEM_ACHIQUEN, 10, false  )) 
                 {
                     if( UART1_ReceiveBufferSizeGet() != 0 )  
                     { //tengo algo pa leer todavia
@@ -759,8 +780,33 @@ bool MDM_sendInitialAT()
 
 //<editor-fold defaultstate="collapsed" desc="GPS">
 
-
-uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea );
+uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea )
+{
+    static uint8_t MDM_nmeaBuffer[4];           //QUE TAN PROLIJO ES HACER ESTOOO???
+    
+    switch( p_nmea )
+    {
+        case MDM_GNS_NMEA_RMC:
+            strcpy(MDM_nmeaBuffer,"RMC");
+            break;
+        case MDM_GNS_NMEA_GGA:
+            strcpy(MDM_nmeaBuffer,"GGA");
+            break;
+            
+        case MDM_GNS_NMEA_GSV:
+            strcpy(MDM_nmeaBuffer,"GSV");
+            break;
+            
+        case MDM_GNS_NMEA_GSA:
+            strcpy(MDM_nmeaBuffer,"GSA");
+            break;
+            
+        default:
+            memset( MDM_nmeaBuffer,0,sizeof(MDM_nmeaBuffer) );
+            break;
+    }
+    return MDM_nmeaBuffer;
+}
 
 MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr )
 {
@@ -836,39 +882,9 @@ MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr )
     return MDM_AT_RESP_NAME_WORKING;
 }
 
-uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea )
-{
-    static uint8_t MDM_nmeaBuffer[4];           //QUE TAN PROLIJO ES HACER ESTOOO???
-    
-    switch( p_nmea )
-    {
-        case MDM_GNS_NMEA_RMC:
-            strcpy(MDM_nmeaBuffer,"RMC");
-            break;
-        case MDM_GNS_NMEA_GGA:
-            strcpy(MDM_nmeaBuffer,"GGA");
-            break;
-            
-        case MDM_GNS_NMEA_GSV:
-            strcpy(MDM_nmeaBuffer,"GSV");
-            break;
-            
-        case MDM_GNS_NMEA_GSA:
-            strcpy(MDM_nmeaBuffer,"GSA");
-            break;
-            
-        default:
-            memset( MDM_nmeaBuffer,0,sizeof(MDM_nmeaBuffer) );
-            break;
-    }
-    return MDM_nmeaBuffer;
-}
-
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="GSM">
-
-uint8_t* MDM_pin2str( uint16_t p_pin );
 
 uint8_t* MDM_pin2str( uint16_t p_pin )
 {
@@ -999,8 +1015,6 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
     return MDM_AT_RESP_NAME_WORKING;
 }
 
-
-
 MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string )
 {
     static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GSM_SMS_SEND_HEADER;
@@ -1045,7 +1059,6 @@ MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string )
     }
     return MDM_AT_RESP_NAME_WORKING;
 }
-
 
 //</editor-fold>
 

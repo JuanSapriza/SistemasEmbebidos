@@ -1,15 +1,24 @@
 
+//<editor-fold defaultstate="collapsed" desc="Includes">
+
+#include "Utils.h"
 #include <limits.h>
 #include <string.h>
-#include "Utils.h"
+#include <stdio.h>
 #include "../mcc_generated_files/tmr2.h"
 #include "../mcc_generated_files/pin_manager.h"
+#include "../framework/USB_fwk.h"
 
+//</editor-fold>
 
+//<editor-fold defaultstate="collapsed" desc="Local Variables">
 
 static UTS_delayHandler_t UTS_delayHandlerVector[UTS_DELAY_HANDLER_COUNT];
+static UTS_MENU_ITEM_t UTS_menusVector[UTS_MENU_HANDLER_COUNT];
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="DELAY">
+
 bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_reiniciar )
 {
     if( !UTS_delayHandlerVector[p_handlerIndex].active )
@@ -35,35 +44,10 @@ bool UTS_delayms( UTS_DELAY_HANDLER_t p_handlerIndex, uint32_t p_tiempo, bool p_
         return true;
     }
 
-//    if( ( ( esteTiempo - UTS_delayHandler[p_handlerIndex].initialTime ) < 0 ) ) //overflow
-//    {
-//        if( (esteTiempo + 4294967296  - UTS_delayHandler[p_handlerIndex].initialTime) >= UTS_delayHandler[p_handlerIndex].countTime )
-//        {   // [                                                       ] 32bits
-//            //        ^tiempo Actual           ^ tiempo Inicial   
-//            //                                 |---------------------->
-//            //  |----->
-//            //                     Tiempo Transcurrido
-//
-//            UTS_delayHandler[p_handlerIndex].initialTime = 0;
-//            UTS_delayHandler[p_handlerIndex].countTime = 0;
-//            UTS_delayHandler[p_handlerIndex].active = false;
-//            return true;
-//        }
-//    }
-//    else
-//    {
-//        if( ( esteTiempo - UTS_delayHandler[p_handlerIndex].initialTime ) >= UTS_delayHandler[p_handlerIndex].countTime )
-//        {
-//            UTS_delayHandler[p_handlerIndex].initialTime = 0;
-//            UTS_delayHandler[p_handlerIndex].countTime = 0;
-//            UTS_delayHandler[p_handlerIndex].active = false;
-//            return true;
-//        }
-//    }
-    
     return false;
 
 }
+
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="LEDS">
@@ -142,6 +126,59 @@ uint8_t UTS_getmenuOptionsNumber( UTS_MENU_HANDLER_t p_menu )
 {
     if( p_menu < 0 || p_menu >= UTS_MENU_HANDLER_COUNT ) return 0;
     return UTS_menusVector[p_menu].optionsNumber; 
+}
+
+int8_t UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu, bool p_return )
+{
+    static enum USB_SHOW_MENU_STATES state[UTS_MENU_HANDLER_COUNT] = {USB_SHOW_MENU_STATES_INIT};
+    uint8_t i;
+    uint8_t selectedOption; 
+    
+    if( p_menu < 0 || p_menu >= UTS_MENU_HANDLER_COUNT ) return -1;
+    
+    switch( state[p_menu] )
+    {
+        case USB_SHOW_MENU_STATES_INIT:
+            USB_read(0); //para limpiar el buffer de lectura
+            sprintf( USB_dummyBuffer,"\n%s \n", UTS_getMenuTitle( p_menu ) );
+            USB_write( USB_dummyBuffer );
+            for( i=0; i < UTS_getmenuOptionsNumber(p_menu) ; i++ )
+            {
+                memset(USB_dummyBuffer,0,sizeof(USB_dummyBuffer));
+                if(UTS_getMenuOption(p_menu,i) != NULL)
+                {
+                    sprintf( USB_dummyBuffer,"%d. %s \n",i+1, UTS_getMenuOption( p_menu, i ) );
+                    USB_write( USB_dummyBuffer );
+                }
+            }
+            if( p_return )
+            {
+                sprintf( USB_dummyBuffer,"Presione %s para volver \n >", UTS_MENU_RETURN_CHAR );
+                USB_write(USB_dummyBuffer);
+            }
+            memset( USB_dummyBuffer, 0, sizeof( USB_dummyBuffer ) );
+            state[p_menu] = USB_SHOW_MENU_STATES_WAIT;
+            break;
+            
+        case USB_SHOW_MENU_STATES_WAIT:
+            strcpy( USB_dummyBuffer, USB_read(0) );
+            selectedOption = (uint8_t)strtol((char*)USB_dummyBuffer,NULL,10);
+            if( selectedOption > 0 && selectedOption <= UTS_getmenuOptionsNumber(p_menu) )
+            {
+                state[p_menu] = USB_SHOW_MENU_STATES_INIT;
+                return (int8_t)selectedOption; 
+            }
+            else if( strstr(USB_dummyBuffer, UTS_MENU_RETURN_CHAR) != NULL )
+            {
+                state[p_menu] = USB_SHOW_MENU_STATES_INIT;
+                return (int8_t)-1; //return 
+            }
+            break;
+            
+        default: break;
+    }
+    
+    return 0; //working
 }
 
 

@@ -1,8 +1,14 @@
+
+//<editor-fold defaultstate="collapsed" desc="Includes">
+
 #include "USB_fwk.h"
 #include <string.h>
 #include <stdio.h>
 #include "../utils/Utils.h" 
 
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Local Variables">
 
 static uint8_t USB_rxBuffer[USB_BUFFER_SIZE];
 static uint8_t USB_txBuffer[USB_BUFFER_SIZE];
@@ -12,62 +18,13 @@ static bool sth2write;
 //static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_BOTH;
 static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_NONE;
 
+//</editor-fold>
+
 //<editor-fold defaultstate="collapsed" desc="USB Gral">
 
-bool USB_isSth2Write()
+bool USB_sth2Write()
 {
     return sth2write;
-}
-
-void USB_CDC_tasks()
-{
-    static bool sending = false;
-    
-    //<editor-fold defaultstate="collapsed" desc="Chequeo Inicial">
-    if( USBGetDeviceState() < CONFIGURED_STATE )
-    {
-//        return false;
-    }
-
-    if( USBIsDeviceSuspended()== true )
-    {
-//        return false;
-    }
-    //</editor-fold>
-    
-//    if( sth2write && USBUSARTIsTxTrfReady() ) //hay algo para escribir
-    if( sending )
-    {
-        if(  USBUSARTIsTxTrfReady() ) 
-        {
-           memset( USB_txBuffer, 0, sizeof(USB_txBuffer));
-           if( USB_txAuxBuffer[0] != 0 ) //no es lo mismo que sth2write?? para que esta styh2write?? 
-           {
-                memcpy(USB_txBuffer,USB_txAuxBuffer,sizeof(USB_txBuffer)-1);
-    
-                memcpy(USB_txAuxBuffer,USB_txAuxBuffer+sizeof(USB_txBuffer)-1, sizeof(USB_txAuxBuffer)-sizeof(USB_txBuffer)+1);
-                memset(USB_txAuxBuffer+sizeof(USB_txAuxBuffer)-sizeof(USB_txBuffer)+1, 0, sizeof(USB_txBuffer)-1 );
-//                memcpy( USB_txBuffer, USB_txAuxBuffer, sizeof(USB_txBuffer) );
-//                memset( USB_txAuxBuffer, 0, sizeof( USB_txAuxBuffer ) );                  //si son del mismo tamanio!!!!
-               putUSBUSART(USB_txBuffer,strlen(USB_txBuffer)); 
-           }
-           else
-           {
-               sth2write = false;
-               sending = false;
-           }
-        }
-        
-    }
-    else
-    {
-       if( sth2write )
-       {
-           sending = true;
-       }
-    }
-    
-    CDCTxService();
 }
 
 bool USB_sth2Read()
@@ -114,61 +71,53 @@ uint8_t* USB_whatsInReadBuffer()
 {
     return USB_rxBuffer;
 }
-//</editor-fold>
 
-//<editor-fold defaultstate="collapsed" desc="Menu">
-
-int8_t USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu )
+void USB_CDC_tasks()
 {
-    static enum USB_SHOW_MENU_STATES state[UTS_MENU_HANDLER_COUNT] = {USB_SHOW_MENU_STATES_INIT};
-    uint8_t i;
-    uint8_t selectedOption; 
+    static bool sending = false;
     
-    if( p_menu < 0 || p_menu >= UTS_MENU_HANDLER_COUNT ) return -1;
-    
-    switch( state[p_menu] )
+    //<editor-fold defaultstate="collapsed" desc="Chequeo Inicial">
+    if( USBGetDeviceState() < CONFIGURED_STATE )
     {
-        case USB_SHOW_MENU_STATES_INIT:
-            USB_read(0); //para limpiar el buffer de lectura
-            sprintf( USB_dummyBuffer,"\n%s \n", UTS_getMenuTitle( p_menu ) );
-            USB_write( USB_dummyBuffer );
-            for( i=0; i < UTS_getmenuOptionsNumber(p_menu) ; i++ )
-            {
-                memset(USB_dummyBuffer,0,sizeof(USB_dummyBuffer));
-                if(UTS_getMenuOption(p_menu,i) != NULL)
-                {
-                    sprintf( USB_dummyBuffer,"%d. %s \n",i+1, UTS_getMenuOption( p_menu, i ) );
-                    USB_write( USB_dummyBuffer );
-                }
-            }        
-            sprintf( USB_dummyBuffer,"Presione %s para volver \n >", USB_FWK_RETURN_CHAR );
-            USB_write(USB_dummyBuffer);
-            memset( USB_dummyBuffer, 0, sizeof( USB_dummyBuffer ) );
-            state[p_menu] = USB_SHOW_MENU_STATES_WAIT;
-            break;
-            
-        case USB_SHOW_MENU_STATES_WAIT:
-            strcpy( USB_dummyBuffer, USB_read(0) );
-            selectedOption = (uint8_t)strtol((char*)USB_dummyBuffer,NULL,10);
-            if( selectedOption > 0 && selectedOption <= UTS_getmenuOptionsNumber(p_menu) )
-            {
-                state[p_menu] = USB_SHOW_MENU_STATES_INIT;
-                return (int8_t)selectedOption; 
-            }
-            else if( strstr(USB_dummyBuffer, USB_FWK_RETURN_CHAR) != NULL )
-            {
-                state[p_menu] = USB_SHOW_MENU_STATES_INIT;
-                return (int8_t)-1; //return 
-            }
-            break;
-            
-        default: break;
+//        return false;
+    }
+
+    if( USBIsDeviceSuspended()== true )
+    {
+//        return false;
+    }
+    //</editor-fold>
+    
+    if( sending )
+    {
+        if(  USBUSARTIsTxTrfReady() ) 
+        {
+           memset( USB_txBuffer, 0, sizeof(USB_txBuffer));
+           if( USB_txAuxBuffer[0] != 0 ) 
+           {
+                memcpy(USB_txBuffer,USB_txAuxBuffer,sizeof(USB_txBuffer)-1);
+    
+                memcpy(USB_txAuxBuffer,USB_txAuxBuffer+sizeof(USB_txBuffer)-1, sizeof(USB_txAuxBuffer)-sizeof(USB_txBuffer)+1);
+                memset(USB_txAuxBuffer+sizeof(USB_txAuxBuffer)-sizeof(USB_txBuffer)+1, 0, sizeof(USB_txBuffer)-1 );
+               putUSBUSART(USB_txBuffer,strlen(USB_txBuffer)); 
+           }
+           else
+           {
+               sth2write = false;
+               sending = false;
+           }
+        }
+    }
+    else
+    {
+       if( sth2write )
+       {
+           sending = true;
+       }
     }
     
-    return 0; //working
+    CDCTxService();
 }
-
-
 
 //</editor-fold>
 

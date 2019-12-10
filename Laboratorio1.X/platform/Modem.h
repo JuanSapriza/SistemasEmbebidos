@@ -1,9 +1,15 @@
 #ifndef MODEM_H
 #define	MODEM_H
 
+//<editor-fold defaultstate="collapsed" desc="Includes">
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <time.h>
+
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Defines">
 
 #define MDM_RX_BUFFER_SIZE 200
 #define MDM_TX_BUFFER_SIZE 200
@@ -12,48 +18,15 @@
 #define MDM_COMMAND_SUPERLONG_TIMEOUT 5000
 
 #define MDM_SMS_WAIT_TIME 1000
-
 #define MDM_SMS_LENGTH 100
 #define MDM_SMS_PHONE_NUM_LENGTH 12
 #define MDM_SIM_PIN_SIZE 4
 
 #define MDM_GPS_MAX_RETRIES 5
 
-#define MDM_COMMAND_SYNTAX_PARAM_ASK "=?"
-#define MDM_COMMAND_SYNTAX_STATUS_ASK "?"
+//</editor-fold>
 
-
-typedef enum
-{
-    MDM_TASK_CONFIG,
-    MDM_TASK_GET_GPS_FRAME,
-    MDM_TASK_SEND_SMS,
-    MDM_TASK_READ_SMS,
-    MDM_TASK_UNDEF,
-} MDM_TASK_TASK_t;
-
-typedef enum
-{
-    MDM_TASK_STATUS_UNDEF,
-    MDM_TASK_STATUS_DONE,
-    MDM_TASK_STATUS_WORKING,
-    MDM_TASK_STATUS_NEW,
-    MDM_TASK_STATUS_ERROR,
-}MDM_TASK_STATUS_t;
-
-typedef struct
-{
-    MDM_TASK_STATUS_t status;
-    void* ptr;
-} MDM_TASK_ELEMENT_t;
-
-typedef struct
-{
-    MDM_TASK_ELEMENT_t GSM_conf;
-    MDM_TASK_ELEMENT_t GPS_get;
-    MDM_TASK_ELEMENT_t SMS_read;
-    MDM_TASK_ELEMENT_t SMS_send;
-}MDM_TASKS_t;
+//<editor-fold defaultstate="collapsed" desc="Enums">
 
 enum MDM_ESTADO
 {
@@ -66,6 +39,55 @@ enum MDM_ESTADO
     MDM_ESTADOS_EXECUTE,
 };
 
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Data Types">
+
+//<editor-fold defaultstate="collapsed" desc="Tasks">
+
+        // NOMBRE DE TAREAS
+typedef enum
+{
+    MDM_TASK_CONFIG,
+    MDM_TASK_GET_GPS_FRAME,
+    MDM_TASK_SEND_SMS,
+    MDM_TASK_READ_SMS,
+    MDM_TASK_UNDEF,
+} MDM_TASK_TASK_t;
+
+        // ESTADOS DE UNA TAREA
+typedef enum
+{
+    MDM_TASK_STATUS_UNDEF,
+    MDM_TASK_STATUS_DONE,
+    MDM_TASK_STATUS_WORKING,
+    MDM_TASK_STATUS_NEW,
+    MDM_TASK_STATUS_ERROR,
+}MDM_TASK_STATUS_t;
+
+        // ESTRUCTURA DE UNA TAREA
+typedef struct
+{
+    MDM_TASK_STATUS_t status;
+    void* ptr;
+} MDM_TASK_ELEMENT_t;
+
+        // ESTRUCTURA CON VARIAS TAREAS 
+typedef struct
+{
+    MDM_TASK_ELEMENT_t GSM_conf;
+    MDM_TASK_ELEMENT_t GPS_get;
+    MDM_TASK_ELEMENT_t SMS_read;
+    MDM_TASK_ELEMENT_t SMS_send;
+}MDM_TASKS_t;
+
+
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Commands">
+
+
+        // NOMBRES DE COMANDOS
 typedef enum 
 {
     MDM_AT_CMD_NAME_AT,
@@ -96,6 +118,8 @@ typedef enum
     
 } MDM_AT_CMD_NAME_t;
 
+        // NOMBRES DE RESPUESTAS
+
 typedef enum
 {
     MDM_AT_RESP_NAME_WORKING,
@@ -121,6 +145,8 @@ typedef enum
     MDM_AT_RESP_NAME_GSM_SMS_INCOMING,
 } MDM_AT_RESP_NAME_t;
 
+
+    // NOMBRES DE TIPOS DE TRAMA GNSS
 typedef enum
 {
     MDM_GNS_NMEA_RMC,
@@ -129,6 +155,11 @@ typedef enum
     MDM_GNS_NMEA_GSA,
 } MDM_GNS_NMEA_t;
 
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Info">
+
+        // ESTRUCTURA CON INFO DE GNSS
 struct MDM_GNS_INFO
 {
     bool pwr;
@@ -140,33 +171,30 @@ struct MDM_GNS_INFO
     struct tm time;
 } gMDM_gnsInfo;
 
-
+        // ESTRUCTURA CON INFO DE SMS
 typedef struct
 {
     uint8_t num[MDM_SMS_PHONE_NUM_LENGTH+3];
     uint8_t text[MDM_SMS_LENGTH];
 } MDM_smsInfo_t;
 
+//</editor-fold>
+
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Global Functions">
+
 void MDM_tasks();
-void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status );
 bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr );
+void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status );
 MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task );
 bool MDM_Init(void);
-void MDM_read( uint8_t* p_string );
 uint8_t* MDM_readString();
-uint8_t MDM_write(uint8_t *p_string);
 uint8_t* MDM_whatsInReadBuffer();
-bool MDM_writeChar( uint8_t p_char );
-void MDM_sendATCmd( uint8_t* p_cmd, uint8_t* p_param );
-MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_param, uint32_t p_timeout );
-MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
-uint8_t* MDM_commandString( MDM_AT_CMD_NAME_t p_cmd );
 uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index);
-
 bool MDM_sendInitialAT();
-MDM_AT_RESP_NAME_t MDM_GNSS_getInf( MDM_GNS_NMEA_t p_nmea, bool p_pwr );
-
 MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin );
-MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string );
+
+//</editor-fold>
 
 #endif

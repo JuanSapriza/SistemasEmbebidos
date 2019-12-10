@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-
 #include "mcc_generated_files/system.h"
 #include "mcc_generated_files/rtcc.h"
 #include "mcc_generated_files/usb/usb.h"
@@ -52,8 +51,11 @@ APP_HUMIDITY_LEVEL_t APP_humidity2level( uint8_t humidity );
 uint8_t* APP_location2GoogleMapsString();
 uint8_t* APP_printDateTime( struct tm* p_time );
 void APP_RGB_humidityAnalag( uint8_t p_humidity );
+bool APP_getHumidity();
 
 //</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Miscelánea">
 
 uint8_t* APP_printDateTime( struct tm* p_time )
 {
@@ -61,10 +63,9 @@ uint8_t* APP_printDateTime( struct tm* p_time )
     memset( dummyBuffer,0, sizeof(dummyBuffer) );
     sprintf(dummyBuffer,"%02d/%02d/%04d %2d:%02d:%02d",p_time->tm_mday,p_time->tm_mon+1, p_time->tm_year+1900,p_time->tm_hour, p_time->tm_min, p_time->tm_sec );
     return dummyBuffer;
-
 }
 
-
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Parámteros y Umbrales">
 
@@ -79,43 +80,19 @@ void APP_THRESHOLD_initialize()
     APP_info.threshold.manual=APP_THRESHOLD_MANUAL_DEFAULT;
 }
 
-//void APP_THRESHOLD_set (APP_THRESHOLD_t p_threshold  )
-//{
-//    APP_info.threshold.saturated=p_threshold.saturated;
-//    APP_info.threshold.slightly_saturated= p_threshold.slightly_saturated;
-//    APP_info.threshold.slightly_dry=p_threshold.slightly_dry;
-//    APP_info.threshold.dry=p_threshold.dry;
-//    APP_info.threshold.low_automatic=p_threshold.low_automatic;
-//    APP_info.threshold.high_automatic=p_threshold.high_automatic;
-//    APP_info.threshold.manual=p_threshold.manual;
-//}
-
 void APP_PARAM_initialize()
 {
     APP_info.param.humiditySensePeriod=APP_HUMIDITY_SENSE_PERIOD_DEFAULT;
     APP_info.param.logRegisterPeriod=APP_LOG_REGISTRER_PERIOD_DEFAULT;
     APP_info.param.gpsGetPeriod=APP_GPS_GET_PERIOD_DEFAULT;
-//    APP_info.param.SMSalertPeriod=APP_SMS_ALERT_PERIOD_DEFAULT;
     APP_info.param.SMSalertCoolDown=APP_SMS_ALERT_COOL_DOWN_DEFAULT;
-    APP_info.param.displayHumidity=APP_DISPLAY_HUMIDITY_DEFAULT;
-            
+    APP_info.param.displayHumidity=APP_DISPLAY_HUMIDITY_DEFAULT;       
 }
-
-//void APP_PARAM_set ( APP_PARAMS_t p_param )
-//{
-//    APP_info.param.humiditySensePeriod=p_param.humiditySensePeriod;
-//    APP_info.param.logRegisterPeriod=p_param.logRegisterPeriod;
-//    APP_info.param.gpsGetPeriod=p_param.gpsGetPeriod;
-//    APP_info.param.SMSalertPeriod=p_param.SMSalertPeriod;
-//    APP_info.param.SMSalertCoolDown=p_param.SMSalertCoolDown;
-//}
-
 
 APP_FUNC_STATUS_t APP_setThresholds( void )
 {
     static uint8_t state_thresholds = APP_SET_THRESHOLDS_INIT;
     static int8_t retMenu_thresholds; 
-    
     static int8_t aux_threshold_saturated;
     static int8_t aux_threshold_slightly_saturated;
     static int8_t aux_threshold_dry;
@@ -137,10 +114,8 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
             aux_threshold_slightly_dry=APP_info.threshold.slightly_dry;
             aux_threshold_automatic_low=APP_info.threshold.low_automatic;
             aux_threshold_automatic_high=APP_info.threshold.high_automatic;    
-            aux_threshold_manual=APP_info.threshold.manual; 
-        
+            aux_threshold_manual=APP_info.threshold.manual;        
             state_thresholds = APP_SET_THRESHOLDS_MENU;
-            
             //intentional breakthrough  
     
         case APP_SET_THRESHOLDS_MENU:
@@ -178,7 +153,7 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
             //intentional breakthrough
 
             case APP_SET_THRESHOLDS_SHOW:
-            retMenu_thresholds = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_THRESHOLDS );
+            retMenu_thresholds = UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_THRESHOLDS, true );
             state_thresholds = APP_SET_THRESHOLDS_FUNCTIONS;
             //intentional breakthrough
             
@@ -288,111 +263,6 @@ APP_FUNC_STATUS_t APP_setThresholds( void )
 
 }
      
-uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold )
-{
-    switch( p_threshold )
-    {
-        case APP_THRESHOLD_SATURATED:
-            strcpy( APP_stringBuffer, "saturación" );
-            break;
-    
-        case APP_THRESHOLD_SLIGHTLY_SATURATED:
-            strcpy( APP_stringBuffer, "riesgo de saturación" );
-            break;
-    
-        case APP_THRESHOLD_SLIGHTLY_DRY:
-            strcpy( APP_stringBuffer, "riesgo de sequía" );
-            break;
-    
-        case APP_THRESHOLD_DRY:
-            strcpy( APP_stringBuffer, "sequía" );
-            break;
-    
-    
-        case APP_THRESHOLD_AUTO_LOW:
-            strcpy( APP_stringBuffer, "punto óptimo para riego automático" );
-            break;
-    
-    
-        case APP_THRESHOLD_AUTO_HIGH:
-            strcpy( APP_stringBuffer, "sequía para riego automático" );
-            break;
-    
-    
-        case APP_THRESHOLD_MANUAL:
-            strcpy( APP_stringBuffer, "riego manual" );
-            break;
-    
-        default: return NULL;
-    
-    }
-    return APP_stringBuffer;
-}
-
-APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold )
-{
-    static uint8_t state = APP_SET_NEW_THRESHOLD_SHOW;
-    static int8_t aux; 
-    
-    switch( state )
-    {
-        case APP_SET_NEW_THRESHOLD_SHOW:
-            
-            sprintf(USB_dummyBuffer, "\nIngrese el nuevo valor para el umbral de %s \n", APP_threshold2String( p_threshold ) );
-            USB_write(USB_dummyBuffer);
-            sprintf( USB_dummyBuffer,"         - entre %d y %d cB -  \n",APP_HUMIDITY_MIN_NUM,APP_HUMIDITY_MAX_NUM);
-            USB_write(USB_dummyBuffer);
-            state = APP_SET_NEW_THRESHOLD_WAIT;
-            //intentional breakthrough
-            
-        case APP_SET_NEW_THRESHOLD_WAIT:
-            if( USB_sth2Read() )
-            {
-                state = APP_SET_NEW_THRESHOLD_VALIDATE;
-            }
-            else
-            {
-                break;
-            }
-            //intentional breakthrough
-            
-        case APP_SET_NEW_THRESHOLD_VALIDATE:
-            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
-            {                          
-                state = APP_SET_NEW_THRESHOLD_SHOW;
-                return APP_FUNC_RETURN;
-            }
-            
-            aux = (int8_t) atoi( USB_whatsInReadBuffer() );
-            if( aux >= APP_HUMIDITY_MIN_NUM && aux <= APP_HUMIDITY_MAX_NUM )
-            {
-                state = APP_SET_NEW_THRESHOLD_RESPONSE_OK;
-            }
-            else
-            {
-                state = APP_SET_NEW_THRESHOLD_RESPONSE_ERROR;
-            }
-            break;
-            
-        case APP_SET_NEW_THRESHOLD_RESPONSE_OK:
-            USB_write("\n\n El valor ha sido ingresado \n");
-            *p_users_new_threshold= aux;
-            state = APP_SET_NEW_THRESHOLD_SHOW;
-            return APP_FUNC_DONE;
-            
-        case APP_SET_NEW_THRESHOLD_RESPONSE_ERROR:
-            USB_write("\n\n ERROR \n");
-            sprintf( USB_dummyBuffer, "\n\n Ingrese un número entre %d y %d \n",APP_HUMIDITY_MIN_NUM,APP_HUMIDITY_MAX_NUM);
-            USB_write(USB_dummyBuffer);
-            state = APP_SET_NEW_THRESHOLD_WAIT;
-            break;
-    
-        default: break;
-    }
-    return APP_FUNC_WORKING;
-
-}
-
 APP_FUNC_STATUS_t APP_setParameters( void )
 {
     static uint8_t state_parameters = APP_SET_PARAMETERS_MENU;
@@ -462,7 +332,7 @@ APP_FUNC_STATUS_t APP_setParameters( void )
             
 
         case APP_SET_PARAMETERS_SHOW:
-            retMenu_parameters = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PARAMETER );
+            retMenu_parameters = UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PARAMETER, true );
             state_parameters = APP_SET_PARAMETERS_FUNCTIONS;
             //intentional breakthrough
             
@@ -542,7 +412,71 @@ APP_FUNC_STATUS_t APP_setParameters( void )
 
     return APP_FUNC_WORKING;
 
-}    
+}  
+
+APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold )
+{
+    static uint8_t state = APP_SET_NEW_THRESHOLD_SHOW;
+    static int8_t aux; 
+    
+    switch( state )
+    {
+        case APP_SET_NEW_THRESHOLD_SHOW:
+            
+            sprintf(USB_dummyBuffer, "\nIngrese el nuevo valor para el umbral de %s \n", APP_threshold2String( p_threshold ) );
+            USB_write(USB_dummyBuffer);
+            sprintf( USB_dummyBuffer,"         - entre %d y %d cB -  \n",APP_HUMIDITY_MIN_NUM,APP_HUMIDITY_MAX_NUM);
+            USB_write(USB_dummyBuffer);
+            state = APP_SET_NEW_THRESHOLD_WAIT;
+            //intentional breakthrough
+            
+        case APP_SET_NEW_THRESHOLD_WAIT:
+            if( USB_sth2Read() )
+            {
+                state = APP_SET_NEW_THRESHOLD_VALIDATE;
+            }
+            else
+            {
+                break;
+            }
+            //intentional breakthrough
+            
+        case APP_SET_NEW_THRESHOLD_VALIDATE:
+            if( strstr( USB_whatsInReadBuffer(),UTS_MENU_RETURN_CHAR ) != NULL )
+            {                          
+                state = APP_SET_NEW_THRESHOLD_SHOW;
+                return APP_FUNC_RETURN;
+            }
+            
+            aux = (int8_t) atoi( USB_whatsInReadBuffer() );
+            if( aux >= APP_HUMIDITY_MIN_NUM && aux <= APP_HUMIDITY_MAX_NUM )
+            {
+                state = APP_SET_NEW_THRESHOLD_RESPONSE_OK;
+            }
+            else
+            {
+                state = APP_SET_NEW_THRESHOLD_RESPONSE_ERROR;
+            }
+            break;
+            
+        case APP_SET_NEW_THRESHOLD_RESPONSE_OK:
+            USB_write("\n\n El valor ha sido ingresado \n");
+            *p_users_new_threshold= aux;
+            state = APP_SET_NEW_THRESHOLD_SHOW;
+            return APP_FUNC_DONE;
+            
+        case APP_SET_NEW_THRESHOLD_RESPONSE_ERROR:
+            USB_write("\n\n ERROR \n");
+            sprintf( USB_dummyBuffer, "\n\n Ingrese un número entre %d y %d \n",APP_HUMIDITY_MIN_NUM,APP_HUMIDITY_MAX_NUM);
+            USB_write(USB_dummyBuffer);
+            state = APP_SET_NEW_THRESHOLD_WAIT;
+            break;
+    
+        default: break;
+    }
+    return APP_FUNC_WORKING;
+
+}
 
 APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32_t *p_users_new_parameter )
 {
@@ -579,7 +513,7 @@ APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32
             //intentional breakthrough
             
         case APP_SET_NEW_PARAMETER_VALIDATE:
-            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
+            if( strstr( USB_whatsInReadBuffer(),UTS_MENU_RETURN_CHAR ) != NULL )
             {                          
                 state_parameter = APP_SET_NEW_PARAMETER_SHOW;
                 return APP_FUNC_RETURN;
@@ -649,6 +583,43 @@ APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32
 
 }
 
+uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold )
+{
+    switch( p_threshold )
+    {
+        case APP_THRESHOLD_SATURATED:
+            strcpy( APP_stringBuffer, "saturación" );
+            break;
+    
+        case APP_THRESHOLD_SLIGHTLY_SATURATED:
+            strcpy( APP_stringBuffer, "riesgo de saturación" );
+            break;
+    
+        case APP_THRESHOLD_SLIGHTLY_DRY:
+            strcpy( APP_stringBuffer, "riesgo de sequía" );
+            break;
+    
+        case APP_THRESHOLD_DRY:
+            strcpy( APP_stringBuffer, "sequía" );
+            break;
+        
+        case APP_THRESHOLD_AUTO_LOW:
+            strcpy( APP_stringBuffer, "punto óptimo para riego automático" );
+            break;
+    
+        case APP_THRESHOLD_AUTO_HIGH:
+            strcpy( APP_stringBuffer, "sequía para riego automático" );
+            break;
+    
+        case APP_THRESHOLD_MANUAL:
+            strcpy( APP_stringBuffer, "riego manual" );
+            break;
+    
+        default: return NULL;
+    
+    }
+    return APP_stringBuffer;
+}
 
 uint8_t* APP_parameter2String( APP_PARAMETER_NAMES_t p_parameter )
 {
@@ -703,13 +674,36 @@ uint8_t* APP_typeDisplay2String( uint8_t p_parameter )
     }
     return APP_stringBuffer;
 }
-
-
     
 //</editor-fold>
 
-
 //<editor-fold defaultstate="collapsed" desc="Humedad">
+
+bool APP_getHumidity()
+{
+    uint16_t datos_potenciometro;
+    
+    if(POT_Convert( &datos_potenciometro ) )
+    {
+        APP_info.humidity.level  = POT_Linearized ( datos_potenciometro ); 
+        return true;
+    }
+    return false;
+}
+
+bool APP_checkHumidityAlert()
+{
+    if( APP_info.humidity.level < APP_info.threshold.saturated || APP_info.humidity.level > APP_info.threshold.dry )
+    {
+        APP_info.humidity.alert = true;
+    }
+    return APP_info.humidity.alert;
+}
+
+void APP_clearHumidityAlert()
+{
+    APP_info.humidity.alert = false;
+}
 
 APP_HUMIDITY_LEVEL_t APP_humidity2level( uint8_t p_humidity )
 {
@@ -828,6 +822,20 @@ void APP_RGB_humidityAnalag( uint8_t p_humidity )
     return;
 }
 
+void APP_pot2RGBEnable( bool p_enable )
+{
+    APP_convertPot2RGB = p_enable;
+    if ( !p_enable )
+    {
+        RGB_setAll(OFF);
+    }    
+}
+
+bool APP_pot2RGBIsEnabled()
+{
+    return APP_convertPot2RGB;
+}
+
 void APP_LEDA_irrigate ( uint8_t p_humidity )
 {
     static uint8_t APP_IRRIGATE = APP_IRRIGATE_OFF;
@@ -926,48 +934,7 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
  
 }
 
-void APP_pot2RGBEnable( bool p_enable )
-{
-    APP_convertPot2RGB = p_enable;
-    if ( !p_enable )
-    {
-        RGB_setAll(OFF);
-    }    
-}
-
-bool APP_pot2RGBIsEnabled()
-{
-    return APP_convertPot2RGB;
-}
-
-bool APP_getHumidity()
-{
-    uint16_t datos_potenciometro;
-    
-    if(POT_Convert( &datos_potenciometro ) )
-    {
-        APP_info.humidity.level  = POT_Linearized ( datos_potenciometro ); 
-        return true;
-    }
-    return false;
-}
-
-bool APP_checkHumidityAlert()
-{
-    if( APP_info.humidity.level < APP_info.threshold.saturated || APP_info.humidity.level > APP_info.threshold.dry )
-    {
-        APP_info.humidity.alert = true;
-    }
-    return APP_info.humidity.alert;
-}
-
-void APP_clearHumidityAlert()
-{
-    APP_info.humidity.alert = false;
-}
-
 //</editor-fold>
-
 
 //<editor-fold defaultstate="collapsed" desc="ID de la Planta">
 
@@ -1002,7 +969,7 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
             //intentional breakthrough
             
         case APP_GET_NEW_ID_VALIDATE:
-            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
+            if( strstr( USB_whatsInReadBuffer(),UTS_MENU_RETURN_CHAR ) != NULL )
             {
                 state = APP_GET_NEW_ID_SHOW;
                 return APP_FUNC_RETURN;
@@ -1038,7 +1005,6 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
 }
 
 //</editor-fold>
-
 
 //<editor-fold defaultstate="collapsed" desc="Loggeo">
 
@@ -1113,30 +1079,46 @@ void APP_LOG_data( APP_var_t* log_data )
  void APP_print_Buffer_Register ( uint8_t index_aux )
 {
         struct tm * time_to_display;
+        static bool firstTime = true;
+        
         
         sprintf(USB_dummyBuffer,"\n  | Datos del registro %d correspondiente a la planta %04d \n",APP_logBuffer[index_aux].logNum,APP_logBuffer[index_aux].plantID);
         USB_write(USB_dummyBuffer);
         
-        //memset(time_to_display,0,36);   //POR QUE EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
-        
 		time_to_display = localtime(&(APP_logBuffer[index_aux].time));
         
-        sprintf(USB_dummyBuffer,"  | Fecha y hora: %s \n",APP_printDateTime( time_to_display ));
-        USB_write(USB_dummyBuffer);
-        sprintf(USB_dummyBuffer,"  | Humedad: %dCb: %s \n",APP_logBuffer[index_aux].humidity, APP_humidityLevel2String( APP_humidity2level( APP_logBuffer[index_aux].humidity ) ));
-        USB_write(USB_dummyBuffer);
-        
-        if ( APP_logBuffer[index_aux].position_validity == 0 )
+        if( firstTime && APP_logBuffer[index_aux].position_validity )
         {
-            USB_write("  | Posición no disponible \n");
-            USB_write("  | Úlitma posición conocida: \n");            
+            firstTime = false;
         }
         
-        sprintf(USB_dummyBuffer,"  | Latitud: %f \n",APP_logBuffer[index_aux].position.latitude);
-        USB_write(USB_dummyBuffer);
-        sprintf(USB_dummyBuffer,"  | Longitud: %f \n",APP_logBuffer[index_aux].position.longitude);
-        USB_write(USB_dummyBuffer);
+        if( firstTime )
+        {
+            USB_write("  | Fecha y hora: - \n");
+            sprintf(USB_dummyBuffer,"  | Humedad: %dCb: %s \n",APP_logBuffer[index_aux].humidity, APP_humidityLevel2String( APP_humidity2level( APP_logBuffer[index_aux].humidity ) ));
+            USB_write(USB_dummyBuffer);
+            USB_write("  | Posición no disponible \n");
+            USB_write("  | Latitud: - \n");
+            USB_write("  | Longitud: - \n");
+        }
+        else
+        {
+            sprintf(USB_dummyBuffer,"  | Fecha y hora: %s \n",APP_printDateTime( time_to_display ));
+            USB_write(USB_dummyBuffer);
+            sprintf(USB_dummyBuffer,"  | Humedad: %dCb: %s \n",APP_logBuffer[index_aux].humidity, APP_humidityLevel2String( APP_humidity2level( APP_logBuffer[index_aux].humidity ) ));
+            USB_write(USB_dummyBuffer);
+         
+            if ( APP_logBuffer[index_aux].position_validity == 0 )
+            {
+                USB_write("  | Posición no disponible \n");
+                USB_write("  | Última posición conocida: \n");            
+            }
 
+            sprintf(USB_dummyBuffer,"  | Latitud: %f \n",APP_logBuffer[index_aux].position.latitude);
+            USB_write(USB_dummyBuffer);
+            sprintf(USB_dummyBuffer,"  | Longitud: %f \n",APP_logBuffer[index_aux].position.longitude);
+            USB_write(USB_dummyBuffer);
+        }
 }
 
 APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
@@ -1169,7 +1151,7 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
             break;
          
         case STATE_BUFFER_CHECK:
-            if ( USB_isSth2Write() == 0 )
+            if ( USB_sth2Write() == 0 )
             {
                 if ( index_buffer == 0 )
                 {
@@ -1200,7 +1182,6 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
 
 //</editor-fold>
 
-
 //<editor-fold defaultstate="collapsed" desc="Celular">
 
 APP_FUNC_STATUS_t APP_setNewPhone()
@@ -1214,7 +1195,7 @@ APP_FUNC_STATUS_t APP_setNewPhone()
             
             sprintf(USB_dummyBuffer, "\nIngrese el nuevo número de emergencia (con código país )\n" );
             USB_write(USB_dummyBuffer);
-            sprintf( USB_dummyBuffer,"         - o presione %s para regresar -  \n", USB_FWK_RETURN_CHAR);
+            sprintf( USB_dummyBuffer,"         - o presione %s para regresar -  \n", UTS_MENU_RETURN_CHAR);
             USB_write(USB_dummyBuffer);
             state = APP_STATE_WAIT;
             //intentional breakthrough
@@ -1231,7 +1212,7 @@ APP_FUNC_STATUS_t APP_setNewPhone()
             //intentional breakthrough
             
         case APP_STATE_CHECK:
-            if( strstr( USB_whatsInReadBuffer(),USB_FWK_RETURN_CHAR ) != NULL )
+            if( strstr( USB_whatsInReadBuffer(),UTS_MENU_RETURN_CHAR ) != NULL )
             {                          
                 state = APP_STATE_INIT;
                 return APP_FUNC_RETURN;
@@ -1331,7 +1312,7 @@ APP_FUNC_STATUS_t APP_GSMConfig()
             //intentional breakthrough
 
         case APP_STATE_CHECK:
-            if( strstr( USB_whatsInReadBuffer(), USB_FWK_RETURN_CHAR ) != NULL )
+            if( strstr( USB_whatsInReadBuffer(), UTS_MENU_RETURN_CHAR ) != NULL )
             {
                 tempPIN = 0;
                 state_gsmConfig = APP_STATE_INIT;
@@ -1382,7 +1363,7 @@ APP_FUNC_STATUS_t APP_celularConfig()
             //break; intentional breakthrough
     
         case APP_STATE_MENU_SHOW:
-            retMenu_celConfig = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_CEL_CONFIG );
+            retMenu_celConfig = UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_CEL_CONFIG, true );
             state_celConfig = APP_STATE_MENU_OPTIONS;
             //break; intentional breakthrough
             
@@ -1422,7 +1403,6 @@ APP_FUNC_STATUS_t APP_celularConfig()
 
 //</editor-fold>
 
-
 //<editor-fold defaultstate="collapsed" desc="SMS de Emergencia">
 
 MDM_smsInfo_t* APP_emergencySMS()
@@ -1454,7 +1434,6 @@ uint8_t* APP_location2GoogleMapsString()
 }
 
 //</editor-fold>
-
 
 bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion 
 {
@@ -1650,7 +1629,7 @@ void APP_UI() //interfaz de usuario
             //intentional breakthrough
             
         case APP_UI_STATE_MENU_SHOW:
-            retMenu = USB_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PRINCIPAL );
+            retMenu = UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_PRINCIPAL, false );
             UI_STATE = APP_UI_STATE_MENU_FUNCTIONS;
             //intentional breakthrough
             

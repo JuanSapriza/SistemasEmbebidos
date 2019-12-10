@@ -11,7 +11,6 @@ bool POT_Convert( uint16_t* p_conversion )
     switch( POT_ESTADO )
     {
         case POT_ESTADOS_START:
-//            ADC1_ChannelSelect( ADC1_POT );
             ADC1_Start();
             POT_ESTADO = POT_ESTADOS_WAIT_1; //No agregamos break para poder iniciar el delay
             
