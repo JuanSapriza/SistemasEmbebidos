@@ -4,7 +4,7 @@
 
 //<editor-fold defaultstate="collapsed" desc="Versión">
 
-#define COMMIT_VERSION Lab4_GPS_Y_POTENCIOMETRO
+#define COMMIT_VERSION VERSION_ESTABLE_1
 
 //#define LABORATORIO_1
 //#define LABORATORIO_2
@@ -27,7 +27,6 @@
 #include <stdint.h>
 #include <time.h>
 #include <stdbool.h>
-
 #include "mcc_generated_files/pin_manager.h"
 #include "mcc_generated_files/adc1.h"
 #include "platform/GPS.h"
@@ -35,16 +34,13 @@
 #include "platform/Modem.h"
 
 
-
-
-
 #define APP_EMERGENCY_NUMBER_DEFAULT "\"+59891972950\""
 #define APP_GOOGLE_MAPS_LOCATION_URL_LENGTH 70
 
 #define APP_THRESHOLD_SATURATED_DEFAULT 5
-#define APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT 9
-#define APP_THRESHOLD_SLIGHTLY_DRY_DEFAULT 20
-#define APP_THRESHOLD_DRY_DEFAULT 40
+#define APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT 25
+#define APP_THRESHOLD_SLIGHTLY_DRY_DEFAULT 35
+#define APP_THRESHOLD_DRY_DEFAULT 55
 #define APP_THRESHOLD_LOW_AUTOMATIC_DEFAULT 15
 #define APP_THRESHOLD_HIGH_AUTOMATIC_DEFAULT 30
 #define APP_THRESHOLD_MANUAL_DEFAULT 15
@@ -52,8 +48,15 @@
 #define APP_HUMIDITY_SENSE_PERIOD_DEFAULT 5
 #define APP_LOG_REGISTRER_PERIOD_DEFAULT 5000
 #define APP_GPS_GET_PERIOD_DEFAULT 5000
-#define APP_SMS_ALERT_PERIOD_DEFAULT 6000
 #define APP_SMS_ALERT_COOL_DOWN_DEFAULT 10000
+#define APP_DISPLAY_HUMIDITY_DEFAULT true
+#define APP_LOG_BUFFER_SIZE 60
+
+#define APP_LOG_BUFFER_SIZE_MAX 50000 //Calculado en base a la memoria de datos disponible y un valor razonable de registros (100 años guardando cada 12 hrs o un año guardando cada 10 minutos)
+
+#define APP_PERIOD_IN_SECONDS_MAX 3600000
+
+#define APP_PERIOD_MAX 604800 //Período máximo de 20 días en segundos
 
 #define APP_HUMIDITY_DEFAULT_LEVEL 30
 
@@ -63,7 +66,6 @@
 #define APP_HUMIDITY_MAX_NUM 60
 #define APP_HUMIDITY_MIN_NUM 1
 
-#define APP_LOG_BUFFER_SIZE 5
 #define APP_SHORT_STRING_SIZE 30
 #define APP_SMS_LENGTH 100
 
@@ -464,6 +466,7 @@ enum APP_SET_THRESHOLDS
 {
     APP_SET_THRESHOLDS_INIT,
     APP_SET_THRESHOLDS_MENU,
+    APP_SET_THRESHOLDS_SHOW_HEADER,
     APP_SET_THRESHOLDS_SHOW,
     APP_SET_THRESHOLDS_FUNCTIONS,
 };
@@ -499,6 +502,45 @@ typedef enum
 } APP_HUMIDITY_LEVEL_t;
 
 //---------------------------
+//Para setear parámetros:
+
+enum APP_SET_PARAMETERS
+{
+    APP_SET_PARAMETERS_INIT,
+    APP_SET_PARAMETERS_MENU,
+    APP_SET_PARAMETERS_SHOW,
+    APP_SET_PARAMETERS_FUNCTIONS,
+};
+
+enum APP_SET_NEW_PARAMETER
+{
+    APP_SET_NEW_PARAMETER_SHOW,
+    APP_SET_NEW_PARAMETER_WAIT,
+    APP_SET_NEW_PARAMETER_VALIDATE,
+    APP_SET_NEW_PARAMETER_RESPONSE_OK,
+    APP_SET_NEW_PARAMETER_RESPONSE_ERROR,
+}; 
+
+
+enum APP_DISPLAY_HUMIDITY
+{
+    APP_DISPLAY_HUMIDITY_OFF,
+    APP_DISPLAY_HUMIDITY_DISCRETE,
+    APP_DISPLAY_HUMIDITY_ANALOG,
+}; 
+
+
+typedef enum 
+{
+    APP_PARAMETER_UNDEF,
+    APP_PARAMETER_HUMIDITY_PERIOD,
+    APP_PARAMETER_LOG_PERIOD,
+    APP_PARAMETER_GPS_PERIOD,
+    APP_PARAMETER_DISPLAY_HUMIDITY,
+    APP_PARAMETER_SMS_COOL_DOWN,
+
+}APP_PARAMETER_NAMES_t;
+//---------------------------
 
 typedef enum
 {
@@ -526,7 +568,8 @@ typedef struct
     uint32_t humiditySensePeriod;
     uint32_t logRegisterPeriod;
     uint32_t gpsGetPeriod;
-    uint32_t SMSalertPeriod;
+//    uint32_t SMSalertPeriod;
+    uint8_t displayHumidity;
     uint32_t SMSalertCoolDown;
 } APP_PARAMS_t;
 
@@ -546,6 +589,7 @@ typedef struct
     uint8_t emergencyNum[MDM_SMS_PHONE_NUM_LENGTH];
     uint8_t simPin[MDM_SIM_PIN_SIZE];
     bool GSM_active;
+    
     
     GPSPosition_t position;
     APP_HUMIDITY_t humidity;
@@ -585,9 +629,9 @@ void APP_UI();
 bool APP_init();
 
 void APP_THRESHOLD_initialize ();
-void APP_THRESHOLD_set ( APP_THRESHOLD_t p_threshold );
+//void APP_THRESHOLD_set ( APP_THRESHOLD_t p_threshold );
 void APP_PARAM_initialize();
-void APP_PARAM_set ( APP_PARAMS_t p_param );
+//void APP_PARAM_set ( APP_PARAMS_t p_param );
 #endif
 
 

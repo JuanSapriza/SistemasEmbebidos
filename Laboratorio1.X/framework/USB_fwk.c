@@ -9,8 +9,8 @@ static uint8_t USB_txBuffer[USB_BUFFER_SIZE];
 static uint8_t USB_txAuxBuffer[USB_AUX_BUFFER_SIZE];
 
 static bool sth2write;
-static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_BOTH;
-//static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_NONE;
+//static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_BOTH;
+static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_NONE;
 
 //<editor-fold defaultstate="collapsed" desc="USB Gral">
 

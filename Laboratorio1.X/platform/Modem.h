@@ -9,12 +9,12 @@
 #define MDM_TX_BUFFER_SIZE 200
 
 #define MDM_COMMAND_DEFAULT_TIMEOUT 2000
-#define MDM_COMMAND_SUPERLONG_TIMEOUT 2000
+#define MDM_COMMAND_SUPERLONG_TIMEOUT 5000
 
-#define MDM_SMS_WAIT_TIME 500
+#define MDM_SMS_WAIT_TIME 1000
 
 #define MDM_SMS_LENGTH 100
-#define MDM_SMS_PHONE_NUM_LENGTH 15
+#define MDM_SMS_PHONE_NUM_LENGTH 12
 #define MDM_SIM_PIN_SIZE 4
 
 #define MDM_GPS_MAX_RETRIES 5
@@ -90,7 +90,7 @@ typedef enum
     MDM_AT_CMD_NAME_GSM_CALL_HANG,
             
             
-    MDM_COMMAND_SEQ_WAIT_4_TIMEOUT,        
+    MDM_COMMAND_SEQ_WAIT_4_READY,        
     MDM_COMMAND_SEQ_WAIT_4_RESPONSE,
     MDM_COMMAND_SEQ_WRITE,
     
@@ -143,7 +143,7 @@ struct MDM_GNS_INFO
 
 typedef struct
 {
-    uint8_t num[MDM_SMS_PHONE_NUM_LENGTH];
+    uint8_t num[MDM_SMS_PHONE_NUM_LENGTH+3];
     uint8_t text[MDM_SMS_LENGTH];
 } MDM_smsInfo_t;
 

@@ -168,38 +168,21 @@ bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
     switch( p_task )
     {
         case MDM_TASK_CONFIG:
-            if( MDM_taskGetStatus(MDM_TASK_CONFIG) == MDM_TASK_STATUS_UNDEF )
-            {
-                MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_NEW );
-                return true;
-            }
-            break;
+            MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_NEW );
+            return true;
             
         case MDM_TASK_GET_GPS_FRAME:
-            if( MDM_taskGetStatus(MDM_TASK_GET_GPS_FRAME) == MDM_TASK_STATUS_UNDEF )
-            {
-                MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_NEW );
-                return true;
-            }
-            break;
+            MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_NEW );
+            return true;
             
         case MDM_TASK_READ_SMS:
-            if( MDM_taskGetStatus(MDM_TASK_READ_SMS) == MDM_TASK_STATUS_UNDEF )
-            {
-                MDM_taskSetStatus( MDM_TASK_READ_SMS, MDM_TASK_STATUS_NEW );
-                MDM_task.SMS_read.ptr = p_taskPtr;
-                return true;
-            }
-            break;
+            MDM_taskSetStatus( MDM_TASK_READ_SMS, MDM_TASK_STATUS_NEW );
+            return true;
             
         case MDM_TASK_SEND_SMS:
-            if( MDM_taskGetStatus(MDM_TASK_SEND_SMS) == MDM_TASK_STATUS_UNDEF )
-            {
-                MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_NEW );
-                MDM_task.SMS_send.ptr = p_taskPtr;
-                return true;
-            }
-            break;
+            MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_NEW );
+            MDM_task.SMS_send.ptr = (MDM_smsInfo_t*)p_taskPtr;
+            return true;
             
         default: break;
     }
@@ -928,6 +911,7 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
                     break;
 
                 case MDM_AT_RESP_NAME_ERROR:
+                    state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
                     return ret;
                     
                 default:
@@ -945,10 +929,11 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
                     break;
                 
                 case MDM_AT_RESP_NAME_OK:
-                    state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
+                    state = MDM_COMMAND_SEQ_WAIT_4_READY;
                     break;
                     
                 case MDM_AT_RESP_NAME_GSM_SIM_ERROR:
+                    state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
                     return ret;
                     
                 default:
@@ -961,10 +946,11 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_OK:
-                    state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
+                    state = MDM_COMMAND_SEQ_WAIT_4_READY;
                     break;
                     
                 case MDM_AT_RESP_NAME_ERROR:
+                    state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
                     return ret;
                     
                 default:
@@ -972,7 +958,7 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
             }
             break;
             
-        case MDM_COMMAND_SEQ_WAIT_4_TIMEOUT:
+        case MDM_COMMAND_SEQ_WAIT_4_READY:
             if( strstr( MDM_readString(), "SMS Ready" ) != 0 )
             {
                 state = MDM_AT_CMD_NAME_GSM_SMS_FORMAT;
@@ -986,7 +972,7 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
         case MDM_COMMAND_SEQ_WAIT_4_RESPONSE:
             if( strstr( MDM_readString(), MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_GSM_SIM_SMS_READY )) != NULL)
             {
-                state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
+                state = MDM_COMMAND_SEQ_WAIT_4_READY;
             }
             break;
             
@@ -995,10 +981,12 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_OK:
+                    state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
                     return MDM_AT_RESP_NAME_OK;
                     break;
                     
                 case MDM_AT_RESP_NAME_ERROR:
+                    state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
                     return ret;
                     
                 default:
@@ -1027,10 +1015,10 @@ MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string )
             
         case MDM_COMMAND_SEQ_WRITE:
             MDM_write( p_string );
-            state = MDM_COMMAND_SEQ_WAIT_4_TIMEOUT;
+            state = MDM_COMMAND_SEQ_WAIT_4_READY;
             break;
             
-        case MDM_COMMAND_SEQ_WAIT_4_TIMEOUT:
+        case MDM_COMMAND_SEQ_WAIT_4_READY:
             if( UTS_delayms(UTS_DELAY_HANDLER_MDM_WAIT, MDM_SMS_WAIT_TIME, false ) )
             {
                 state = MDM_AT_CMD_NAME_GSM_SMS_SEND_FOOTER;

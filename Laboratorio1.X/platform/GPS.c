@@ -136,7 +136,7 @@ void GPS_parseFrame( uint8_t *p_frame, struct tm *p_time, GPSPosition_t *p_posit
     //  voy hasta el final de +CGNSINF: 
     index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 2 ) )+1;
 
-    if( *(index + 2) != 0x31 )
+    if( *(index + 2) != 0x31 ) //Contemplamos caso donde es 0 y .
     {
         *p_validity = false;
         return;
