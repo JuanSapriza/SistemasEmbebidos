@@ -14,6 +14,10 @@
 #define MDM_RX_BUFFER_SIZE 200
 #define MDM_TX_BUFFER_SIZE 200
 
+#define MDM_AT_CMD_HEADER_LENGTH 20
+#define MDM_AT_RESP_HEADER_LENGTH 20
+
+
 #define MDM_COMMAND_DEFAULT_TIMEOUT 2000
 #define MDM_COMMAND_SUPERLONG_TIMEOUT 5000
 
@@ -53,7 +57,7 @@ typedef enum
     MDM_TASK_SEND_SMS,
     MDM_TASK_READ_SMS,
     MDM_TASK_UNDEF,
-} MDM_TASK_TASK_t;
+} MDM_TASK_NAME_t;
 
         // ESTADOS DE UNA TAREA
 typedef enum
@@ -159,18 +163,6 @@ typedef enum
 
 //<editor-fold defaultstate="collapsed" desc="Info">
 
-        // ESTRUCTURA CON INFO DE GNSS
-struct MDM_GNS_INFO
-{
-    bool pwr;
-    uint8_t urc;
-    MDM_GNS_NMEA_t nmea;
-    uint8_t status;
-    uint32_t lat;
-    uint32_t lon;
-    struct tm time;
-} gMDM_gnsInfo;
-
         // ESTRUCTURA CON INFO DE SMS
 typedef struct
 {
@@ -185,9 +177,9 @@ typedef struct
 //<editor-fold defaultstate="collapsed" desc="Global Functions">
 
 void MDM_tasks();
-bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr );
-void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status );
-MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task );
+bool MDM_taskSchedule( MDM_TASK_NAME_t p_task, void* p_taskPtr );
+void MDM_taskSetStatus( MDM_TASK_NAME_t p_task, MDM_TASK_STATUS_t p_status );
+MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_NAME_t p_task );
 bool MDM_Init(void);
 uint8_t* MDM_readString();
 uint8_t* MDM_whatsInReadBuffer();

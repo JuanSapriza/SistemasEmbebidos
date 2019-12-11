@@ -291,7 +291,6 @@ typedef struct
         // ESTRUCTURA CON TODA LA INFORMACIÓN COMPARTIDA DE LA APLICACIÓN
 typedef struct
 {
-    enum APP_STATES state;
     time_t time;
     bool position_validity;
     uint16_t plantID;

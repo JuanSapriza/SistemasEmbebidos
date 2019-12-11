@@ -1,3 +1,6 @@
+
+//<editor-fold defaultstate="collapsed" desc="Includes">
+
 #include "App.h"
 
 #include <stdbool.h>
@@ -19,10 +22,16 @@
 #include "framework/RTCC_fwk.h"
 #include "utils/Utils.h"
 
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Local Variables">
+
+APP_var_t APP_info;
+
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="Funciones">
 
-APP_var_t APP_info;
 
 APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 uint32_t APP_logBufferHead;
@@ -50,7 +59,7 @@ void APP_RGB_humidity ( APP_HUMIDITY_LEVEL_t p_level );
 APP_HUMIDITY_LEVEL_t APP_humidity2level( uint8_t humidity );
 uint8_t* APP_location2GoogleMapsString();
 uint8_t* APP_printDateTime( struct tm* p_time );
-void APP_RGB_humidityAnalag( uint8_t p_humidity );
+void APP_RGB_humidityAnalog( uint8_t p_humidity );
 bool APP_getHumidity();
 
 //</editor-fold>
@@ -794,7 +803,7 @@ void APP_RGB_humidity ( APP_HUMIDITY_LEVEL_t p_level )
     }
 }
 
-void APP_RGB_humidityAnalag( uint8_t p_humidity )
+void APP_RGB_humidityAnalog( uint8_t p_humidity )
 {
     RGB_color color;
     uint8_t R, G, B;
@@ -807,11 +816,19 @@ void APP_RGB_humidityAnalag( uint8_t p_humidity )
         RGB_setAll( color );
         return;
     }
-    if( p_humidity <= 40)
+    if( p_humidity <= 30 )
     {
-        color.r = p_humidity -20;
+        color.r = 0;
         color.g = 25;
-        color.b = -p_humidity +40; 
+        color.b = -2*p_humidity +60; 
+        RGB_setAll( color );
+        return;
+    }
+    if( p_humidity <= 40 )
+    {
+        color.r = 2*p_humidity - 60;
+        color.g = 25;
+        color.b = 0; 
         RGB_setAll( color );
         return;
     }
@@ -1266,16 +1283,17 @@ APP_FUNC_STATUS_t APP_GSMConfig()
         case APP_STATE_TASKS:
             switch( MDM_GSM_init( tempPIN ) )
             {
-                
                 case MDM_AT_RESP_NAME_GSM_SIM_ERROR:
                     USB_write("\nRevise la SIM y vuelva a intentar\n");
                     state_gsmConfig = APP_STATE_INIT;
+                    APP_info.GSM_active = false;
                     return APP_FUNC_ERROR;
                     break;
                     
                 case MDM_AT_RESP_NAME_ERROR:
                     USB_write("\nError en PIN");
                     tempPIN = 0;
+                    APP_info.GSM_active = false;
                     state_gsmConfig = APP_STATE_INIT;
                     break;
 
@@ -1506,7 +1524,7 @@ void APP_tasks()
                 }
                 else if( APP_info.param.displayHumidity == APP_DISPLAY_HUMIDITY_ANALOG )
                 {
-                    APP_RGB_humidityAnalag( APP_info.humidity.level );
+                    APP_RGB_humidityAnalog( APP_info.humidity.level );
                 }
             }
             sense = false;

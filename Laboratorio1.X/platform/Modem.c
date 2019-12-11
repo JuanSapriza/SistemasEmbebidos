@@ -13,10 +13,13 @@
 
 //<editor-fold defaultstate="collapsed" desc="Local Variables">
 
-static uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ]; //var de interes
-static uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ]; //var de interes
-static uint8_t MDM_cmdBuffer[20];  //var de interes
-static uint8_t MDM_respBuffer[20]; //var de interes
+static uint8_t MDM_rxBuffer[ MDM_RX_BUFFER_SIZE ]; 
+static uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ]; 
+static uint8_t MDM_cmdBuffer[MDM_AT_CMD_HEADER_LENGTH];  
+static uint8_t MDM_respBuffer[MDM_AT_RESP_HEADER_LENGTH]; 
+
+static MDM_TASKS_t MDM_task; 
+static MDM_smsInfo_t* sms_ptr; 
 
 //</editor-fold>
 
@@ -40,13 +43,12 @@ MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string );
 
 //<editor-fold defaultstate="collapsed" desc="Tasks">
 
-static MDM_TASKS_t MDM_task; //var de interes
-static MDM_smsInfo_t* sms_ptr; //var de interes
+
 
 void MDM_tasks()
 {
     static uint8_t MDM_ESTADO = MDM_ESTADOS_INIT;
-    static MDM_TASK_TASK_t mdm_task = MDM_TASK_UNDEF;
+    static MDM_TASK_NAME_t mdm_task = MDM_TASK_UNDEF;
     
     switch( MDM_ESTADO )
     {
@@ -161,7 +163,7 @@ void MDM_tasks()
     
 }
 
-bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
+bool MDM_taskSchedule( MDM_TASK_NAME_t p_task, void* p_taskPtr )
 {
     switch( p_task )
     {
@@ -187,7 +189,7 @@ bool MDM_taskSchedule( MDM_TASK_TASK_t p_task, void* p_taskPtr )
     return false;
 }
 
-void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status )
+void MDM_taskSetStatus( MDM_TASK_NAME_t p_task, MDM_TASK_STATUS_t p_status )
 {
     switch( p_task )
     {
@@ -211,7 +213,7 @@ void MDM_taskSetStatus( MDM_TASK_TASK_t p_task, MDM_TASK_STATUS_t p_status )
     }
 }
 
-MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_TASK_t p_task )
+MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_NAME_t p_task )
 {
     switch( p_task )
     {
@@ -287,7 +289,7 @@ void MDM_read( uint8_t* p_string )
 {
     static uint8_t state = 1;
     bool finished = false;
-    uint8_t dummyBlockBuffer[100];
+    uint8_t dummyBlockBuffer[MDM_RX_BUFFER_SIZE];
     
     while( !finished )
     {
@@ -324,16 +326,16 @@ uint8_t* MDM_readString()
     return MDM_rxBuffer;
 }
 
+uint8_t* MDM_whatsInReadBuffer()
+{
+    return MDM_rxBuffer;
+}
+
 uint8_t MDM_write(uint8_t *p_string)
 {
     if( strlen(p_string) == 0 ) return 0;  
     USB_sniff( p_string, USB_SNIFF_TYPE_TX);
     return UART1_WriteBuffer( p_string , strlen(p_string));
-}
-
-uint8_t* MDM_whatsInReadBuffer()
-{
-    return MDM_rxBuffer;
 }
 
 bool MDM_writeChar( uint8_t p_char )
@@ -501,7 +503,6 @@ MDM_AT_RESP_NAME_t MDM_responseName(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
             
         default: return MDM_AT_RESP_NAME_UNKNOWN;              
     }
-
 
 }
 
