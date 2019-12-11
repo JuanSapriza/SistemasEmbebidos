@@ -56,6 +56,7 @@ typedef enum
     MDM_TASK_GET_GPS_FRAME,
     MDM_TASK_SEND_SMS,
     MDM_TASK_READ_SMS,
+    MDM_TASK_COUNT,
     MDM_TASK_UNDEF,
 } MDM_TASK_NAME_t;
 
@@ -75,16 +76,6 @@ typedef struct
     MDM_TASK_STATUS_t status;
     void* ptr;
 } MDM_TASK_ELEMENT_t;
-
-        // ESTRUCTURA CON VARIAS TAREAS 
-typedef struct
-{
-    MDM_TASK_ELEMENT_t GSM_conf;
-    MDM_TASK_ELEMENT_t GPS_get;
-    MDM_TASK_ELEMENT_t SMS_read;
-    MDM_TASK_ELEMENT_t SMS_send;
-}MDM_TASKS_t;
-
 
 //</editor-fold>
 

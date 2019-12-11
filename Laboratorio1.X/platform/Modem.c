@@ -18,8 +18,9 @@ static uint8_t MDM_txBuffer[ MDM_TX_BUFFER_SIZE ];
 static uint8_t MDM_cmdBuffer[MDM_AT_CMD_HEADER_LENGTH];  
 static uint8_t MDM_respBuffer[MDM_AT_RESP_HEADER_LENGTH]; 
 
-static MDM_TASKS_t MDM_task; 
 static MDM_smsInfo_t* sms_ptr; 
+
+static MDM_TASK_ELEMENT_t MDM_task[MDM_TASK_COUNT]; 
 
 //</editor-fold>
 
@@ -48,53 +49,38 @@ MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string );
 void MDM_tasks()
 {
     static uint8_t MDM_ESTADO = MDM_ESTADOS_INIT;
-    static MDM_TASK_NAME_t mdm_task = MDM_TASK_UNDEF;
-    
+    static MDM_TASK_NAME_t task2execute = MDM_TASK_UNDEF;
+    uint8_t i;
     switch( MDM_ESTADO )
     {
         case MDM_ESTADOS_INIT:
             if( MDM_Init() )
             {
-                MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_UNDEF );
-                MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
-                MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_UNDEF );
-                MDM_taskSetStatus( MDM_TASK_READ_SMS, MDM_TASK_STATUS_UNDEF );
+                for( i = 0; i < MDM_TASK_COUNT; i++ )
+                {
+                    MDM_taskSetStatus( i, MDM_TASK_STATUS_UNDEF );
+                }
                 MDM_ESTADO = MDM_ESTADOS_WAIT;
             }
             break;
             
         case MDM_ESTADOS_WAIT:
-            if( mdm_task == MDM_TASK_UNDEF )
+            if( task2execute == MDM_TASK_UNDEF )
             {
-                if( MDM_taskGetStatus(MDM_TASK_CONFIG) == MDM_TASK_STATUS_NEW )
+                for( i = 0; i < MDM_TASK_COUNT; i++ )
                 {
-                    mdm_task = MDM_TASK_CONFIG;
-                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
-                    break;
-                }
-                if( MDM_taskGetStatus(MDM_TASK_SEND_SMS) == MDM_TASK_STATUS_NEW )
-                {
-                    mdm_task = MDM_TASK_SEND_SMS;
-                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
-                    break;
-                }
-                if( MDM_taskGetStatus(MDM_TASK_READ_SMS) == MDM_TASK_STATUS_NEW )
-                {
-                    mdm_task = MDM_TASK_READ_SMS;
-                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
-                    break;
-                }
-                if( MDM_taskGetStatus(MDM_TASK_GET_GPS_FRAME) == MDM_TASK_STATUS_NEW )
-                {
-                    mdm_task = MDM_TASK_GET_GPS_FRAME;
-                    MDM_ESTADO = MDM_ESTADOS_EXECUTE;
-                    break;
+                    if( MDM_taskGetStatus( i ) == MDM_TASK_STATUS_NEW )
+                    {
+                        task2execute = i;
+                        MDM_ESTADO = MDM_ESTADOS_EXECUTE;
+                        break;
+                    }
                 }
             }
             break;
          
         case MDM_ESTADOS_EXECUTE:    
-            switch( mdm_task )
+            switch( task2execute )
             {
                 case MDM_TASK_UNDEF: //podria hacerse al marcar el mdm task como undef, pero asi queda mas lindo
                     MDM_ESTADO = MDM_ESTADOS_WAIT;
@@ -104,7 +90,7 @@ void MDM_tasks()
                     if( MDM_taskGetStatus( MDM_TASK_CONFIG ) == MDM_TASK_STATUS_DONE )
                     {
                         MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_UNDEF );
-                        mdm_task = MDM_TASK_UNDEF;
+                        task2execute = MDM_TASK_UNDEF;
                     }
                     else
                     {
@@ -120,12 +106,12 @@ void MDM_tasks()
                     {
                         case MDM_AT_RESP_NAME_GNS_GET_INF:
                             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_DONE );
-                            mdm_task = MDM_TASK_UNDEF;
+                            task2execute = MDM_TASK_UNDEF;
                             break;
 
                         case MDM_AT_RESP_NAME_ERROR:
                             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_ERROR );
-                            mdm_task = MDM_TASK_UNDEF;
+                            task2execute = MDM_TASK_UNDEF;
                             break;
 
                         default: break; 
@@ -140,7 +126,7 @@ void MDM_tasks()
                 case MDM_TASK_SEND_SMS:
                     if( MDM_taskGetStatus( MDM_TASK_SEND_SMS ) == MDM_TASK_STATUS_NEW )
                     {
-                        sms_ptr = (MDM_smsInfo_t*)MDM_task.SMS_send.ptr;
+                        sms_ptr = (MDM_smsInfo_t*)MDM_task[MDM_TASK_SEND_SMS].ptr;
                         MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_WORKING );
                     }
                     else
@@ -148,7 +134,7 @@ void MDM_tasks()
                         if( MDM_sendSMS( sms_ptr->num , sms_ptr->text ) )
                         {
                             MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_DONE );
-                            mdm_task = MDM_TASK_UNDEF;
+                            task2execute = MDM_TASK_UNDEF;
                         }
                     }
                     break;
@@ -165,72 +151,18 @@ void MDM_tasks()
 
 bool MDM_taskSchedule( MDM_TASK_NAME_t p_task, void* p_taskPtr )
 {
-    switch( p_task )
-    {
-        case MDM_TASK_CONFIG:
-            MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_NEW );
-            return true;
-            
-        case MDM_TASK_GET_GPS_FRAME:
-            MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_NEW );
-            return true;
-            
-        case MDM_TASK_READ_SMS:
-            MDM_taskSetStatus( MDM_TASK_READ_SMS, MDM_TASK_STATUS_NEW );
-            return true;
-            
-        case MDM_TASK_SEND_SMS:
-            MDM_taskSetStatus( MDM_TASK_SEND_SMS, MDM_TASK_STATUS_NEW );
-            MDM_task.SMS_send.ptr = (MDM_smsInfo_t*)p_taskPtr;
-            return true;
-            
-        default: break;
-    }
-    return false;
+    MDM_task[p_task].status = MDM_TASK_STATUS_NEW;
+    MDM_task[p_task].ptr = p_taskPtr;
 }
 
 void MDM_taskSetStatus( MDM_TASK_NAME_t p_task, MDM_TASK_STATUS_t p_status )
 {
-    switch( p_task )
-    {
-        case MDM_TASK_CONFIG:
-            MDM_task.GSM_conf.status = p_status;
-            break;
-        
-        case MDM_TASK_GET_GPS_FRAME:
-            MDM_task.GPS_get.status = p_status;
-            break;
-    
-        case MDM_TASK_READ_SMS:
-            MDM_task.SMS_read.status = p_status;
-            break;
-    
-        case MDM_TASK_SEND_SMS:
-            MDM_task.SMS_send.status = p_status;
-            break;
-            
-        default: break;
-    }
+    MDM_task[p_task].status = p_status;
 }
 
 MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_NAME_t p_task )
 {
-    switch( p_task )
-    {
-        case MDM_TASK_CONFIG:
-            return MDM_task.GSM_conf.status;
-        
-        case MDM_TASK_GET_GPS_FRAME:
-            return MDM_task.GPS_get.status;
-            
-        case MDM_TASK_READ_SMS:
-            return MDM_task.SMS_read.status;
-            
-        case MDM_TASK_SEND_SMS:
-            return MDM_task.SMS_send.status;
-            
-        default: return MDM_TASK_STATUS_ERROR;
-    }
+    return MDM_task[p_task].status;
 }
 
 //</editor-fold>
