@@ -75,7 +75,7 @@ void GPS_getUTC( struct tm *p_newtime, uint8_t *p_sentence ){
     // Copy Month MM
     memset( temp_str, 0, 5 );
     strncpy( temp_str, (p_sentence+offset), 2 );
-    p_newtime->tm_mon = atoi(temp_str)-1;  //MENOS UNO porque los meses empiezan en 0
+    p_newtime->tm_mon = atoi(temp_str)-1;  //-1 porque los meses empiezan en 0
     offset+=2;
     // Copy Day DD
     memset( temp_str, 0, 5 );
@@ -136,13 +136,13 @@ void GPS_parseFrame( uint8_t *p_frame, struct tm *p_time, GPSPosition_t *p_posit
     //  voy hasta el final de +CGNSINF: 
     index += strlen( MDM_responseString( MDM_AT_CMD_NAME_GNS_GET_INFO, 2 ) )+1;
 
-    if( *(index + 2) != 0x31 ) //Contemplamos caso donde es 0 y .
+    if( *(index + 2) != 0x31 ) 
     {
         *p_validity = false;
         return;
     }
     
-    memset(p_time,0,36);   //POR QUE EL COMPILDOR CREE QUE STRUCT TM TIENE DOS ELEMENTOS MAS DE LOS DEFINIDOS EN TIME.H
+    memset(p_time,0,36);   
     GPS_getUTC( p_time, index );
     memset(p_position,0,sizeof(GPSPosition_t));
     GPS_getPosition( p_position, index );

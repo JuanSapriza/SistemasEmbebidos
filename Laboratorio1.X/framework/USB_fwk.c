@@ -15,7 +15,6 @@ static uint8_t USB_txBuffer[USB_BUFFER_SIZE];
 static uint8_t USB_txAuxBuffer[USB_AUX_BUFFER_SIZE];
 
 static bool sth2write;
-//static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_BOTH;
 static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_NONE;
 
 //</editor-fold>
@@ -35,11 +34,6 @@ bool USB_sth2Read()
 void USB_write( uint8_t *p_text )
 {
     if( strlen(p_text) == 0 ) return;
-    
-//    if( !sth2write )
-//    {
-//        memset(USB_txBuffer, 0, sizeof(USB_txBuffer));
-//    }
     
     if( strlen( p_text ) < sizeof(USB_txAuxBuffer) -strlen(USB_txAuxBuffer)  )
     {
@@ -79,12 +73,12 @@ void USB_CDC_tasks()
     //<editor-fold defaultstate="collapsed" desc="Chequeo Inicial">
     if( USBGetDeviceState() < CONFIGURED_STATE )
     {
-//        return false;
+        return;
     }
 
     if( USBIsDeviceSuspended()== true )
     {
-//        return false;
+        return;
     }
     //</editor-fold>
     
@@ -157,9 +151,9 @@ void USB_send2Modem()
 {
     USB_SNIFF_TYPE_t previousSniffType; 
             
-    if( UTS_delayms( UTS_DELAY_HANDLER_USB_SEND_TO_MODEM_ACHIQUEN, 10, false) ) //VER DE ACHICAR ESTE DELAY
+    if( UTS_delayms( UTS_DELAY_HANDLER_USB_SEND_TO_MODEM_ACHIQUEN, 10, false) ) 
     {
-        if( *USB_read(0) !=  0 ) //mandamos algo
+        if( *USB_read(0) !=  0 ) // si se envía algo 
         {
             previousSniffType = USB_sniffType(); 
             USB_sniffSetType( USB_SNIFF_TYPE_RX ); 

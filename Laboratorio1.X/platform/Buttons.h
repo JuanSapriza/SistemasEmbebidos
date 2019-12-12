@@ -11,16 +11,9 @@ typedef enum
 }BTN_BUTTON_NAMES_t;
 
 
-
 bool BTN_isButtonPressed( BTN_BUTTON_NAMES_t p_button );
 
 bool BTN_switch( BTN_BUTTON_NAMES_t p_button );
-
-
-
-
-
-
 
 
 #endif

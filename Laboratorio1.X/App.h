@@ -42,15 +42,15 @@
 
         // MISC
 #define APP_PERIOD_IN_SECONDS_MAX                   3600000 // El valor (en ms) que hace que los parámetros se empiecen a mostrar en minutos (y no en segundos)
-#define APP_PERIOD_MAX                              604800 //Período máximo de 20 días en segundos
+#define APP_PERIOD_MAX                              604800 //Período máximo de 7 días en segundos
 #define APP_GPS_GET_PERIOD_DEFAULT                  5000
 #define APP_4_DIGITS_MAX_NUM                        9999
 #define APP_DEFAULT_PLANT_ID                        1234
 #define APP_SHORT_STRING_SIZE                       30
 #define APP_SMS_LENGTH                              100
-#define APP_EMERGENCY_NUMBER_DEFAULT                "\"+59891972950\"" //Número de Victoria Orfila (Servicio Técnico)
+#define APP_EMERGENCY_NUMBER_DEFAULT                "\"+59891972950\"" 
 #define APP_GOOGLE_MAPS_LOCATION_URL_LENGTH         70
-#define UYT                                         -3 //zona horaria de Uruguay
+#define UYT                                         -3 //Zona horaria de Uruguay
 
 //</editor-fold>
 
@@ -81,14 +81,12 @@ enum APP_UI_STATES
     APP_UI_STATE_MENU_SHOW,
     APP_UI_STATE_PRINT_HEADER,
     APP_UI_STATE_MENU_FUNCTIONS,
-    
-
 };
 
 enum APP_STATES
 {
     APP_STATE_APP_INIT,
-    
+   
     APP_STATE_INIT,
     APP_STATE_TASKS,
     APP_STATE_WAIT,
