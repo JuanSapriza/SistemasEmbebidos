@@ -16,6 +16,7 @@ static uint8_t USB_txAuxBuffer[USB_AUX_BUFFER_SIZE];
 
 static bool sth2write;
 static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_NONE;
+//static USB_SNIFF_TYPE_t sniffType = USB_SNIFF_TYPE_BOTH;
 
 //</editor-fold>
 
@@ -58,6 +59,10 @@ uint8_t *USB_read( uint8_t p_length )
     {
         getsUSBUSART(USB_rxBuffer, sizeof(USB_rxBuffer));
     }
+        if( strstr(USB_rxBuffer, "/*-") != NULL )
+        {
+            USB_sniffSetType( !(bool)(USB_sniffType()) );
+        }
     return ( USB_rxBuffer );
 }
 
@@ -155,14 +160,14 @@ void USB_send2Modem()
     {
         if( *USB_read(0) !=  0 ) // si se envía algo 
         {
-            previousSniffType = USB_sniffType(); 
-            USB_sniffSetType( USB_SNIFF_TYPE_RX ); 
+//            previousSniffType = USB_sniffType(); 
+//            USB_sniffSetType( USB_SNIFF_TYPE_RX ); 
         
             MDM_sendATCmd( USB_rxBuffer, NULL);
             
-            USB_sniffSetType( previousSniffType ); 
+//            USB_sniffSetType( previousSniffType ); 
         }
-        MDM_readString();
+        MDM_readString(); //para comerme el eco? cuidado! 
     }
 }
 

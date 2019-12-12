@@ -828,6 +828,7 @@ uint8_t* MDM_pin2str( uint16_t p_pin )
 MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
 {
     static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
+//    static retries = 0;
     MDM_AT_RESP_NAME_t ret;
     
     switch( state )
@@ -866,7 +867,7 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
             break;
             
         case MDM_AT_CMD_NAME_GSM_SIM_PIN_ASK:
-            ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SIM_PIN_ASK, NULL , MDM_COMMAND_DEFAULT_TIMEOUT );
+            ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SIM_PIN_ASK, NULL , MDM_COMMAND_MEGALONG_TIMEOUT );
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED:
@@ -879,14 +880,16 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
                     break;
                     
                 case MDM_AT_RESP_NAME_GSM_SIM_ERROR:
-                    state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
-                    return ret;
+                    state = MDM_COMMAND_SEQ_WAIT_4_READY;
+//                        state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
+//                        return ret;
+                    break;
                     
                 default:
                     break;
             }
             break;
-            
+           
         case MDM_AT_CMD_NAME_GSM_SIM_PIN_SET:
             ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SIM_PIN_SET, MDM_pin2str( p_pin )  , MDM_COMMAND_DEFAULT_TIMEOUT );
             switch( ret )
@@ -905,18 +908,11 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
             break;
             
         case MDM_COMMAND_SEQ_WAIT_4_READY:
-            if( strstr( MDM_readString(), "SMS Ready" ) != 0 )
+            if( strstr( MDM_readString(), MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_GSM_SIM_SMS_READY ) ) != 0 )
             {
                 state = MDM_AT_CMD_NAME_GSM_SMS_FORMAT;
             }
 
-            break;
-            
-        case MDM_COMMAND_SEQ_WAIT_4_RESPONSE:
-            if( strstr( MDM_readString(), MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_GSM_SIM_SMS_READY )) != NULL)
-            {
-                state = MDM_COMMAND_SEQ_WAIT_4_READY;
-            }
             break;
             
         case MDM_AT_CMD_NAME_GSM_SMS_FORMAT:
@@ -935,7 +931,13 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
                 default:
                      break;
             }
-            break;            
+            break;
+
+        case DEBUG:
+            USB_send2Modem();
+            break;
+            
+        default: break;            
             
         
     }

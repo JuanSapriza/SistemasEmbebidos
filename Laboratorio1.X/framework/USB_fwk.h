@@ -25,10 +25,10 @@ uint8_t USB_dummyBuffer[USB_BUFFER_SIZE];
         // TIPOS DE SNIFFEO
 typedef enum 
 {
-    USB_SNIFF_TYPE_TX,
+    USB_SNIFF_TYPE_NONE,
     USB_SNIFF_TYPE_RX,
     USB_SNIFF_TYPE_BOTH,
-    USB_SNIFF_TYPE_NONE,
+    USB_SNIFF_TYPE_TX,
 } USB_SNIFF_TYPE_t;
 
 //</editor-fold>

@@ -50,6 +50,10 @@ int main ()
             MDM_tasks();
             RGB_tasks();    
             USB_CDC_tasks();
+//            if( USB_sniffType() != USB_SNIFF_TYPE_NONE )
+//            {
+//                USB_send2Modem();
+//            }
         }
     }
     return 0;
