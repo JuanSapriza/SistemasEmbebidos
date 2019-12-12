@@ -30,37 +30,57 @@ APP_var_t APP_info;
 
 //</editor-fold>
 
-//<editor-fold defaultstate="collapsed" desc="Funciones">
-
-
 APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 uint32_t APP_logBufferHead;
 bool APP_convertPot2RGB;
 uint8_t APP_stringBuffer[APP_SHORT_STRING_SIZE];
 
-bool APP_pot2RGBIsEnabled();
-void APP_pot2RGBEnable( bool p_enable );
-void APP_changePlantID( uint16_t p_newID );
-APP_FUNC_STATUS_t APP_getNewPlantID();
-bool APP_checkHumidityAlert();
-void APP_clearHumidityAlert();
+//<editor-fold defaultstate="collapsed" desc="Funciones">
+
+uint8_t* APP_printDateTime( struct tm* p_time );
+
+void APP_THRESHOLD_initialize( void );
+void APP_PARAM_initialize( void );
+APP_FUNC_STATUS_t APP_setThresholds( void );
 APP_FUNC_STATUS_t APP_setParameters( void );
+APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold );
+APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32_t *p_users_new_parameter );
+uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
 uint8_t* APP_parameter2String( APP_PARAMETER_NAMES_t p_parameter );
 uint8_t* APP_typeDisplay2String( uint8_t p_parameter );
-APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32_t *p_users_new_parameter );
-APP_FUNC_STATUS_t APP_setThresholds();
-uint8_t* APP_threshold2String(APP_THRESHOLD_NAMES_t p_threshold );
-APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold );
-APP_FUNC_STATUS_t APP_setNewPhone();
+
+bool APP_getHumidity( void );
+bool APP_checkHumidityAlert( void );
+void APP_clearHumidityAlert( void );
+APP_HUMIDITY_LEVEL_t APP_humidity2level( uint8_t humidity );
+uint8_t* APP_humidityLevel2String( APP_HUMIDITY_LEVEL_t p_level );
+void APP_RGB_humidity ( APP_HUMIDITY_LEVEL_t p_level );
+void APP_RGB_humidityAnalog( uint8_t p_humidity );
+void APP_pot2RGBEnable( bool p_enable );
+bool APP_pot2RGBIsEnabled();
+void APP_LEDA_irrigate ( uint8_t p_humidity );
+void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
+
+void APP_changePlantID( uint16_t p_newID );
+APP_FUNC_STATUS_t APP_getNewPlantID( void );
+
+uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void );
+void APP_LOG_data( APP_var_t* log_data );
 void APP_print_Buffer_Register ( uint8_t index_aux );
 APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB ();
-APP_FUNC_STATUS_t APP_celularConfig();
-void APP_RGB_humidity ( APP_HUMIDITY_LEVEL_t p_level );
-APP_HUMIDITY_LEVEL_t APP_humidity2level( uint8_t humidity );
-uint8_t* APP_location2GoogleMapsString();
-uint8_t* APP_printDateTime( struct tm* p_time );
-void APP_RGB_humidityAnalog( uint8_t p_humidity );
-bool APP_getHumidity();
+
+
+APP_FUNC_STATUS_t APP_setNewPhone( void );
+APP_FUNC_STATUS_t APP_GSMConfig( void );
+APP_FUNC_STATUS_t APP_celularConfig( void );
+
+MDM_smsInfo_t* APP_emergencySMS( void );
+uint8_t* APP_location2GoogleMapsString( void );
+
+
+
+
+
 
 //</editor-fold>
 
@@ -78,7 +98,7 @@ uint8_t* APP_printDateTime( struct tm* p_time )
 
 //<editor-fold defaultstate="collapsed" desc="Parámteros y Umbrales">
 
-void APP_THRESHOLD_initialize()
+void APP_THRESHOLD_initialize( void )
 {
     APP_info.threshold.saturated=APP_THRESHOLD_SATURATED_DEFAULT;
     APP_info.threshold.slightly_saturated=APP_THRESHOLD_SLIGHTLY_SATURATED_DEFAULT;
@@ -89,7 +109,7 @@ void APP_THRESHOLD_initialize()
     APP_info.threshold.manual=APP_THRESHOLD_MANUAL_DEFAULT;
 }
 
-void APP_PARAM_initialize()
+void APP_PARAM_initialize( void )
 {
     APP_info.param.humiditySensePeriod=APP_HUMIDITY_SENSE_PERIOD_DEFAULT;
     APP_info.param.logRegisterPeriod=APP_LOG_REGISTRER_PERIOD_DEFAULT;
@@ -426,7 +446,8 @@ APP_FUNC_STATUS_t APP_setParameters( void )
 APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t *p_users_new_threshold )
 {
     static uint8_t state = APP_SET_NEW_THRESHOLD_SHOW;
-    static int8_t aux; 
+    static int8_t aux;
+    static int aux_buffer;
     
     switch( state )
     {
@@ -457,8 +478,9 @@ APP_FUNC_STATUS_t APP_getNewThreshold( APP_THRESHOLD_NAMES_t p_threshold, int8_t
                 return APP_FUNC_RETURN;
             }
             
-            aux = (int8_t) atoi( USB_whatsInReadBuffer() );
-            if( aux >= APP_HUMIDITY_MIN_NUM && aux <= APP_HUMIDITY_MAX_NUM )
+            aux_buffer = atoi( USB_whatsInReadBuffer() );
+            aux = (int8_t) aux_buffer;
+            if( aux_buffer >= APP_HUMIDITY_MIN_NUM && aux_buffer <= APP_HUMIDITY_MAX_NUM )
             {
                 state = APP_SET_NEW_THRESHOLD_RESPONSE_OK;
             }
@@ -897,7 +919,8 @@ void APP_LEDA_irrigate ( uint8_t p_humidity )
     
 }    
 
-void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) {
+void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad ) 
+{
     
     static uint8_t APP_MANUAL_IRRIGATE = APP_MANUAL_IRRIGATE_INIT;
     
@@ -1027,7 +1050,7 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
 
 uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
 {
-    return APP_logBufferHead; //APP_logBufferHead da un entero que indica el indice dentro del buffer, no da la direccion de memoria del ultimo registro sino la posicion dentro del buffer
+    return APP_logBufferHead; //APP_logBufferHead da un entero que indica el indice dentro del buffer
 }
 
 void APP_LOG_data( APP_var_t* log_data )
@@ -1072,10 +1095,6 @@ void APP_LOG_data( APP_var_t* log_data )
                 
             }
             
-            // RAJAR A LA MIERDA
-//            sprintf(USB_dummyBuffer, "hum: %d - lat: %f \n  ", ptr_buffer->humidity, ptr_buffer->position.latitude);
-//            USB_write( USB_dummyBuffer );
-            // ESTO 
             
             if (ptr_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
             {
@@ -1097,7 +1116,6 @@ void APP_LOG_data( APP_var_t* log_data )
 {
         struct tm * time_to_display;
         static bool firstTime = true;
-        
         
         sprintf(USB_dummyBuffer,"\n  | Datos del registro %d correspondiente a la planta %04d \n",APP_logBuffer[index_aux].logNum,APP_logBuffer[index_aux].plantID);
         USB_write(USB_dummyBuffer);
@@ -1353,15 +1371,12 @@ APP_FUNC_STATUS_t APP_GSMConfig()
         case APP_STATE_COOLDOWN:
             if( UTS_delayms( UTS_DELAY_HANDLER_USB_SEND_TO_MODEM_ACHIQUEN, MDM_COMMAND_DEFAULT_TIMEOUT, false ) )
             {
-//                USB_send2Modem();
                 state_gsmConfig = APP_STATE_TASKS;
             }
             break;
             
-        default: break;
-            
+        default: break;      
     }
-    
     return APP_FUNC_WORKING;
 }
 
@@ -1378,12 +1393,12 @@ APP_FUNC_STATUS_t APP_celularConfig()
             sprintf(USB_dummyBuffer, "Nro de Emergencia: %s", APP_info.emergencyNum );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_CEL_CONFIG, USB_dummyBuffer );
             state_celConfig = APP_STATE_MENU_SHOW;
-            //break; intentional breakthrough
+            // intentional breakthrough
     
         case APP_STATE_MENU_SHOW:
             retMenu_celConfig = UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_MENU_CEL_CONFIG, true );
             state_celConfig = APP_STATE_MENU_OPTIONS;
-            //break; intentional breakthrough
+            // intentional breakthrough
             
         case APP_STATE_MENU_OPTIONS:
             switch( retMenu_celConfig )
@@ -1493,7 +1508,6 @@ void APP_tasks()
 {
     static MDM_smsInfo_t emergency_sms; 
     struct tm aux_tm;
-    struct tm *currentTime; //debug
     static bool sense = false;
     
     // ACTUALIZACION DE LA HORA
@@ -1556,9 +1570,7 @@ void APP_tasks()
             }
             break;
 
-        default: 
-            //que hago?
-            break;
+        default: break;
     } 
     
     // ENVIO DE ALERTA POR SMS 
@@ -1578,9 +1590,7 @@ void APP_tasks()
                     APP_info.humidity.coolDown = true;
                     break;
 
-                default: 
-                    //que hago?
-                    break;
+                default: break;
             } 
         }
         else
@@ -1600,9 +1610,6 @@ void APP_tasks()
     {//GUARDAR EN EL BUFFER
         APP_LOG_data( &APP_info );
     }
-            
-
-        // esperar un comando por sms
 }
 
 void APP_UI() //interfaz de usuario
@@ -1695,17 +1702,12 @@ void APP_UI() //interfaz de usuario
                     }
                     break;
                     
-                
-                    
                 default: break;
             
             }
             break;
             
         default: break;
-    
     }
-
-
 }
 

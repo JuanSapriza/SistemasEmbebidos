@@ -82,7 +82,7 @@ void MDM_tasks()
         case MDM_ESTADOS_EXECUTE:    
             switch( task2execute )
             {
-                case MDM_TASK_UNDEF: //podria hacerse al marcar el mdm task como undef, pero asi queda mas lindo
+                case MDM_TASK_UNDEF: 
                     MDM_ESTADO = MDM_ESTADOS_WAIT;
                     break;
                 
@@ -96,8 +96,6 @@ void MDM_tasks()
                     {
                         MDM_taskSetStatus( MDM_TASK_CONFIG, MDM_TASK_STATUS_WORKING );
                     }
-                    //el control se lo cedo a la funcion MDM_GSM_init...
-                    //no hay nada que hacer aqui m[as que no permitir que se manden otros comandos 
                     break;
                 
                 case MDM_TASK_GET_GPS_FRAME:
@@ -182,7 +180,8 @@ bool MDM_Init(void)
             }
             GPRS_PWR_SetLow(); //PWR OFF
             GPRS_PWR_SetDigitalOutput();
-            MDM_ESTADO = MDM_ESTADOS_WAIT; //No agregamos break para poder iniciar el delay
+            MDM_ESTADO = MDM_ESTADOS_WAIT; 
+            //intentional breakthrough
                         
         case MDM_ESTADOS_WAIT:
             if( UTS_delayms( UTS_DELAY_HANDLER_MDM_PWR, 2000, false ) )
@@ -206,7 +205,6 @@ bool MDM_Init(void)
                 MDM_ESTADO = MDM_ESTADOS_INIT;
                 return true;
             }
-            //@ToDo: y si no agarro????????
             break;
     }
     
@@ -238,7 +236,7 @@ void MDM_read( uint8_t* p_string )
                 if( UTS_delayms( UTS_DELAY_HANDLER_READ_FROM_MODEM_ACHIQUEN, 10, false  )) 
                 {
                     if( UART1_ReceiveBufferSizeGet() != 0 )  
-                    { //tengo algo pa leer todavia
+                    { 
                         state = 1;
                         break;
                     }
@@ -273,7 +271,6 @@ uint8_t MDM_write(uint8_t *p_string)
 bool MDM_writeChar( uint8_t p_char )
 {
     if( p_char == 0 ) return false;  
-//    USB_sniff( p_string, USB_SNIFF_TYPE_TX);
     UART1_Write( p_char );
     return true;
 }
@@ -309,9 +306,9 @@ MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_
             break;
             
         case MDM_ESTADOS_CHECK:
-            if( UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_ACHIQUEN, 1, false ) ) //si no no le da el tiempo a que lleguen todos los caracteres!!!!! 
+            if( UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_ACHIQUEN, 1, false ) ) //Delay creado para que tenga tiempo de recibir todos los caracteres 
             {
-                memset( MDM_rxBuffer, 0, sizeof( MDM_rxBuffer ) ); //esto es necesario afuera para que no borre el buffer cada vez que voy a comparar con una respuesta
+                memset( MDM_rxBuffer, 0, sizeof( MDM_rxBuffer ) ); //Es necesario afuera para que no borre el buffer cada vez que voy a comparar con una respuesta
                 MDM_read( MDM_rxBuffer );
                 i = 1;
                 do
@@ -715,7 +712,7 @@ bool MDM_sendInitialAT()
 
 uint8_t* MDM_GNSS_nmea2String( MDM_GNS_NMEA_t p_nmea )
 {
-    static uint8_t MDM_nmeaBuffer[4];           //QUE TAN PROLIJO ES HACER ESTOOO???
+    static uint8_t MDM_nmeaBuffer[4];       
     
     switch( p_nmea )
     {
@@ -912,10 +909,7 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
             {
                 state = MDM_AT_CMD_NAME_GSM_SMS_FORMAT;
             }
-            //            if( UTS_delayms(UTS_DELAY_HANDLER_MDM_WAIT, MDM_SIM_GET_READY_TIMEOUT, false ) )
-//            {
-//                state = MDM_AT_CMD_NAME_GSM_SMS_FORMAT;
-//            }
+
             break;
             
         case MDM_COMMAND_SEQ_WAIT_4_RESPONSE:
@@ -973,7 +967,6 @@ MDM_AT_RESP_NAME_t MDM_sendSMS( uint8_t* p_phoneNr, uint8_t* p_string )
             break;
             
         case MDM_AT_CMD_NAME_GSM_SMS_SEND_FOOTER:
-//            USB_send2Modem();
             ret =  MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_GSM_SMS_SEND_FOOTER, NULL , MDM_COMMAND_SUPERLONG_TIMEOUT );
             switch( ret )
             {

@@ -15,6 +15,7 @@
 
 static UTS_delayHandler_t UTS_delayHandlerVector[UTS_DELAY_HANDLER_COUNT];
 static UTS_MENU_ITEM_t UTS_menusVector[UTS_MENU_HANDLER_COUNT];
+
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="DELAY">
@@ -139,7 +140,7 @@ int8_t UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu, bool p_return )
     switch( state[p_menu] )
     {
         case USB_SHOW_MENU_STATES_INIT:
-            USB_read(0); //para limpiar el buffer de lectura
+            USB_read(0); //Se limpia el buffer de  lectura
             sprintf( USB_dummyBuffer,"\n%s \n", UTS_getMenuTitle( p_menu ) );
             USB_write( USB_dummyBuffer );
             for( i=0; i < UTS_getmenuOptionsNumber(p_menu) ; i++ )
@@ -171,7 +172,7 @@ int8_t UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu, bool p_return )
             else if( p_return && strstr(USB_dummyBuffer, UTS_MENU_RETURN_CHAR) != NULL )
             {
                 state[p_menu] = USB_SHOW_MENU_STATES_INIT;
-                return (int8_t)-1; //return 
+                return (int8_t)-1;  
             }
             break;
             

@@ -15,7 +15,7 @@ bool RTC_getUserTime( struct tm* p_time )
     switch( state )
     {
         case GET_TIME_INIT:
-            if( *USB_read(0) != 0 ) //lamentablemente tengo que poner algo de esto
+            if( *USB_read(0) != 0 ) 
             {
                 memset( p_time, 0, sizeof( struct tm ) );
                 state = GET_TIME_GET_DATE;

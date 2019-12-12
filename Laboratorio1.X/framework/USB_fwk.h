@@ -9,8 +9,7 @@
 
 //<editor-fold defaultstate="collapsed" desc="Defines">
 
-#define USB_BUFFER_SIZE 255 // porque putUSBUSART y el de read toman como parametro de largo un uint8_t, por lo que este largo no podria ser mas de 255
-                            // se podria modificar todo, pero seria alto laburo y no hay garantias de que eso no sea intencional. 
+#define USB_BUFFER_SIZE 255  
 #define USB_AUX_BUFFER_SIZE 512
 
 //</editor-fold>

@@ -12,8 +12,8 @@ bool POT_Convert( uint16_t* p_conversion )
     {
         case POT_ESTADOS_START:
             ADC1_Start();
-            POT_ESTADO = POT_ESTADOS_WAIT_1; //No agregamos break para poder iniciar el delay
-            
+            POT_ESTADO = POT_ESTADOS_WAIT_1; 
+            //intentional breakthrough
             
         case POT_ESTADOS_WAIT_1:
             if( UTS_delayms( UTS_DELAY_HANDLER_AD_CONVERT, 1, false ) )

@@ -58,17 +58,6 @@
                                     IEC0bits.CNBIE =    1;\
                                     __builtin_enable_interrupts();\
                                 }while(0);                    
-                        
-
-
-
-
-
-
-
-
-
-
 
 
 #endif

@@ -29,10 +29,7 @@
 
 
 
-
-
 #define RGB_LEDS_COUNT 8
-
 
 
 
