@@ -1092,6 +1092,11 @@ void APP_LOG_data( APP_var_t* log_data )
                     ptr_buffer->position.latitude = latitude_prev;
                     ptr_buffer->position.longitude = longitude_prev;
                 }
+                else 
+                {
+                    ptr_buffer->position.latitude = 0;
+                    ptr_buffer->position.longitude = 0;
+                }
                 
             }
             
@@ -1158,8 +1163,8 @@ void APP_LOG_data( APP_var_t* log_data )
 
 APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
 {
-    static uint8_t index_buffer;
-    static uint8_t state_buffer;
+    static uint8_t index_buffer = 0;
+    static uint8_t state_buffer = STATE_BUFFER_INIT;
     
     switch ( state_buffer )
     {
@@ -1482,6 +1487,7 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
             APP_info.humidity.coolDown = false;
             APP_info.GSM_active = false;
             strcpy( APP_info.emergencyNum, APP_EMERGENCY_NUMBER_DEFAULT );
+            memset(APP_logBuffer, 0, sizeof(APP_logBuffer));
             APP_THRESHOLD_initialize();
             APP_PARAM_initialize();
             APP_INIT_STATE = APP_INIT_MDM;
