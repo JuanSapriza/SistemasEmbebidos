@@ -1298,7 +1298,7 @@ APP_FUNC_STATUS_t APP_GSMConfig()
         case APP_STATE_INIT:
             MDM_taskSchedule( MDM_TASK_CONFIG, NULL );
             state_gsmConfig = APP_STATE_TASKS;
-            USB_write("\nAguarde por favor...");
+            USB_write("\nAguarde por favor...\n");
             //intentional breakthrough
         
         case APP_STATE_TASKS:
@@ -1445,13 +1445,32 @@ MDM_smsInfo_t* APP_emergencySMS()
 {
     static MDM_smsInfo_t smsInfo;
     struct tm * time_to_display;
+    static bool RTCC_initialized = false;
     
-    time_to_display = localtime(&(APP_info.time));
+    if ( APP_info.position_validity )
+    {
+        RTCC_initialized = true;
+    }
     
-    memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
-    strcpy( smsInfo.num, APP_info.emergencyNum );
-    sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display ), APP_location2GoogleMapsString() );
-    return &smsInfo;
+    if ( RTCC_initialized )
+    {
+        time_to_display = localtime(&(APP_info.time));
+
+        memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
+        strcpy( smsInfo.num, APP_info.emergencyNum );
+        sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display ), APP_location2GoogleMapsString() );
+        return &smsInfo;
+    }
+   
+    else
+    {
+        
+        memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
+        strcpy( smsInfo.num, APP_info.emergencyNum );
+        sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), "Hora no disponible", APP_location2GoogleMapsString() );
+        return &smsInfo;
+    }
+    
 }
 
 uint8_t* APP_location2GoogleMapsString()
