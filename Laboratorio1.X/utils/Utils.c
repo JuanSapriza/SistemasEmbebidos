@@ -168,7 +168,7 @@ int8_t UTS_showMenuAndGetAnswer( UTS_MENU_HANDLER_t p_menu, bool p_return )
                 state[p_menu] = USB_SHOW_MENU_STATES_INIT;
                 return (int8_t)selectedOption; 
             }
-            else if( strstr(USB_dummyBuffer, UTS_MENU_RETURN_CHAR) != NULL )
+            else if( p_return && strstr(USB_dummyBuffer, UTS_MENU_RETURN_CHAR) != NULL )
             {
                 state[p_menu] = USB_SHOW_MENU_STATES_INIT;
                 return (int8_t)-1; //return 
