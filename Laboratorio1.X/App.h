@@ -283,7 +283,7 @@ typedef struct
     GPSPosition_t position;
     bool position_validity;
     bool firstTime;
-    uint16_t plantID;  
+    uint32_t plantID;  
     uint32_t logNum;
 }APP_log_t; 
 
@@ -292,7 +292,7 @@ typedef struct
 {
     time_t time;
     bool position_validity;
-    uint16_t plantID;
+    uint32_t plantID;
     uint8_t emergencyNum[MDM_SMS_PHONE_NUM_LENGTH];
     uint8_t simPin[MDM_SIM_PIN_SIZE];
     bool GSM_active;
