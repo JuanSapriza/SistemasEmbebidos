@@ -1057,6 +1057,7 @@ void APP_LOG_data( APP_var_t* log_data )
 {
     static APP_log_t* ptr_buffer;
     static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
+    static bool firstTime_buffer = false;
     static double latitude_prev=0;
     static double longitude_prev=0;
     static uint32_t logCount = 0; 
@@ -1082,7 +1083,8 @@ void APP_LOG_data( APP_var_t* log_data )
             if ( log_data->position_validity ) 
             {
                 latitude_prev = log_data->position.latitude;
-                longitude_prev  = log_data->position.longitude;      
+                longitude_prev  = log_data->position.longitude;
+                firstTime_buffer = true;
             }
             
             else 
@@ -1100,6 +1102,7 @@ void APP_LOG_data( APP_var_t* log_data )
                 
             }
             
+            ptr_buffer->firstTime = firstTime_buffer;
             
             if (ptr_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
             {
@@ -1120,19 +1123,14 @@ void APP_LOG_data( APP_var_t* log_data )
  void APP_print_Buffer_Register ( uint8_t index_aux )
 {
         struct tm * time_to_display;
-        static bool firstTime = true;
         
         sprintf(USB_dummyBuffer,"\n  | Datos del registro %d correspondiente a la planta %04d \n",APP_logBuffer[index_aux].logNum,APP_logBuffer[index_aux].plantID);
         USB_write(USB_dummyBuffer);
         
 		time_to_display = localtime(&(APP_logBuffer[index_aux].time));
         
-        if( firstTime && APP_logBuffer[index_aux].position_validity )
-        {
-            firstTime = false;
-        }
         
-        if( firstTime )
+        if( APP_logBuffer[index_aux].firstTime == false )
         {
             USB_write("  | Fecha y hora: - \n");
             sprintf(USB_dummyBuffer,"  | Humedad: %dCb: %s \n",APP_logBuffer[index_aux].humidity, APP_humidityLevel2String( APP_humidity2level( APP_logBuffer[index_aux].humidity ) ));
@@ -1569,7 +1567,7 @@ void APP_tasks()
             
             GPS_parseFrame( MDM_whatsInReadBuffer(), &aux_tm, &APP_info.position, &APP_info.position_validity );
             MDM_taskSetStatus( MDM_TASK_GET_GPS_FRAME, MDM_TASK_STATUS_UNDEF );
-            
+                     
             if(APP_info.position_validity)
             {
                RTCC_TimeSet(&aux_tm);               

@@ -282,6 +282,7 @@ typedef struct
     time_t time;
     GPSPosition_t position;
     bool position_validity;
+    bool firstTime;
     uint16_t plantID;  
     uint32_t logNum;
 }APP_log_t; 
