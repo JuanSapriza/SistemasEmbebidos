@@ -61,7 +61,7 @@ bool APP_pot2RGBIsEnabled();
 void APP_LEDA_irrigate ( uint8_t p_humidity );
 void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad );
 
-void APP_changePlantID( uint16_t p_newID );
+void APP_changePlantID( uint32_t p_newID );
 APP_FUNC_STATUS_t APP_getNewPlantID( void );
 
 uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void );
@@ -978,7 +978,7 @@ void APP_BTNA_manual_irrigate ( uint8_t ADC_humedad )
 
 //<editor-fold defaultstate="collapsed" desc="ID de la Planta">
 
-void APP_changePlantID( uint16_t p_newID )
+void APP_changePlantID( uint32_t p_newID )
 {
     APP_info.plantID = p_newID;
 }
@@ -1027,7 +1027,7 @@ APP_FUNC_STATUS_t APP_getNewPlantID()
             
         case APP_GET_NEW_ID_RESPONSE_OK:
             USB_write("\n\n ID configurado correctamente! \n");
-            APP_changePlantID( (uint16_t) aux);
+            APP_changePlantID( (uint32_t) aux);
             state = APP_GET_NEW_ID_SHOW;
             return APP_FUNC_DONE;
             
@@ -1306,7 +1306,7 @@ APP_FUNC_STATUS_t APP_GSMConfig()
         case APP_STATE_INIT:
             MDM_taskSchedule( MDM_TASK_CONFIG, NULL );
             state_gsmConfig = APP_STATE_TASKS;
-            USB_write("\nAguarde por favor...");
+            USB_write("\nAguarde por favor...\n");
             //intentional breakthrough
         
         case APP_STATE_TASKS:
@@ -1453,13 +1453,32 @@ MDM_smsInfo_t* APP_emergencySMS()
 {
     static MDM_smsInfo_t smsInfo;
     struct tm * time_to_display;
+    static bool RTCC_initialized = false;
     
-    time_to_display = localtime(&(APP_info.time));
+    if ( APP_info.position_validity )
+    {
+        RTCC_initialized = true;
+    }
     
-    memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
-    strcpy( smsInfo.num, APP_info.emergencyNum );
-    sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display ), APP_location2GoogleMapsString() );
-    return &smsInfo;
+    if ( RTCC_initialized )
+    {
+        time_to_display = localtime(&(APP_info.time));
+
+        memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
+        strcpy( smsInfo.num, APP_info.emergencyNum );
+        sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display ), APP_location2GoogleMapsString() );
+        return &smsInfo;
+    }
+   
+    else
+    {
+        
+        memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
+        strcpy( smsInfo.num, APP_info.emergencyNum );
+        sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), "Hora no disponible", APP_location2GoogleMapsString() );
+        return &smsInfo;
+    }
+    
 }
 
 uint8_t* APP_location2GoogleMapsString()
@@ -1518,7 +1537,6 @@ bool APP_init()  //inicializacion de cosas propias de nuestra aplicacion
 
 void APP_tasks()
 {
-    static MDM_smsInfo_t emergency_sms; 
     struct tm aux_tm;
     static bool sense = false;
     
@@ -1650,7 +1668,7 @@ void APP_UI() //interfaz de usuario
             break;
             
         case APP_UI_STATE_MENU_CREATE:
-            UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Menu Principal. ¿Qué desea hacer?" );
+            UTS_addTitle2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Menú Principal. ¿Qué desea hacer?" );
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Setear ID de Planta" ); //1
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Umbrales" ); //2
             UTS_addOption2Menu( UTS_MENU_HANDLER_MENU_PRINCIPAL, "Configurar Parámetros" ); //3
