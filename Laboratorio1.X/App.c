@@ -1052,7 +1052,7 @@ uint32_t APP_LOG_BUFFER_HEAD_GetValue ( void )
 {
     return APP_logBufferHead; //APP_logBufferHead da un entero que indica el indice dentro del buffer
 }
-
+    
 void APP_LOG_data( APP_var_t* log_data )
 {
     static APP_log_t* ptr_buffer;
@@ -1167,14 +1167,24 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
     switch ( state_buffer )
     {
         case STATE_BUFFER_INIT:
-            if ( APP_LOG_BUFFER_HEAD_GetValue() == 0 )
+            if( APP_LOG_BUFFER_HEAD_GetValue() == APP_LOG_BUFFER_SIZE-1 )
             {
-                index_buffer = APP_LOG_BUFFER_SIZE-1 ;
+                index_buffer = 0;
             }
             else
             {
-                index_buffer = APP_LOG_BUFFER_HEAD_GetValue()-1; //porque APP_LOG_BUFFER_HEAD_GetValue() es el siguente elemento a escribir en el log y APP_LOG_BUFFER_HEAD_GetValue()-1 es el último registro
+                index_buffer = APP_LOG_BUFFER_HEAD_GetValue()+1;
             }
+//            
+//            
+//            if ( APP_LOG_BUFFER_HEAD_GetValue() == 0 )
+//            {
+//                index_buffer = APP_LOG_BUFFER_SIZE-1 ;
+//            }
+//            else
+//            {
+//                index_buffer = APP_LOG_BUFFER_HEAD_GetValue()-1; //porque APP_LOG_BUFFER_HEAD_GetValue() es el siguente elemento a escribir en el log y APP_LOG_BUFFER_HEAD_GetValue()-1 es el último registro
+//            }
             state_buffer = STATE_BUFFER_PRINT;
         //intentional breakthrough
         
@@ -1191,17 +1201,15 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
         case STATE_BUFFER_CHECK:
             if ( USB_sth2Write() == 0 )
             {
-                if ( index_buffer == 0 )
+                if ( index_buffer == APP_LOG_BUFFER_SIZE-1 )
                 {
-                    index_buffer = APP_LOG_BUFFER_SIZE-1 ;
+                    index_buffer = 0;
                 }
-                
                 else
                 {
-                    index_buffer--;
+                    index_buffer++;
                 }
-                
-                if ( ( index_buffer == APP_LOG_BUFFER_HEAD_GetValue()-1 ) || (APP_LOG_BUFFER_HEAD_GetValue() == 0 && index_buffer == APP_LOG_BUFFER_SIZE-1 ) )
+                if ( ( index_buffer == APP_LOG_BUFFER_HEAD_GetValue() ) || (APP_LOG_BUFFER_HEAD_GetValue() == APP_LOG_BUFFER_SIZE-1 && index_buffer == 0 ) )
                 {
                     state_buffer=STATE_BUFFER_INIT;
                     return APP_FUNC_DONE;
