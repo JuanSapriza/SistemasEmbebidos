@@ -307,8 +307,8 @@ typedef struct
 
 //<editor-fold defaultstate="collapsed" desc="External Variables">
 
-extern APP_var_t APP_info;  //var de interes
-extern APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE]; //var de interes
+extern APP_var_t APP_info;
+extern APP_log_t APP_logBuffer[APP_LOG_BUFFER_SIZE];
 
 //</editor-fold>
 

@@ -21,9 +21,6 @@ static void MAIN_init()
 
 int main ()
 {
-    struct tm p_time_aux;
-    uint8_t* index = 0;
-    uint8_t dummyBuffer[ 64 ];
     uint8_t state_main = APP_STATE_APP_INIT;
 
     MAIN_init();
@@ -50,10 +47,6 @@ int main ()
             MDM_tasks();
             RGB_tasks();    
             USB_CDC_tasks();
-//            if( USB_sniffType() != USB_SNIFF_TYPE_NONE )
-//            {
-//                USB_send2Modem();
-//            }
         }
     }
     return 0;

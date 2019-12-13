@@ -1223,7 +1223,6 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
 APP_FUNC_STATUS_t APP_setNewPhone()
 {
     static uint8_t state = APP_STATE_INIT;
-    uint8_t auxBuffer[ MDM_SMS_PHONE_NUM_LENGTH +2 ]; //por las comillas de los bordes
     
     switch( state )
     {

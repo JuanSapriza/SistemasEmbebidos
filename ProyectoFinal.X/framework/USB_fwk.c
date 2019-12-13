@@ -167,7 +167,7 @@ void USB_send2Modem()
             
             USB_sniffSetType( previousSniffType ); 
         }
-        MDM_readString(); //para comerme el eco? cuidado! 
+        MDM_readString(); //para evitar el eco
     }
 }
 

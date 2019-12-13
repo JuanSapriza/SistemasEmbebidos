@@ -308,7 +308,7 @@ MDM_AT_RESP_NAME_t MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_t p_cmd, uint8_t* p_
         case MDM_ESTADOS_CHECK:
             if( UTS_delayms( UTS_DELAY_HANDLER_AT_SEND_AND_WAIT_ACHIQUEN, 1, false ) ) //Delay creado para que tenga tiempo de recibir todos los caracteres 
             {
-                memset( MDM_rxBuffer, 0, sizeof( MDM_rxBuffer ) ); //Es necesario afuera para que no borre el buffer cada vez que voy a comparar con una respuesta
+                memset( MDM_rxBuffer, 0, sizeof( MDM_rxBuffer ) ); //Es necesario afuera para que no borre el buffer cada vez que compara con una respuesta
                 MDM_read( MDM_rxBuffer );
                 i = 1;
                 do
@@ -828,7 +828,6 @@ uint8_t* MDM_pin2str( uint16_t p_pin )
 MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
 {
     static MDM_AT_CMD_NAME_t state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
-//    static retries = 0;
     MDM_AT_RESP_NAME_t ret;
     
     switch( state )
@@ -881,8 +880,6 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
                     
                 case MDM_AT_RESP_NAME_GSM_SIM_ERROR:
                     state = MDM_COMMAND_SEQ_WAIT_4_READY;
-//                        state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
-//                        return ret;
                     break;
                     
                 default:
