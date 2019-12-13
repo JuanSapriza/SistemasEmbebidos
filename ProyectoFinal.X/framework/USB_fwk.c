@@ -160,12 +160,12 @@ void USB_send2Modem()
     {
         if( *USB_read(0) !=  0 ) // si se envía algo 
         {
-//            previousSniffType = USB_sniffType(); 
-//            USB_sniffSetType( USB_SNIFF_TYPE_RX ); 
+            previousSniffType = USB_sniffType(); 
+            USB_sniffSetType( USB_SNIFF_TYPE_RX ); 
         
             MDM_sendATCmd( USB_rxBuffer, NULL);
             
-//            USB_sniffSetType( previousSniffType ); 
+            USB_sniffSetType( previousSniffType ); 
         }
         MDM_readString(); //para comerme el eco? cuidado! 
     }

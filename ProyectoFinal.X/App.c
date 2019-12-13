@@ -1175,16 +1175,6 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
             {
                 index_buffer = APP_LOG_BUFFER_HEAD_GetValue()+1;
             }
-//            
-//            
-//            if ( APP_LOG_BUFFER_HEAD_GetValue() == 0 )
-//            {
-//                index_buffer = APP_LOG_BUFFER_SIZE-1 ;
-//            }
-//            else
-//            {
-//                index_buffer = APP_LOG_BUFFER_HEAD_GetValue()-1; //porque APP_LOG_BUFFER_HEAD_GetValue() es el siguente elemento a escribir en el log y APP_LOG_BUFFER_HEAD_GetValue()-1 es el último registro
-//            }
             state_buffer = STATE_BUFFER_PRINT;
         //intentional breakthrough
         
