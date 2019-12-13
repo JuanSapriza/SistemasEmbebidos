@@ -1466,16 +1466,15 @@ MDM_smsInfo_t* APP_emergencySMS()
 
         memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
         strcpy( smsInfo.num, APP_info.emergencyNum );
-        sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display ), APP_location2GoogleMapsString() );
+        sprintf( smsInfo.text, "%04d suelo %s %s %s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display ), APP_location2GoogleMapsString() );
         return &smsInfo;
     }
    
     else
     {
-        
         memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
         strcpy( smsInfo.num, APP_info.emergencyNum );
-        sprintf( smsInfo.text, "%04d-suelo %s-%s-%s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), "Hora no disponible", APP_location2GoogleMapsString() );
+        sprintf( smsInfo.text, "%04d suelo %s %s %s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), "Hora no disponible", APP_location2GoogleMapsString() );
         return &smsInfo;
     }
     
@@ -1487,7 +1486,7 @@ uint8_t* APP_location2GoogleMapsString()
     memset(dummyBuffer,0,sizeof(dummyBuffer));
     if( APP_info.position_validity )
     {
-        sprintf(dummyBuffer,"https://www.google.com/maps/@%+02.6lf,%+02.6lf,17z \n",APP_info.position.latitude,APP_info.position.longitude);
+        sprintf(dummyBuffer,"http://maps.google.com/maps?q=%+02.6lf,%+02.6lf",APP_info.position.latitude,APP_info.position.longitude); 
     }
     else
     {
