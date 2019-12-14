@@ -1167,48 +1167,38 @@ APP_FUNC_STATUS_t APP_LOG_Buffer_displayUSB()
     switch ( state_buffer )
     {
         case STATE_BUFFER_INIT:
-            if( APP_LOG_BUFFER_HEAD_GetValue() == APP_LOG_BUFFER_SIZE-1 )
-            {
-                index_buffer = 0;
-            }
-            else
-            {
-                index_buffer = APP_LOG_BUFFER_HEAD_GetValue()+1;
-            }
+            index_buffer = APP_LOG_BUFFER_HEAD_GetValue();
             state_buffer = STATE_BUFFER_PRINT;
         //intentional breakthrough
-        
+            
         case STATE_BUFFER_PRINT:
             if (APP_logBuffer[index_buffer].plantID != 0)
             {
                 APP_print_Buffer_Register ( index_buffer );
                 state_buffer = STATE_BUFFER_CHECK;
+                index_buffer++;
                 return APP_FUNC_WORKING;
             }
+            index_buffer++;
             state_buffer = STATE_BUFFER_CHECK;
-            break;
-         
+            break;     
+            
         case STATE_BUFFER_CHECK:
             if ( USB_sth2Write() == 0 )
             {
-                if ( index_buffer == APP_LOG_BUFFER_SIZE-1 )
+                if( index_buffer == APP_LOG_BUFFER_SIZE )
                 {
                     index_buffer = 0;
                 }
-                else
-                {
-                    index_buffer++;
-                }
-                if ( ( index_buffer == APP_LOG_BUFFER_HEAD_GetValue() ) || (APP_LOG_BUFFER_HEAD_GetValue() == APP_LOG_BUFFER_SIZE-1 && index_buffer == 0 ) )
+                if( index_buffer == APP_LOG_BUFFER_HEAD_GetValue() )
                 {
                     state_buffer=STATE_BUFFER_INIT;
                     return APP_FUNC_DONE;
-                }   
-                
+                }
                 state_buffer=STATE_BUFFER_PRINT;
             }
-        break;
-            
+            break;
+
         default: break;
     }
     
