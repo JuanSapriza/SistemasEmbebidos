@@ -147,7 +147,7 @@ void MDM_tasks()
     
 }
 
-bool MDM_taskSchedule( MDM_TASK_NAME_t p_task, void* p_taskPtr )
+void MDM_taskSchedule( MDM_TASK_NAME_t p_task, void* p_taskPtr )
 {
     MDM_task[p_task].status = MDM_TASK_STATUS_NEW;
     MDM_task[p_task].ptr = p_taskPtr;
@@ -571,7 +571,7 @@ uint8_t* MDM_responseString(MDM_AT_CMD_NAME_t p_cmd, uint8_t p_index)
             switch ( p_index )
             {
                 case 1:
-                    strcpy (MDM_respBuffer,"+CPIN:" );
+                    strcpy (MDM_respBuffer,"+CPIN: SIM PIN" );
                     return MDM_respBuffer;
                 case 2:
                     strcpy (MDM_respBuffer,"ERROR" );
@@ -623,6 +623,10 @@ uint8_t* MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_t p_response )
 {
     switch( p_response )
     {
+        case MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED:
+            strcpy (MDM_respBuffer,"+CPIN: SIM PIN" );
+            return MDM_respBuffer;    
+            
         case MDM_AT_RESP_NAME_GSM_SIM_PIN_READY:
             strcpy (MDM_respBuffer,"+CPIN: READY" );
             return MDM_respBuffer;    
@@ -849,7 +853,7 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
             break;
             
         case MDM_AT_CMD_NAME_ECHO_OFF:
-            ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_ECHO_OFF, NULL , MDM_COMMAND_DEFAULT_TIMEOUT );
+            ret = MDM_sendAndWaitResponse( MDM_AT_CMD_NAME_ECHO_ON, NULL , MDM_COMMAND_DEFAULT_TIMEOUT );
             switch( ret )
             {
                 case MDM_AT_RESP_NAME_OK:
@@ -908,8 +912,20 @@ MDM_AT_RESP_NAME_t MDM_GSM_init( uint16_t p_pin )
             if( strstr( MDM_readString(), MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_GSM_SIM_SMS_READY ) ) != 0 )
             {
                 state = MDM_AT_CMD_NAME_GSM_SMS_FORMAT;
+                UTS_delayms( UTS_DELAY_HANDLER_MDM_ERROR_TIMEOUT, MDM_COMMAND_SUPERLONG_TIMEOUT, true );
+                break;
             }
-
+            if( strstr( MDM_whatsInReadBuffer(), MDM_unsolicitedResponseString( MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED ) ) != 0 )
+            {
+                state = MDM_AT_CMD_NAME_GSM_SIM_PIN_SET;
+                UTS_delayms( UTS_DELAY_HANDLER_MDM_ERROR_TIMEOUT, MDM_COMMAND_SUPERLONG_TIMEOUT, true );
+                return MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED;
+            }
+            if( UTS_delayms( UTS_DELAY_HANDLER_MDM_ERROR_TIMEOUT, MDM_COMMAND_SUPERLONG_TIMEOUT, false ) )
+            {
+                state = MDM_AT_CMD_NAME_GSM_FUNCTIONALITY;
+                return MDM_AT_RESP_NAME_GSM_SIM_ERROR;
+            }
             break;
             
         case MDM_AT_CMD_NAME_GSM_SMS_FORMAT:

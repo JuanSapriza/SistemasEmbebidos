@@ -131,12 +131,12 @@ typedef enum
     MDM_AT_RESP_NAME_GNS_GET_INF,
     MDM_AT_RESP_NAME_GNS_GET_INF_NO_SIGNAL,
             
-    MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED,
     MDM_AT_RESP_NAME_GSM_SIM_ERROR,
     MDM_AT_RESP_NAME_GSM_SMS_READ,
     MDM_AT_RESP_NAME_GSM_SMS_SENT,
            
     // RESPUESTAS SIN SOLICITUD PREVIA        
+    MDM_AT_RESP_NAME_GSM_SIM_PIN_NEEDED, //tambien llega por solicitud, se pone aca porque a veces llega luego de error
     MDM_AT_RESP_NAME_GSM_SIM_PIN_READY,
     MDM_AT_RESP_NAME_GSM_SIM_CALL_READY,
     MDM_AT_RESP_NAME_GSM_SIM_SMS_READY,
@@ -172,7 +172,7 @@ typedef struct
 //<editor-fold defaultstate="collapsed" desc="Global Functions">
 
 void MDM_tasks();
-bool MDM_taskSchedule( MDM_TASK_NAME_t p_task, void* p_taskPtr );
+void MDM_taskSchedule( MDM_TASK_NAME_t p_task, void* p_taskPtr );
 void MDM_taskSetStatus( MDM_TASK_NAME_t p_task, MDM_TASK_STATUS_t p_status );
 MDM_TASK_STATUS_t MDM_taskGetStatus( MDM_TASK_NAME_t p_task );
 bool MDM_Init(void);
