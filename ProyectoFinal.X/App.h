@@ -296,7 +296,7 @@ typedef struct
     uint8_t emergencyNum[MDM_SMS_PHONE_NUM_LENGTH];
     uint8_t simPin[MDM_SIM_PIN_SIZE];
     bool GSM_active;
-    
+    bool firstTime;    
     GPSPosition_t position;
     APP_HUMIDITY_t humidity;
     APP_PARAMS_t param;

@@ -17,6 +17,7 @@ static void MAIN_init()
     GPRS_PWR_SetDigitalInput();
     GPRS_RESET_SetHigh();
     ADC1_ChannelSelect( ADC1_POT );
+    APP_info.firstTime=false;
 }
 
 int main ()

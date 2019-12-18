@@ -37,7 +37,7 @@ uint8_t APP_stringBuffer[APP_SHORT_STRING_SIZE];
 
 //<editor-fold defaultstate="collapsed" desc="Funciones">
 
-uint8_t* APP_printDateTime( struct tm* p_time );
+uint8_t* APP_printDateTime( struct tm* p_time, bool firstTime );
 
 void APP_THRESHOLD_initialize( void );
 void APP_PARAM_initialize( void );
@@ -86,11 +86,21 @@ uint8_t* APP_location2GoogleMapsString( void );
 
 //<editor-fold defaultstate="collapsed" desc="Miscelánea">
 
-uint8_t* APP_printDateTime( struct tm* p_time )
+uint8_t* APP_printDateTime( struct tm* p_time, bool RTCC_initialized )
 {
     static uint8_t dummyBuffer[20]; //largo de DD/MM/AAAA_hh:mm:ss
     memset( dummyBuffer,0, sizeof(dummyBuffer) );
-    sprintf(dummyBuffer,"%02d/%02d/%04d %2d:%02d:%02d",p_time->tm_mday,p_time->tm_mon+1, p_time->tm_year+1900,p_time->tm_hour, p_time->tm_min, p_time->tm_sec );
+
+    if ( RTCC_initialized )
+    {
+        sprintf(dummyBuffer,"%02d/%02d/%04d %2d:%02d:%02d",p_time->tm_mday,p_time->tm_mon+1, p_time->tm_year+1900,p_time->tm_hour, p_time->tm_min, p_time->tm_sec );
+    }
+    
+    else
+    {
+        sprintf(dummyBuffer,"Hora no disponible");
+    }
+    
     return dummyBuffer;
 }
 
@@ -587,7 +597,6 @@ APP_FUNC_STATUS_t APP_getNewParameter( APP_PARAMETER_NAMES_t p_parameter, uint32
             return APP_FUNC_DONE;
             
         case APP_SET_NEW_PARAMETER_RESPONSE_ERROR:
-            USB_write("\n\n ERROR \n");
             
             if ( p_parameter == APP_PARAMETER_DISPLAY_HUMIDITY )
             {
@@ -1057,7 +1066,6 @@ void APP_LOG_data( APP_var_t* log_data )
 {
     static APP_log_t* ptr_buffer;
     static uint8_t APP_LOG_STATE = APP_LOG_PTR_INIT;
-    static bool firstTime_buffer = false;
     static double latitude_prev=0;
     static double longitude_prev=0;
     static uint32_t logCount = 0; 
@@ -1079,12 +1087,12 @@ void APP_LOG_data( APP_var_t* log_data )
             ptr_buffer->position.longitude = log_data->position.longitude;
             ptr_buffer->position_validity = log_data->position_validity;
             ptr_buffer->time = log_data->time;
+            ptr_buffer->firstTime = log_data->firstTime;
             
             if ( log_data->position_validity ) 
             {
                 latitude_prev = log_data->position.latitude;
                 longitude_prev  = log_data->position.longitude;
-                firstTime_buffer = true;
             }
             
             else 
@@ -1101,9 +1109,7 @@ void APP_LOG_data( APP_var_t* log_data )
                 }
                 
             }
-            
-            ptr_buffer->firstTime = firstTime_buffer;
-            
+                      
             if (ptr_buffer == &APP_logBuffer[APP_LOG_BUFFER_SIZE-1])
             {
                 ptr_buffer=&APP_logBuffer[0];
@@ -1141,7 +1147,7 @@ void APP_LOG_data( APP_var_t* log_data )
         }
         else
         {
-            sprintf(USB_dummyBuffer,"  | Fecha y hora: %s \n",APP_printDateTime( time_to_display ));
+            sprintf(USB_dummyBuffer,"  | Fecha y hora: %s \n",APP_printDateTime( time_to_display, APP_logBuffer[index_aux].firstTime ));
             USB_write(USB_dummyBuffer);
             sprintf(USB_dummyBuffer,"  | Humedad: %dCb: %s \n",APP_logBuffer[index_aux].humidity, APP_humidityLevel2String( APP_humidity2level( APP_logBuffer[index_aux].humidity ) ));
             USB_write(USB_dummyBuffer);
@@ -1432,30 +1438,13 @@ MDM_smsInfo_t* APP_emergencySMS()
 {
     static MDM_smsInfo_t smsInfo;
     struct tm * time_to_display;
-    static bool RTCC_initialized = false;
     
-    if ( APP_info.position_validity )
-    {
-        RTCC_initialized = true;
-    }
-    
-    if ( RTCC_initialized )
-    {
-        time_to_display = localtime(&(APP_info.time));
+    time_to_display = localtime(&(APP_info.time));
 
-        memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
-        strcpy( smsInfo.num, APP_info.emergencyNum );
-        sprintf( smsInfo.text, "%04d suelo %s %s %s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display ), APP_location2GoogleMapsString() );
-        return &smsInfo;
-    }
-   
-    else
-    {
-        memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
-        strcpy( smsInfo.num, APP_info.emergencyNum );
-        sprintf( smsInfo.text, "%04d suelo %s %s %s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), "Hora no disponible", APP_location2GoogleMapsString() );
-        return &smsInfo;
-    }
+    memset( &smsInfo, 0, sizeof( MDM_smsInfo_t ) );
+    strcpy( smsInfo.num, APP_info.emergencyNum );
+    sprintf( smsInfo.text, "%04d suelo %s %s %s", APP_info.plantID, APP_humidityLevel2String( APP_humidity2level( APP_info.humidity.level ) ), APP_printDateTime( time_to_display, APP_info.firstTime ), APP_location2GoogleMapsString() );
+    return &smsInfo;
     
 }
 
@@ -1517,6 +1506,7 @@ void APP_tasks()
 {
     struct tm aux_tm;
     static bool sense = false;
+    static bool RTCCinitialized = false;
     
     // ACTUALIZACION DE LA HORA
     if( UTS_delayms( UTS_DELAY_HANDLER_TIME_SYNC, 1000, false ) )
@@ -1525,9 +1515,11 @@ void APP_tasks()
       {
           APP_info.time = mktime( &aux_tm );
           APP_info.time += UYT*3600;
+          //RTCCinitialized=true;
       }
     }
     
+    APP_info.firstTime=RTCCinitialized;
     
     // SENSADO DE HUMEDAD
     if( !sense && UTS_delayms( UTS_DELAY_HANDLER_HUMIDITY_SENSE, APP_info.param.humiditySensePeriod, false ) )
@@ -1574,7 +1566,8 @@ void APP_tasks()
                      
             if(APP_info.position_validity)
             {
-               RTCC_TimeSet(&aux_tm);               
+               RTCC_TimeSet(&aux_tm);
+               RTCCinitialized=true;               
             }
             break;
 
