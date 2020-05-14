@@ -1,6 +1,4 @@
 
-//hola
-//chau
 
 //<editor-fold defaultstate="collapsed" desc="Includes">
 
